@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Leaf, Plus, User, Settings, Search, ShoppingCart, BookOpen, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,238 +12,63 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { RecipeCard, type Recipe } from "@/components/recipe-card"
-import { ShopListBanner, type ShopList } from "@/components/shoplist-banner"
-import { RecipeDialog } from "@/components/recipe-dialog"
-import { ListDialog, type ListItem } from "@/components/list-dialog"
-import { ProfileDialog } from "@/components/profile-dialog"
-import { SettingsDialog } from "@/components/settings-dialog"
-import { CreateListDialog } from "@/components/create-list-dialog"
+import { RecipeDialog } from "@/features/recipes/recipe-dialog"
+import { ListDialog } from "@/features/lists/list-dialog"
+import { ProfileDialog } from "@/features/profile/profile-dialog"
+import { SettingsDialog } from "@/features/settings/settings-dialog"
+import { CreateListDialog } from "@/features/lists/create-list-dialog"
 import { RecipeFilter, ActiveFilters } from "@/components/recipe-filter"
-import { mockListItems, mockLists, mockRecipes, mockUser } from "@/data/mock"
+import { ListsTab } from "@/features/home/components/lists-tab"
+import { RecipesTab } from "@/features/home/components/recipes-tab"
+import { useMainPage } from "@/hooks/use-main-page"
 
 export default function MainPage() {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState("lists")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [lists, setLists] = useState<ShopList[]>(mockLists)
-  const [listItems, setListItems] = useState<Record<string, ListItem[]>>(mockListItems)
-  const [recipes] = useState<Recipe[]>(mockRecipes)
-  const [favoriteRecipes, setFavoriteRecipes] = useState<Set<string>>(new Set())
-
-  // Filter states
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [minRating, setMinRating] = useState<number | null>(null)
-
-  // Dialog states
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
-  const [recipeDialogOpen, setRecipeDialogOpen] = useState(false)
-  const [selectedList, setSelectedList] = useState<ShopList | null>(null)
-  const [listDialogOpen, setListDialogOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const [createListOpen, setCreateListOpen] = useState(false)
-  const [editingList, setEditingList] = useState<ShopList | null>(null)
-
-  const user = mockUser
-
-  // Filter recipes based on search, tags, and rating
-  const filteredRecipes = recipes.filter((recipe) => {
-    const matchesSearch =
-      recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      recipe.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    
-    const matchesTags =
-      selectedTags.length === 0 ||
-      selectedTags.every((tag) => recipe.tags.includes(tag))
-    
-    const matchesRating = !minRating || recipe.rating >= minRating
-
-    return matchesSearch && matchesTags && matchesRating
-  })
-
-  // Filter lists based on search
-  const filteredLists = lists.filter((list) =>
-    list.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  // Handlers
-  const handleCreateList = (name: string, color: string) => {
-    if (editingList) {
-      setLists((prev) =>
-        prev.map((l) => (l.id === editingList.id ? { ...l, name, color } : l))
-      )
-      setEditingList(null)
-    } else {
-      const newList: ShopList = {
-        id: Date.now().toString(),
-        name,
-        color,
-        itemCount: 0,
-        linkedRecipeIds: [],
-      }
-      setLists((prev) => [...prev, newList])
-      setListItems((prev) => ({ ...prev, [newList.id]: [] }))
-    }
-  }
-
-  const handleDeleteList = (listId: string) => {
-    setLists((prev) => prev.filter((l) => l.id !== listId))
-    setListItems((prev) => {
-      const { [listId]: _, ...rest } = prev
-      return rest
-    })
-  }
-
-  const handleToggleItem = (itemId: string) => {
-    if (!selectedList) return
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].map((item) =>
-        item.id === itemId ? { ...item, checked: !item.checked } : item
-      ),
-    }))
-  }
-
-  const handleAddItem = (name: string, amount: string) => {
-    if (!selectedList) return
-    const newItem: ListItem = {
-      id: Date.now().toString(),
-      name,
-      amount,
-      checked: false,
-    }
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: [...prev[selectedList.id], newItem],
-    }))
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === selectedList.id ? { ...l, itemCount: l.itemCount + 1 } : l
-      )
-    )
-  }
-
-  const handleDeleteItem = (itemId: string) => {
-    if (!selectedList) return
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].filter((item) => item.id !== itemId),
-    }))
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === selectedList.id ? { ...l, itemCount: l.itemCount - 1 } : l
-      )
-    )
-  }
-
-  const handleDeleteItems = (itemIds: string[]) => {
-    if (!selectedList) return
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].filter((item) => !itemIds.includes(item.id)),
-    }))
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === selectedList.id ? { ...l, itemCount: l.itemCount - itemIds.length } : l
-      )
-    )
-  }
-
-  const handleUpdateItem = (itemId: string, name: string, amount: string) => {
-    if (!selectedList) return
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].map((item) =>
-        item.id === itemId ? { ...item, name, amount } : item
-      ),
-    }))
-  }
-
-  const handleAddRecipeToList = (listId: string, recipe: Recipe) => {
-    const newItems = recipe.ingredients.map((ing, i) => ({
-      id: `${Date.now()}-${i}`,
-      name: ing.name,
-      amount: ing.amount,
-      checked: false,
-    }))
-    setListItems((prev) => ({
-      ...prev,
-      [listId]: [...(prev[listId] || []), ...newItems],
-    }))
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === listId
-          ? {
-              ...l,
-              itemCount: l.itemCount + newItems.length,
-              linkedRecipeIds: l.linkedRecipeIds?.includes(recipe.id)
-                ? l.linkedRecipeIds
-                : [...(l.linkedRecipeIds || []), recipe.id],
-            }
-          : l
-      )
-    )
-    setRecipeDialogOpen(false)
-  }
-
-  const handleRemoveRecipeFromList = (recipeId: string) => {
-    if (!selectedList) return
-    setLists((prev) =>
-      prev.map((l) =>
-        l.id === selectedList.id
-          ? {
-              ...l,
-              linkedRecipeIds: l.linkedRecipeIds?.filter((id) => id !== recipeId) || [],
-            }
-          : l
-      )
-    )
-    // Update selectedList state to reflect the change
-    setSelectedList((prev) =>
-      prev
-        ? {
-            ...prev,
-            linkedRecipeIds: prev.linkedRecipeIds?.filter((id) => id !== recipeId) || [],
-          }
-        : null
-    )
-  }
-
-  const handleViewRecipeFromList = (recipe: Recipe) => {
-    setListDialogOpen(false)
-    setSelectedRecipe(recipe)
-    setRecipeDialogOpen(true)
-  }
-
-  const handleToggleFavorite = (recipeId: string) => {
-    setFavoriteRecipes((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(recipeId)) {
-        newSet.delete(recipeId)
-      } else {
-        newSet.add(recipeId)
-      }
-      return newSet
-    })
-  }
-
-  const getLinkedRecipes = (list: ShopList): Recipe[] => {
-    if (!list.linkedRecipeIds) return []
-    return recipes.filter((r) => list.linkedRecipeIds?.includes(r.id))
-  }
-
-  const handleChangeListColor = (color: string) => {
-    if (!selectedList) return
-    setLists((prev) =>
-      prev.map((l) => (l.id === selectedList.id ? { ...l, color } : l))
-    )
-    setSelectedList((prev) => (prev ? { ...prev, color } : null))
-  }
-
-  const handleLogout = () => {
-    router.push("/login")
-  }
+  const {
+    activeTab,
+    setActiveTab,
+    searchQuery,
+    setSearchQuery,
+    lists,
+    listItems,
+    favoriteRecipes,
+    selectedTags,
+    minRating,
+    setSelectedTags,
+    setMinRating,
+    selectedRecipe,
+    setSelectedRecipe,
+    recipeDialogOpen,
+    setRecipeDialogOpen,
+    selectedList,
+    setSelectedList,
+    listDialogOpen,
+    setListDialogOpen,
+    profileOpen,
+    setProfileOpen,
+    settingsOpen,
+    setSettingsOpen,
+    createListOpen,
+    setCreateListOpen,
+    editingList,
+    setEditingList,
+    user,
+    filteredRecipes,
+    filteredLists,
+    handleCreateList,
+    handleDeleteList,
+    handleToggleItem,
+    handleAddItem,
+    handleDeleteItem,
+    handleDeleteItems,
+    handleUpdateItem,
+    handleAddRecipeToList,
+    handleRemoveRecipeFromList,
+    handleViewRecipeFromList,
+    handleToggleFavorite,
+    getLinkedRecipes,
+    handleChangeListColor,
+    handleLogout,
+  } = useMainPage()
 
   return (
     <div className="min-h-screen bg-background">
@@ -342,64 +165,31 @@ export default function MainPage() {
           )}
 
           <TabsContent value="lists" className="mt-0">
-            {filteredLists.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingCart className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No lists yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first shopping list to get started
-                </p>
-                <Button onClick={() => setCreateListOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create List
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredLists.map((list) => (
-                  <ShopListBanner
-                    key={list.id}
-                    list={list}
-                    onClick={() => {
-                      setSelectedList(list)
-                      setListDialogOpen(true)
-                    }}
-                    onEdit={() => {
-                      setEditingList(list)
-                      setCreateListOpen(true)
-                    }}
-                    onDelete={() => handleDeleteList(list.id)}
-                  />
-                ))}
-              </div>
-            )}
+            <ListsTab
+              lists={filteredLists}
+              onCreateList={() => setCreateListOpen(true)}
+              onOpenList={(list) => {
+                setSelectedList(list)
+                setListDialogOpen(true)
+              }}
+              onEditList={(list) => {
+                setEditingList(list)
+                setCreateListOpen(true)
+              }}
+              onDeleteList={handleDeleteList}
+            />
           </TabsContent>
 
           <TabsContent value="recipes" className="mt-0">
-            {filteredRecipes.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No recipes found</h3>
-                <p className="text-muted-foreground">
-                  Try a different search term or adjust your filters
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredRecipes.map((recipe) => (
-                  <RecipeCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    isFavorite={favoriteRecipes.has(recipe.id)}
-                    onFavoriteToggle={handleToggleFavorite}
-                    onClick={() => {
-                      setSelectedRecipe(recipe)
-                      setRecipeDialogOpen(true)
-                    }}
-                  />
-                ))}
-              </div>
-            )}
+            <RecipesTab
+              recipes={filteredRecipes}
+              favoriteRecipes={favoriteRecipes}
+              onFavoriteToggle={handleToggleFavorite}
+              onOpenRecipe={(recipe) => {
+                setSelectedRecipe(recipe)
+                setRecipeDialogOpen(true)
+              }}
+            />
           </TabsContent>
         </Tabs>
       </main>

@@ -15,10 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { DietaryBadge } from "./dietary-badge"
-import { StarRating } from "./star-rating"
-import type { Recipe } from "./recipe-card"
-import type { ShopList } from "./shoplist-banner"
+import { DietaryBadge } from "@/components/dietary-badge"
+import { StarRating } from "@/components/star-rating"
+import type { Recipe } from "@/components/recipe-card"
+import type { ShopList } from "@/components/shoplist-banner"
 
 interface RecipeDialogProps {
   recipe: Recipe | null

@@ -1,4 +1,4 @@
-import type { ListItem } from "@/components/list-dialog"
+import type { ListItem } from "@/features/lists/types"
 import type { ShopList } from "@/components/shoplist-banner"
 
 export const mockLists: ShopList[] = [

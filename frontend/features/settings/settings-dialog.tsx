@@ -44,8 +44,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </p>
               </div>
             </div>
-            <Switch 
-              checked={isDark} 
+            <Switch
+              checked={isDark}
               onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
             />
           </div>
@@ -70,7 +70,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <Trash2 className="h-4 w-4" />
               Danger Zone
             </Label>
-            <Button variant="outline" className="w-full text-destructive border-destructive/50 hover:bg-destructive/10">
+            <Button
+              variant="outline"
+              className="w-full text-destructive border-destructive/50 hover:bg-destructive/10"
+            >
               Delete Account
             </Button>
           </div>
