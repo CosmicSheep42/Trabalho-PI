@@ -26,18 +26,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import type { ShopList } from "./shoplist-banner"
-import type { Recipe } from "./recipe-card"
-import { DietaryBadge } from "./dietary-badge"
-import { StarRating } from "./star-rating"
+import type { ShopList } from "@/components/shoplist-banner"
+import type { Recipe } from "@/components/recipe-card"
+import { DietaryBadge } from "@/components/dietary-badge"
+import { StarRating } from "@/components/star-rating"
 import Image from "next/image"
-
-export interface ListItem {
-  id: string
-  name: string
-  amount: string
-  checked: boolean
-}
+import type { ListItem } from "@/features/lists/types"
 
 const colorOptions = [
   { value: "green", bg: "bg-green-600", label: "Green" },
@@ -64,7 +58,7 @@ interface ListDialogProps {
   onViewRecipe: (recipe: Recipe) => void
   onRemoveRecipe: (recipeId: string) => void
   onChangeColor: (color: string) => void
-  onChangeDate: (date: string | undefined) => void
+  onChangeDate?: (date: string | undefined) => void
 }
 
 export function ListDialog({
@@ -195,7 +189,7 @@ export function ListDialog({
                       type="date"
                       value={list.date || ""}
                       onChange={(e) => {
-                        onChangeDate(e.target.value || undefined)
+                        onChangeDate?.(e.target.value || undefined)
                       }}
                       className="w-full"
                     />
@@ -205,7 +199,7 @@ export function ListDialog({
                         size="sm"
                         className="w-full mt-2 text-muted-foreground"
                         onClick={() => {
-                          onChangeDate(undefined)
+                          onChangeDate?.(undefined)
                           setDatePickerOpen(false)
                         }}
                       >
@@ -269,7 +263,7 @@ export function ListDialog({
                   <ChevronDown className="h-4 w-4 ml-auto" />
                 )}
               </button>
-              
+
               {recipesExpanded && (
                 <div className="mt-3 space-y-2">
                   {linkedRecipes.map((recipe) => (
@@ -439,7 +433,7 @@ export function ListDialog({
                         >
                           <Pencil className="h-4 w-4 text-muted-foreground" />
                         </Button>
-                        
+
                         {/* Selection button - square checkbox style */}
                         <button
                           onClick={() => toggleSelectItem(item.id)}

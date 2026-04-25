@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { dietaryOptions, DietaryBadge } from "./dietary-badge"
+import { dietaryOptions, DietaryBadge } from "@/components/dietary-badge"
 
 interface ProfileDialogProps {
   open: boolean
