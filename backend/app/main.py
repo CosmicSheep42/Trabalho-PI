@@ -1,27 +1,30 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+from app.api.router import api_router
+from app.core.config import settings
 
-app = FastAPI(title="API", version="1.0.0")
+app = FastAPI(title=settings.app_name, version=settings.app_version)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[settings.frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.include_router(api_router, prefix=settings.api_prefix)
+
+
 @app.get("/")
 def root():
     return {
-        "message": "a",
-        "clerk_configured": bool(os.getenv("CLERK_SECRET_KEY"))
+        "message": "api online",
+        "clerk_configured": bool(settings.clerk_secret_key),
     }
+
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "database": "mysql_available_but_no_tables"}
+    return {"status": "ok"}

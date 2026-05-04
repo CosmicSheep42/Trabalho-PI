@@ -19,6 +19,7 @@ import { DietaryBadge } from "@/components/dietary-badge"
 import { StarRating } from "@/components/star-rating"
 import type { Recipe } from "@/components/recipe-card"
 import type { ShopList } from "@/components/shoplist-banner"
+import type { DietaryOption } from "@/lib/dietary-options"
 
 interface RecipeDialogProps {
   recipe: Recipe | null
@@ -92,7 +93,7 @@ export function RecipeDialog({
 
           <div className="flex flex-wrap gap-1">
             {recipe.tags.map((tag) => (
-              <DietaryBadge key={tag} type={tag as any} />
+              <DietaryBadge key={tag} type={tag as DietaryOption} />
             ))}
           </div>
 

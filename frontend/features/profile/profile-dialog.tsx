@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { User, Mail, Lock, Camera } from "lucide-react"
 import {
   Dialog,
@@ -14,17 +14,15 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { dietaryOptions, DietaryBadge } from "@/components/dietary-badge"
+import type { ProfileUser } from "@/features/profile/types"
+import type { DietaryOption } from "@/lib/dietary-options"
 
 interface ProfileDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user: {
-    name: string
-    email: string
-    avatar?: string
-    allergies: string[]
-  }
-  onSave: (data: { allergies: string[] }) => void
+  user: ProfileUser
+  onSave: (allergies: DietaryOption[]) => Promise<void> | void
+  isSavingUser?: boolean
 }
 
 export function ProfileDialog({
@@ -32,10 +30,17 @@ export function ProfileDialog({
   onOpenChange,
   user,
   onSave,
+  isSavingUser = false,
 }: ProfileDialogProps) {
-  const [selectedAllergies, setSelectedAllergies] = useState<string[]>(user.allergies)
+  const [selectedAllergies, setSelectedAllergies] = useState<DietaryOption[]>(user.allergies)
 
-  const toggleAllergy = (allergy: string) => {
+  useEffect(() => {
+    if (open) {
+      setSelectedAllergies(user.allergies)
+    }
+  }, [open, user.allergies])
+
+  const toggleAllergy = (allergy: DietaryOption) => {
     setSelectedAllergies((prev) =>
       prev.includes(allergy)
         ? prev.filter((a) => a !== allergy)
@@ -43,8 +48,8 @@ export function ProfileDialog({
     )
   }
 
-  const handleSave = () => {
-    onSave({ allergies: selectedAllergies })
+  const handleSave = async () => {
+    await onSave(selectedAllergies)
     onOpenChange(false)
   }
 
@@ -116,7 +121,7 @@ export function ProfileDialog({
             </div>
           </div>
 
-          <Button onClick={handleSave} className="w-full">
+          <Button onClick={() => void handleSave()} className="w-full" disabled={isSavingUser}>
             Save Changes
           </Button>
         </div>

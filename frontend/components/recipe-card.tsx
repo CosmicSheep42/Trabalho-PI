@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Heart } from "lucide-react"
 import { DietaryBadge } from "./dietary-badge"
 import { StarRating } from "./star-rating"
+import type { DietaryOption } from "@/lib/dietary-options"
 import { cn } from "@/lib/utils"
 
 export interface Recipe {
@@ -79,7 +80,7 @@ export function RecipeCard({ recipe, isFavorite = false, onFavoriteToggle, onCli
         <StarRating rating={recipe.rating} />
         <div className="flex flex-wrap gap-1">
           {recipe.tags.slice(0, 2).map((tag) => (
-            <DietaryBadge key={tag} type={tag as any} />
+            <DietaryBadge key={tag} type={tag as DietaryOption} />
           ))}
           {recipe.tags.length > 2 && (
             <span className="text-xs text-muted-foreground">+{recipe.tags.length - 2}</span>

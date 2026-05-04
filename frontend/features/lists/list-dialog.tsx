@@ -32,6 +32,7 @@ import { DietaryBadge } from "@/components/dietary-badge"
 import { StarRating } from "@/components/star-rating"
 import Image from "next/image"
 import type { ListItem } from "@/features/lists/types"
+import type { DietaryOption } from "@/lib/dietary-options"
 
 const colorOptions = [
   { value: "green", bg: "bg-green-600", label: "Green" },
@@ -292,7 +293,7 @@ export function ListDialog({
                             <StarRating rating={recipe.rating} size="sm" />
                             <div className="flex gap-1">
                               {recipe.tags.slice(0, 1).map((tag) => (
-                                <DietaryBadge key={tag} type={tag as any} size="sm" />
+                                <DietaryBadge key={tag} type={tag as DietaryOption} size="sm" />
                               ))}
                             </div>
                           </div>

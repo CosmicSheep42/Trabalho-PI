@@ -51,6 +51,8 @@ export default function MainPage() {
     setCreateListOpen,
     editingList,
     setEditingList,
+    isSavingUser,
+    saveUserAllergies,
     user,
     filteredRecipes,
     filteredLists,
@@ -85,9 +87,9 @@ export default function MainPage() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={undefined} />
+                    <AvatarImage src={user.avatar} />
                     <AvatarFallback className="bg-primary/10 text-primary">
-                      {user.name.charAt(0)}
+                      {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -223,7 +225,8 @@ export default function MainPage() {
         open={profileOpen}
         onOpenChange={setProfileOpen}
         user={user}
-        onSave={(data) => console.log("Save profile:", data)}
+        onSave={saveUserAllergies}
+        isSavingUser={isSavingUser}
       />
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
