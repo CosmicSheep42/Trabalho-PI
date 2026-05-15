@@ -69,6 +69,7 @@ export default function MainPage() {
     handleToggleFavorite,
     getLinkedRecipes,
     handleChangeListColor,
+    handleChangeListDate,
     handleLogout,
   } = useMainPage()
 
@@ -219,6 +220,7 @@ export default function MainPage() {
         onViewRecipe={handleViewRecipeFromList}
         onRemoveRecipe={handleRemoveRecipeFromList}
         onChangeColor={handleChangeListColor}
+        onChangeDate={handleChangeListDate}
       />
 
       <ProfileDialog

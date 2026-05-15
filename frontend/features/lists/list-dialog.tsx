@@ -131,7 +131,7 @@ export function ListDialog({
 
   const startEditing = (item: ListItem) => {
     setEditingItemId(item.id)
-    setEditName(item.name)
+    setEditName(item.text)
     setEditAmount(item.amount)
   }
 
@@ -415,7 +415,7 @@ export function ListDialog({
                       {/* Item name and amount - always side by side */}
                       <div className="flex-1 flex items-center justify-between min-w-0 gap-4">
                         <span className={cn("truncate", item.checked && "line-through text-muted-foreground")}>
-                          {item.name}
+                          {item.text}
                         </span>
                         {item.amount && (
                           <span className="text-sm text-muted-foreground shrink-0">

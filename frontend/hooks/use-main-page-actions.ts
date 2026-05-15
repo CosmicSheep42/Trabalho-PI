@@ -10,178 +10,111 @@ interface UseMainPageActionsParams {
   recipes: Recipe[]
   selectedList: ShopList | null
   editingList: ShopList | null
-  setLists: Dispatch<SetStateAction<ShopList[]>>
-  setListItems: Dispatch<SetStateAction<Record<string, ListItem[]>>>
+  listItems: Record<string, ListItem[]>
   setEditingList: Dispatch<SetStateAction<ShopList | null>>
   setRecipeDialogOpen: Dispatch<SetStateAction<boolean>>
   setSelectedList: Dispatch<SetStateAction<ShopList | null>>
   setListDialogOpen: Dispatch<SetStateAction<boolean>>
   setSelectedRecipe: Dispatch<SetStateAction<Recipe | null>>
   setFavoriteRecipes: Dispatch<SetStateAction<Set<string>>>
+  createList: (payload: { name: string; color: string; date?: string | null }) => Promise<ShopList>
+  updateList: (listId: string, payload: { name?: string; color?: string; date?: string | null }) => Promise<ShopList>
+  deleteList: (listId: string) => Promise<void>
+  addItem: (listId: string, payload: { text: string; amount?: string; checked?: boolean }) => Promise<ListItem>
+  updateItem: (listId: string, itemId: string, payload: { text?: string; amount?: string; checked?: boolean }) => Promise<ListItem>
+  deleteItem: (listId: string, itemId: string) => Promise<void>
+  deleteItems: (listId: string, itemIds: string[]) => Promise<void>
 }
 
 export function useMainPageActions({
   recipes,
   selectedList,
   editingList,
-  setLists,
-  setListItems,
+  listItems,
   setEditingList,
   setRecipeDialogOpen,
   setSelectedList,
   setListDialogOpen,
   setSelectedRecipe,
   setFavoriteRecipes,
+  createList,
+  updateList,
+  deleteList,
+  addItem,
+  updateItem,
+  deleteItem,
+  deleteItems,
 }: UseMainPageActionsParams) {
   const { signOut } = useClerk()
 
-  const handleCreateList = (name: string, color: string) => {
+  const handleCreateList = async (name: string, color: string, date?: string) => {
     if (editingList) {
-      setLists((prev) =>
-        prev.map((list) => (list.id === editingList.id ? { ...list, name, color } : list))
-      )
+      const updatedList = await updateList(editingList.id, { name, color, date: date ?? null })
+      setSelectedList((prev) => (prev?.id === updatedList.id ? updatedList : prev))
       setEditingList(null)
       return
     }
 
-    const newList: ShopList = {
-      id: Date.now().toString(),
-      name,
-      color,
-      itemCount: 0,
-      linkedRecipeIds: [],
+    await createList({ name, color, date })
+  }
+
+  const handleDeleteList = async (listId: string) => {
+    const shouldCloseDialog = selectedList?.id === listId
+    await deleteList(listId)
+    setSelectedList((prev) => (prev?.id === listId ? null : prev))
+    if (shouldCloseDialog) {
+      setListDialogOpen(false)
+    }
+  }
+
+  const handleToggleItem = async (itemId: string) => {
+    if (!selectedList) return
+
+    const currentItem = (listItems[selectedList.id] ?? []).find((item) => item.id === itemId)
+    if (!currentItem) return
+
+    await updateItem(selectedList.id, itemId, { checked: !currentItem.checked })
+  }
+
+  const handleAddItem = async (name: string, amount: string) => {
+    if (!selectedList) return
+
+    await addItem(selectedList.id, { text: name, amount, checked: false })
+  }
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!selectedList) return
+
+    await deleteItem(selectedList.id, itemId)
+  }
+
+  const handleDeleteItems = async (itemIds: string[]) => {
+    if (!selectedList) return
+
+    await deleteItems(selectedList.id, itemIds)
+  }
+
+  const handleUpdateItem = async (itemId: string, name: string, amount: string) => {
+    if (!selectedList) return
+
+    await updateItem(selectedList.id, itemId, { text: name, amount })
+  }
+
+  const handleAddRecipeToList = async (listId: string, recipe: Recipe) => {
+    for (const ingredient of recipe.ingredients) {
+      await addItem(listId, {
+        text: ingredient.name,
+        amount: ingredient.amount,
+        checked: false,
+      })
     }
 
-    setLists((prev) => [...prev, newList])
-    setListItems((prev) => ({ ...prev, [newList.id]: [] }))
-  }
-
-  const handleDeleteList = (listId: string) => {
-    setLists((prev) => prev.filter((list) => list.id !== listId))
-    setListItems((prev) => {
-      const { [listId]: _, ...rest } = prev
-      return rest
-    })
-  }
-
-  const handleToggleItem = (itemId: string) => {
-    if (!selectedList) return
-
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].map((item) =>
-        item.id === itemId ? { ...item, checked: !item.checked } : item
-      ),
-    }))
-  }
-
-  const handleAddItem = (name: string, amount: string) => {
-    if (!selectedList) return
-
-    const newItem: ListItem = {
-      id: Date.now().toString(),
-      name,
-      amount,
-      checked: false,
-    }
-
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: [...prev[selectedList.id], newItem],
-    }))
-    setLists((prev) =>
-      prev.map((list) =>
-        list.id === selectedList.id
-          ? { ...list, itemCount: list.itemCount + 1 }
-          : list
-      )
-    )
-  }
-
-  const handleDeleteItem = (itemId: string) => {
-    if (!selectedList) return
-
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].filter((item) => item.id !== itemId),
-    }))
-    setLists((prev) =>
-      prev.map((list) =>
-        list.id === selectedList.id
-          ? { ...list, itemCount: list.itemCount - 1 }
-          : list
-      )
-    )
-  }
-
-  const handleDeleteItems = (itemIds: string[]) => {
-    if (!selectedList) return
-
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].filter((item) => !itemIds.includes(item.id)),
-    }))
-    setLists((prev) =>
-      prev.map((list) =>
-        list.id === selectedList.id
-          ? { ...list, itemCount: list.itemCount - itemIds.length }
-          : list
-      )
-    )
-  }
-
-  const handleUpdateItem = (itemId: string, name: string, amount: string) => {
-    if (!selectedList) return
-
-    setListItems((prev) => ({
-      ...prev,
-      [selectedList.id]: prev[selectedList.id].map((item) =>
-        item.id === itemId ? { ...item, name, amount } : item
-      ),
-    }))
-  }
-
-  const handleAddRecipeToList = (listId: string, recipe: Recipe) => {
-    const newItems = recipe.ingredients.map((ingredient, index) => ({
-      id: `${Date.now()}-${index}`,
-      name: ingredient.name,
-      amount: ingredient.amount,
-      checked: false,
-    }))
-
-    setListItems((prev) => ({
-      ...prev,
-      [listId]: [...(prev[listId] || []), ...newItems],
-    }))
-    setLists((prev) =>
-      prev.map((list) =>
-        list.id === listId
-          ? {
-              ...list,
-              itemCount: list.itemCount + newItems.length,
-              linkedRecipeIds: list.linkedRecipeIds?.includes(recipe.id)
-                ? list.linkedRecipeIds
-                : [...(list.linkedRecipeIds || []), recipe.id],
-            }
-          : list
-      )
-    )
     setRecipeDialogOpen(false)
   }
 
   const handleRemoveRecipeFromList = (recipeId: string) => {
     if (!selectedList) return
 
-    setLists((prev) =>
-      prev.map((list) =>
-        list.id === selectedList.id
-          ? {
-              ...list,
-              linkedRecipeIds: list.linkedRecipeIds?.filter((id) => id !== recipeId) || [],
-            }
-          : list
-      )
-    )
     setSelectedList((prev) =>
       prev
         ? {
@@ -215,13 +148,18 @@ export function useMainPageActions({
     return recipes.filter((recipe) => list.linkedRecipeIds?.includes(recipe.id))
   }
 
-  const handleChangeListColor = (color: string) => {
+  const handleChangeListColor = async (color: string) => {
     if (!selectedList) return
 
-    setLists((prev) =>
-      prev.map((list) => (list.id === selectedList.id ? { ...list, color } : list))
-    )
-    setSelectedList((prev) => (prev ? { ...prev, color } : null))
+    const updatedList = await updateList(selectedList.id, { color })
+    setSelectedList(updatedList)
+  }
+
+  const handleChangeListDate = async (date: string | undefined) => {
+    if (!selectedList) return
+
+    const updatedList = await updateList(selectedList.id, { date: date ?? null })
+    setSelectedList(updatedList)
   }
 
   const handleLogout = async () => {
@@ -242,6 +180,7 @@ export function useMainPageActions({
     handleToggleFavorite,
     getLinkedRecipes,
     handleChangeListColor,
+    handleChangeListDate,
     handleLogout,
   }
 }
