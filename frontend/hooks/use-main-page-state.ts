@@ -4,9 +4,11 @@ import { useState } from "react"
 import type { Recipe } from "@/components/recipe-card"
 import type { ShopList } from "@/components/shoplist-banner"
 import type { ListItem } from "@/features/lists/types"
-import { mockListItems, mockLists, mockRecipes, mockUser } from "@/data/mock"
+import { mockListItems, mockLists, mockRecipes } from "@/data/mock"
+import { useBackendUser } from "@/hooks/use-backend-user"
 
 export function useMainPageState() {
+  const backendUser = useBackendUser()
   const [activeTab, setActiveTab] = useState("lists")
   const [searchQuery, setSearchQuery] = useState("")
   const [lists, setLists] = useState<ShopList[]>(mockLists)
@@ -58,6 +60,6 @@ export function useMainPageState() {
     setCreateListOpen,
     editingList,
     setEditingList,
-    user: mockUser,
+    ...backendUser,
   }
 }

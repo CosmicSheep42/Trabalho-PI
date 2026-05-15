@@ -1,8 +1,14 @@
 .env
 
-# Backend
-backend/app/__pycache__/
+# Python
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
 
-# Frontend
-frontend/node_modules/
-frontend/.next/
+# Frontend / Node
+node_modules/
+.next/
+
+# OS / editor
+.DS_Store

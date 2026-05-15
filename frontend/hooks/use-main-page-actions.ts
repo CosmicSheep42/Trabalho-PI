@@ -1,7 +1,7 @@
 "use client"
 
 import type { Dispatch, SetStateAction } from "react"
-import { useRouter } from "next/navigation"
+import { useClerk } from "@clerk/nextjs"
 import type { Recipe } from "@/components/recipe-card"
 import type { ShopList } from "@/components/shoplist-banner"
 import type { ListItem } from "@/features/lists/types"
@@ -33,7 +33,7 @@ export function useMainPageActions({
   setSelectedRecipe,
   setFavoriteRecipes,
 }: UseMainPageActionsParams) {
-  const router = useRouter()
+  const { signOut } = useClerk()
 
   const handleCreateList = (name: string, color: string) => {
     if (editingList) {
@@ -224,8 +224,8 @@ export function useMainPageActions({
     setSelectedList((prev) => (prev ? { ...prev, color } : null))
   }
 
-  const handleLogout = () => {
-    router.push("/login")
+  const handleLogout = async () => {
+    await signOut({ redirectUrl: "/login" })
   }
 
   return {
