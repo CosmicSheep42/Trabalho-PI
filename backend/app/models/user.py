@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, String, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -17,3 +17,10 @@ class User(Base):
     nut_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     low_carb: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     high_protein: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+
+    lists = relationship(
+        "ShoppingList",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

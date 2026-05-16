@@ -1,18 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { Recipe } from "@/components/recipe-card"
 import type { ShopList } from "@/components/shoplist-banner"
-import type { ListItem } from "@/features/lists/types"
-import { mockListItems, mockLists, mockRecipes } from "@/data/mock"
+import { mockRecipes } from "@/data/mock"
+import { useBackendLists } from "@/hooks/use-backend-lists"
 import { useBackendUser } from "@/hooks/use-backend-user"
 
 export function useMainPageState() {
+  const backendLists = useBackendLists()
   const backendUser = useBackendUser()
   const [activeTab, setActiveTab] = useState("lists")
   const [searchQuery, setSearchQuery] = useState("")
-  const [lists, setLists] = useState<ShopList[]>(mockLists)
-  const [listItems, setListItems] = useState<Record<string, ListItem[]>>(mockListItems)
   const [recipes] = useState<Recipe[]>(mockRecipes)
   const [favoriteRecipes, setFavoriteRecipes] = useState<Set<string>>(new Set())
 
@@ -28,15 +27,33 @@ export function useMainPageState() {
   const [createListOpen, setCreateListOpen] = useState(false)
   const [editingList, setEditingList] = useState<ShopList | null>(null)
 
+  useEffect(() => {
+    if (!selectedList) {
+      return
+    }
+
+    const nextSelectedList = backendLists.lists.find((list) => list.id === selectedList.id)
+
+    if (!nextSelectedList) {
+      setSelectedList(null)
+      setListDialogOpen(false)
+      return
+    }
+
+    if (nextSelectedList !== selectedList) {
+      setSelectedList(nextSelectedList)
+    }
+  }, [backendLists.lists, selectedList])
+
   return {
     activeTab,
     setActiveTab,
     searchQuery,
     setSearchQuery,
-    lists,
-    setLists,
-    listItems,
-    setListItems,
+    selectedList,
+    setSelectedList,
+    listDialogOpen,
+    setListDialogOpen,
     recipes,
     favoriteRecipes,
     setFavoriteRecipes,
@@ -48,10 +65,6 @@ export function useMainPageState() {
     setSelectedRecipe,
     recipeDialogOpen,
     setRecipeDialogOpen,
-    selectedList,
-    setSelectedList,
-    listDialogOpen,
-    setListDialogOpen,
     profileOpen,
     setProfileOpen,
     settingsOpen,
@@ -60,6 +73,7 @@ export function useMainPageState() {
     setCreateListOpen,
     editingList,
     setEditingList,
+    ...backendLists,
     ...backendUser,
   }
 }

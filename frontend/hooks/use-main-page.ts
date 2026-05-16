@@ -18,14 +18,20 @@ export function useMainPage() {
     recipes: state.recipes,
     selectedList: state.selectedList,
     editingList: state.editingList,
-    setLists: state.setLists,
-    setListItems: state.setListItems,
+    listItems: state.listItems,
     setEditingList: state.setEditingList,
     setRecipeDialogOpen: state.setRecipeDialogOpen,
     setSelectedList: state.setSelectedList,
     setListDialogOpen: state.setListDialogOpen,
     setSelectedRecipe: state.setSelectedRecipe,
     setFavoriteRecipes: state.setFavoriteRecipes,
+    createList: state.createList,
+    updateList: state.updateList,
+    deleteList: state.deleteList,
+    addItem: state.addItem,
+    updateItem: state.updateItem,
+    deleteItem: state.deleteItem,
+    deleteItems: state.deleteItems,
   })
 
   return {
