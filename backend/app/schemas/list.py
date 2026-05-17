@@ -49,6 +49,7 @@ class ShoppingListResponse(ShoppingListBase):
 
     id: int
     items: list[ListItemResponse]
+    recipe_ids: list[int]
 
 
 class BulkDeleteListItemsPayload(BaseModel):

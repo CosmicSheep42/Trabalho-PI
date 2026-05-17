@@ -30,11 +30,9 @@ export default function MainPage() {
     setSearchQuery,
     lists,
     listItems,
-    favoriteRecipes,
-    selectedTags,
-    minRating,
-    setSelectedTags,
-    setMinRating,
+    tagGroups,
+    recipeFilters,
+    setRecipeFilters,
     selectedRecipe,
     setSelectedRecipe,
     recipeDialogOpen,
@@ -56,6 +54,8 @@ export default function MainPage() {
     user,
     filteredRecipes,
     filteredLists,
+    isLoadingRecipes,
+    recipesError,
     handleCreateList,
     handleDeleteList,
     handleToggleItem,
@@ -67,6 +67,8 @@ export default function MainPage() {
     handleRemoveRecipeFromList,
     handleViewRecipeFromList,
     handleToggleFavorite,
+    handleRateRecipe,
+    handleRemoveRating,
     getLinkedRecipes,
     handleChangeListColor,
     handleChangeListDate,
@@ -148,10 +150,9 @@ export default function MainPage() {
               )}
               {activeTab === "recipes" && (
                 <RecipeFilter
-                  selectedTags={selectedTags}
-                  minRating={minRating}
-                  onTagsChange={setSelectedTags}
-                  onRatingChange={setMinRating}
+                  filters={recipeFilters}
+                  availableTags={tagGroups}
+                  onFiltersChange={setRecipeFilters}
                 />
               )}
             </div>
@@ -160,10 +161,9 @@ export default function MainPage() {
           {/* Active Filters Display */}
           {activeTab === "recipes" && (
             <ActiveFilters
-              selectedTags={selectedTags}
-              minRating={minRating}
-              onTagsChange={setSelectedTags}
-              onRatingChange={setMinRating}
+              filters={recipeFilters}
+              availableTags={tagGroups}
+              onFiltersChange={setRecipeFilters}
             />
           )}
 
@@ -186,7 +186,8 @@ export default function MainPage() {
           <TabsContent value="recipes" className="mt-0">
             <RecipesTab
               recipes={filteredRecipes}
-              favoriteRecipes={favoriteRecipes}
+              isLoading={isLoadingRecipes}
+              error={recipesError}
               onFavoriteToggle={handleToggleFavorite}
               onOpenRecipe={(recipe) => {
                 setSelectedRecipe(recipe)
@@ -204,6 +205,9 @@ export default function MainPage() {
         onOpenChange={setRecipeDialogOpen}
         lists={lists}
         onAddToList={handleAddRecipeToList}
+        onToggleFavorite={handleToggleFavorite}
+        onRateRecipe={handleRateRecipe}
+        onRemoveRating={handleRemoveRating}
       />
 
       <ListDialog

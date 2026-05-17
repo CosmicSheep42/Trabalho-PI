@@ -33,7 +33,7 @@ function mapBackendList(list: BackendList): ShopList {
     name: list.name,
     color: list.color,
     itemCount: list.items.length,
-    linkedRecipeIds: [],
+    linkedRecipeIds: list.recipe_ids.map(String),
     date: list.date ?? undefined,
   }
 }
@@ -109,6 +109,22 @@ export function useBackendLists() {
     return callback(token)
   }
 
+  function syncListResponse(response: BackendList): ShopList {
+    const nextList = mapBackendList(response)
+    setLists((prev) => {
+      const exists = prev.some((list) => list.id === nextList.id)
+      if (!exists) {
+        return [nextList, ...prev]
+      }
+      return prev.map((list) => (list.id === nextList.id ? nextList : list))
+    })
+    setListItems((prev) => ({
+      ...prev,
+      [nextList.id]: response.items.map(mapBackendItem),
+    }))
+    return nextList
+  }
+
   async function createList(payload: ListPayload): Promise<ShopList> {
     const response = await withToken((token) =>
       apiRequest<BackendList>("/api/lists", {
@@ -118,13 +134,7 @@ export function useBackendLists() {
       })
     )
 
-    const nextList = mapBackendList(response)
-    setLists((prev) => [nextList, ...prev])
-    setListItems((prev) => ({
-      ...prev,
-      [nextList.id]: response.items.map(mapBackendItem),
-    }))
-    return nextList
+    return syncListResponse(response)
   }
 
   async function updateList(listId: string, payload: Partial<ListPayload>): Promise<ShopList> {
@@ -136,13 +146,7 @@ export function useBackendLists() {
       })
     )
 
-    const nextList = mapBackendList(response)
-    setLists((prev) => prev.map((list) => (list.id === listId ? nextList : list)))
-    setListItems((prev) => ({
-      ...prev,
-      [listId]: response.items.map(mapBackendItem),
-    }))
-    return nextList
+    return syncListResponse(response)
   }
 
   async function deleteList(listId: string): Promise<void> {
@@ -248,6 +252,7 @@ export function useBackendLists() {
     lists,
     listItems,
     isLoadingLists,
+    syncListResponse,
     createList,
     updateList,
     deleteList,

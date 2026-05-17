@@ -27,12 +27,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import type { ShopList } from "@/components/shoplist-banner"
-import type { Recipe } from "@/components/recipe-card"
+import type { Recipe } from "@/features/recipes/types"
 import { DietaryBadge } from "@/components/dietary-badge"
 import { StarRating } from "@/components/star-rating"
 import Image from "next/image"
 import type { ListItem } from "@/features/lists/types"
-import type { DietaryOption } from "@/lib/dietary-options"
 
 const colorOptions = [
   { value: "green", bg: "bg-green-600", label: "Green" },
@@ -290,10 +289,10 @@ export function ListDialog({
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-sm line-clamp-1">{recipe.name}</h4>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <StarRating rating={recipe.rating} size="sm" />
+                            <StarRating rating={recipe.average_rating ?? 0} size="sm" />
                             <div className="flex gap-1">
-                              {recipe.tags.slice(0, 1).map((tag) => (
-                                <DietaryBadge key={tag} type={tag as DietaryOption} size="sm" />
+                              {recipe.dietaryOptions.slice(0, 1).map((option) => (
+                                <DietaryBadge key={option} type={option} size="sm" />
                               ))}
                             </div>
                           </div>

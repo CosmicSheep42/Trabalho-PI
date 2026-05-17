@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Clock, Users, Plus } from "lucide-react"
+import { Clock, Heart, Trash2, Users, Plus } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -17,9 +17,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { DietaryBadge } from "@/components/dietary-badge"
 import { StarRating } from "@/components/star-rating"
-import type { Recipe } from "@/components/recipe-card"
 import type { ShopList } from "@/components/shoplist-banner"
-import type { DietaryOption } from "@/lib/dietary-options"
+import type { Recipe } from "@/features/recipes/types"
+import { formatPrepTime } from "@/features/recipes/types"
+import { cn } from "@/lib/utils"
 
 interface RecipeDialogProps {
   recipe: Recipe | null
@@ -27,6 +28,9 @@ interface RecipeDialogProps {
   onOpenChange: (open: boolean) => void
   lists: ShopList[]
   onAddToList: (listId: string, recipe: Recipe) => void
+  onToggleFavorite: (recipe: Recipe) => void
+  onRateRecipe: (recipeId: string, rating: number) => void
+  onRemoveRating: (recipeId: string) => void
 }
 
 export function RecipeDialog({
@@ -35,6 +39,9 @@ export function RecipeDialog({
   onOpenChange,
   lists,
   onAddToList,
+  onToggleFavorite,
+  onRateRecipe,
+  onRemoveRating,
 }: RecipeDialogProps) {
   if (!recipe) return null
 
@@ -56,45 +63,85 @@ export function RecipeDialog({
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <StarRating rating={recipe.rating} size="md" />
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <StarRating rating={recipe.average_rating ?? 0} size="md" />
+                <span className="text-sm text-muted-foreground">
+                  {recipe.average_rating?.toFixed(1) ?? "No ratings"} · {recipe.ratings_count} ratings
+                </span>
+              </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                {recipe.prepTime}
+                {formatPrepTime(recipe.prep_time_minutes)}
               </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                {recipe.servings} servings
+                {recipe.servings ?? "?"} servings
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add to List
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {lists.length === 0 ? (
-                  <DropdownMenuItem disabled>No lists available</DropdownMenuItem>
-                ) : (
-                  lists.map((list) => (
-                    <DropdownMenuItem
-                      key={list.id}
-                      onClick={() => onAddToList(list.id, recipe)}
-                    >
-                      {list.name}
-                    </DropdownMenuItem>
-                  ))
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={recipe.is_favorite ? "default" : "outline"}
+                size="icon"
+                onClick={() => onToggleFavorite(recipe)}
+              >
+                <Heart className={cn("h-4 w-4", recipe.is_favorite && "fill-current")} />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add to List
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {lists.length === 0 ? (
+                    <DropdownMenuItem disabled>No lists available</DropdownMenuItem>
+                  ) : (
+                    lists.map((list) => (
+                      <DropdownMenuItem
+                        key={list.id}
+                        onClick={() => onAddToList(list.id, recipe)}
+                      >
+                        {list.name}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-1">
-            {recipe.tags.map((tag) => (
-              <DietaryBadge key={tag} type={tag as DietaryOption} />
-            ))}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">Your rating</span>
+              <StarRating
+                rating={recipe.user_rating ?? 0}
+                size="md"
+                interactive
+                onChange={(rating) => onRateRecipe(recipe.id, rating)}
+              />
+              {recipe.user_rating && (
+                <Button variant="ghost" size="sm" onClick={() => onRemoveRating(recipe.id)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove
+                </Button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-1">
+              {recipe.dietaryOptions.map((option) => (
+                <DietaryBadge key={option} type={option} />
+              ))}
+              {recipe.tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center rounded border px-2 py-0.5 text-xs text-muted-foreground"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
           </div>
 
           <p className="text-muted-foreground">{recipe.description}</p>

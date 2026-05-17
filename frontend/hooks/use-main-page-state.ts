@@ -1,22 +1,23 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import type { Recipe } from "@/components/recipe-card"
+import { useEffect, useRef, useState } from "react"
 import type { ShopList } from "@/components/shoplist-banner"
-import { mockRecipes } from "@/data/mock"
 import { useBackendLists } from "@/hooks/use-backend-lists"
+import { useBackendRecipes } from "@/hooks/use-backend-recipes"
 import { useBackendUser } from "@/hooks/use-backend-user"
+import type { ActiveRecipeFilters } from "@/components/recipe-filter"
+import type { Recipe } from "@/features/recipes/types"
 
 export function useMainPageState() {
   const backendLists = useBackendLists()
   const backendUser = useBackendUser()
   const [activeTab, setActiveTab] = useState("lists")
   const [searchQuery, setSearchQuery] = useState("")
-  const [recipes] = useState<Recipe[]>(mockRecipes)
-  const [favoriteRecipes, setFavoriteRecipes] = useState<Set<string>>(new Set())
-
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [minRating, setMinRating] = useState<number | null>(null)
+  const [recipeFilters, setRecipeFilters] = useState<ActiveRecipeFilters>({
+    dietary: [],
+    tags: [],
+    timeFilter: null,
+  })
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [recipeDialogOpen, setRecipeDialogOpen] = useState(false)
@@ -26,6 +27,32 @@ export function useMainPageState() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [createListOpen, setCreateListOpen] = useState(false)
   const [editingList, setEditingList] = useState<ShopList | null>(null)
+  const hasInitializedDietaryFilters = useRef(false)
+  const backendRecipes = useBackendRecipes({
+    filters: {
+      search: activeTab === "recipes" ? searchQuery : "",
+      dietary: recipeFilters.dietary,
+      tags: recipeFilters.tags,
+      timeFilter: recipeFilters.timeFilter,
+    },
+    onListUpdated: backendLists.syncListResponse,
+  })
+
+  useEffect(() => {
+    if (hasInitializedDietaryFilters.current) {
+      return
+    }
+
+    if (backendUser.user.allergies.length === 0) {
+      return
+    }
+
+    hasInitializedDietaryFilters.current = true
+    setRecipeFilters((prev) => ({
+      ...prev,
+      dietary: backendUser.user.allergies,
+    }))
+  }, [backendUser.user.allergies])
 
   useEffect(() => {
     if (!selectedList) {
@@ -45,6 +72,21 @@ export function useMainPageState() {
     }
   }, [backendLists.lists, selectedList])
 
+  useEffect(() => {
+    if (!selectedRecipe) {
+      return
+    }
+
+    const nextSelectedRecipe = backendRecipes.recipes.find((recipe) => recipe.id === selectedRecipe.id)
+    if (!nextSelectedRecipe) {
+      return
+    }
+
+    if (nextSelectedRecipe !== selectedRecipe) {
+      setSelectedRecipe(nextSelectedRecipe)
+    }
+  }, [backendRecipes.recipes, selectedRecipe])
+
   return {
     activeTab,
     setActiveTab,
@@ -54,13 +96,8 @@ export function useMainPageState() {
     setSelectedList,
     listDialogOpen,
     setListDialogOpen,
-    recipes,
-    favoriteRecipes,
-    setFavoriteRecipes,
-    selectedTags,
-    setSelectedTags,
-    minRating,
-    setMinRating,
+    recipeFilters,
+    setRecipeFilters,
     selectedRecipe,
     setSelectedRecipe,
     recipeDialogOpen,
@@ -73,6 +110,7 @@ export function useMainPageState() {
     setCreateListOpen,
     editingList,
     setEditingList,
+    ...backendRecipes,
     ...backendLists,
     ...backendUser,
   }

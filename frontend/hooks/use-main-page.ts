@@ -8,10 +8,7 @@ export function useMainPage() {
   const state = useMainPageState()
   const filters = useMainPageFilters({
     lists: state.lists,
-    recipes: state.recipes,
     searchQuery: state.searchQuery,
-    selectedTags: state.selectedTags,
-    minRating: state.minRating,
   })
 
   const actions = useMainPageActions({
@@ -24,7 +21,6 @@ export function useMainPage() {
     setSelectedList: state.setSelectedList,
     setListDialogOpen: state.setListDialogOpen,
     setSelectedRecipe: state.setSelectedRecipe,
-    setFavoriteRecipes: state.setFavoriteRecipes,
     createList: state.createList,
     updateList: state.updateList,
     deleteList: state.deleteList,
@@ -32,10 +28,16 @@ export function useMainPage() {
     updateItem: state.updateItem,
     deleteItem: state.deleteItem,
     deleteItems: state.deleteItems,
+    addRecipeToList: state.addRecipeToList,
+    removeRecipeFromList: state.removeRecipeFromList,
+    toggleFavorite: state.toggleFavorite,
+    rateRecipe: state.rateRecipe,
+    removeRating: state.removeRating,
   })
 
   return {
     ...state,
+    filteredRecipes: state.recipes,
     ...filters,
     ...actions,
   }

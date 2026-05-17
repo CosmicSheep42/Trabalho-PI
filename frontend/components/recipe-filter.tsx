@@ -8,54 +8,60 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { dietaryBadgeConfig, type DietaryOption } from "@/lib/dietary-options"
+import type { BackendTagGroups, TimeFilter } from "@/features/recipes/types"
 import { cn } from "@/lib/utils"
 
-const filterOptions = [
-  { id: "vegan", label: "Vegan" },
-  { id: "vegetarian", label: "Vegetarian" },
-  { id: "gluten-free", label: "Gluten Free" },
-  { id: "lactose-free", label: "Lactose Free" },
-  { id: "no-eggs", label: "No Eggs" },
-  { id: "nut-free", label: "Nut Free" },
-  { id: "low-carb", label: "Low Carb" },
-  { id: "high-protein", label: "High Protein" },
+const dietaryOptions = Object.entries(dietaryBadgeConfig).map(([id, config]) => ({
+  id: id as DietaryOption,
+  label: config.label,
+}))
+
+const timeOptions: { value: TimeFilter; label: string }[] = [
+  { value: "under_15m", label: "Under 15 min" },
+  { value: "under_30m", label: "Under 30 min" },
+  { value: "under_60m", label: "Under 60 min" },
+  { value: "above_60m", label: "Above 60 min" },
 ]
 
-const ratingOptions = [
-  { value: 5, label: "5 Stars" },
-  { value: 4, label: "4+ Stars" },
-  { value: 3, label: "3+ Stars" },
-]
+export interface ActiveRecipeFilters {
+  dietary: DietaryOption[]
+  tags: string[]
+  timeFilter: TimeFilter | null
+}
 
 interface RecipeFilterProps {
-  selectedTags: string[]
-  minRating: number | null
-  onTagsChange: (tags: string[]) => void
-  onRatingChange: (rating: number | null) => void
+  filters: ActiveRecipeFilters
+  availableTags: BackendTagGroups
+  onFiltersChange: (filters: ActiveRecipeFilters) => void
 }
 
 export function RecipeFilter({
-  selectedTags,
-  minRating,
-  onTagsChange,
-  onRatingChange,
+  filters,
+  availableTags,
+  onFiltersChange,
 }: RecipeFilterProps) {
   const [open, setOpen] = useState(false)
 
+  const toggleDietary = (option: DietaryOption) => {
+    const dietary = filters.dietary.includes(option)
+      ? filters.dietary.filter((item) => item !== option)
+      : [...filters.dietary, option]
+    onFiltersChange({ ...filters, dietary })
+  }
+
   const toggleTag = (tagId: string) => {
-    if (selectedTags.includes(tagId)) {
-      onTagsChange(selectedTags.filter((t) => t !== tagId))
-    } else {
-      onTagsChange([...selectedTags, tagId])
-    }
+    const tags = filters.tags.includes(tagId)
+      ? filters.tags.filter((item) => item !== tagId)
+      : [...filters.tags, tagId]
+    onFiltersChange({ ...filters, tags })
   }
 
   const clearFilters = () => {
-    onTagsChange([])
-    onRatingChange(null)
+    onFiltersChange({ dietary: [], tags: [], timeFilter: null })
   }
 
-  const activeFilterCount = selectedTags.length + (minRating ? 1 : 0)
+  const activeFilterCount = filters.dietary.length + filters.tags.length + (filters.timeFilter ? 1 : 0)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -81,17 +87,21 @@ export function RecipeFilter({
             )}
           </div>
 
-          {/* Rating Filter */}
           <div>
-            <h5 className="text-sm font-medium mb-2">Minimum Rating</h5>
+            <h5 className="text-sm font-medium mb-2">Time</h5>
             <div className="flex gap-2">
-              {ratingOptions.map((option) => (
+              {timeOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => onRatingChange(minRating === option.value ? null : option.value)}
+                  onClick={() =>
+                    onFiltersChange({
+                      ...filters,
+                      timeFilter: filters.timeFilter === option.value ? null : option.value,
+                    })
+                  }
                   className={cn(
                     "px-3 py-1.5 text-sm rounded-md border transition-colors",
-                    minRating === option.value
+                    filters.timeFilter === option.value
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border hover:bg-secondary"
                   )}
@@ -106,13 +116,13 @@ export function RecipeFilter({
           <div>
             <h5 className="text-sm font-medium mb-2">Dietary Preferences</h5>
             <div className="flex flex-wrap gap-2">
-              {filterOptions.map((option) => (
+              {dietaryOptions.map((option) => (
                 <button
                   key={option.id}
-                  onClick={() => toggleTag(option.id)}
+                  onClick={() => toggleDietary(option.id)}
                   className={cn(
                     "px-2.5 py-1 text-sm rounded-md border transition-colors",
-                    selectedTags.includes(option.id)
+                    filters.dietary.includes(option.id)
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border hover:bg-secondary"
                   )}
@@ -122,6 +132,35 @@ export function RecipeFilter({
               ))}
             </div>
           </div>
+
+          <div className="space-y-3">
+            <h5 className="text-sm font-medium">Tags</h5>
+            {([
+              ["meal_type", "Meal Type"],
+              ["cuisine", "Cuisine"],
+              ["occasion", "Occasion"],
+            ] as const).map(([category, label]) => (
+              <div key={category}>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags[category].map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.slug)}
+                      className={cn(
+                        "px-2.5 py-1 text-sm rounded-md border transition-colors",
+                        filters.tags.includes(tag.slug)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:bg-secondary"
+                      )}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </PopoverContent>
     </Popover>
@@ -129,35 +168,50 @@ export function RecipeFilter({
 }
 
 export function ActiveFilters({
-  selectedTags,
-  minRating,
-  onTagsChange,
-  onRatingChange,
+  filters,
+  availableTags,
+  onFiltersChange,
 }: RecipeFilterProps) {
-  if (selectedTags.length === 0 && !minRating) return null
+  if (filters.dietary.length === 0 && filters.tags.length === 0 && !filters.timeFilter) return null
 
-  const removeTag = (tagId: string) => {
-    onTagsChange(selectedTags.filter((t) => t !== tagId))
-  }
+  const tagLookup = new Map(
+    [...availableTags.meal_type, ...availableTags.cuisine, ...availableTags.occasion].map((tag) => [tag.slug, tag.name])
+  )
+
+  const removeDietary = (option: DietaryOption) =>
+    onFiltersChange({ ...filters, dietary: filters.dietary.filter((item) => item !== option) })
+
+  const removeTag = (tagId: string) =>
+    onFiltersChange({ ...filters, tags: filters.tags.filter((item) => item !== tagId) })
 
   return (
     <div className="flex flex-wrap gap-2">
-      {minRating && (
+      {filters.timeFilter && (
         <span className="inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-secondary">
-          {minRating}+ Stars
-          <button onClick={() => onRatingChange(null)} className="hover:text-destructive">
+          {timeOptions.find((option) => option.value === filters.timeFilter)?.label}
+          <button onClick={() => onFiltersChange({ ...filters, timeFilter: null })} className="hover:text-destructive">
             <X className="h-3 w-3" />
           </button>
         </span>
       )}
-      {selectedTags.map((tagId) => {
-        const option = filterOptions.find((o) => o.id === tagId)
+      {filters.dietary.map((option) => (
+        <span
+          key={option}
+          className="inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-secondary"
+        >
+          {dietaryBadgeConfig[option].label}
+          <button onClick={() => removeDietary(option)} className="hover:text-destructive">
+            <X className="h-3 w-3" />
+          </button>
+        </span>
+      ))}
+      {filters.tags.map((tagId) => {
         return (
           <span
             key={tagId}
             className="inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-secondary"
           >
-            {option?.label}
+            {tagLookup.get(tagId) ?? tagId}
             <button onClick={() => removeTag(tagId)} className="hover:text-destructive">
               <X className="h-3 w-3" />
             </button>

@@ -19,4 +19,5 @@ export interface BackendList {
   color: string
   date: string | null
   items: BackendListItem[]
+  recipe_ids: number[]
 }

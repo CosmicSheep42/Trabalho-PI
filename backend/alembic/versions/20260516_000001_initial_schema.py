@@ -1,0 +1,182 @@
+"""initial schema
+
+Revision ID: 20260516_000001
+Revises:
+Create Date: 2026-05-16 00:00:01
+"""
+
+from alembic import op
+import sqlalchemy as sa
+
+
+revision = "20260516_000001"
+down_revision = None
+branch_labels = None
+depends_on = None
+
+TAG_CATEGORY_ENUM = sa.Enum("meal_type", "cuisine", "occasion", name="tag_category")
+
+
+def upgrade() -> None:
+    op.create_table(
+        "users",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("clerk_user_id", sa.String(length=255), nullable=False),
+        sa.Column("vegan", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("vegetarian", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("lactose_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("egg_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("gluten_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("nut_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("shellfish_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("soy_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("sesame_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("sulfite_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+    )
+    op.create_index("ix_users_id", "users", ["id"], unique=False)
+    op.create_index("ix_users_clerk_user_id", "users", ["clerk_user_id"], unique=True)
+
+    op.create_table(
+        "lists",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("color", sa.String(length=50), nullable=False),
+        sa.Column("date", sa.Date(), nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+    )
+    op.create_index("ix_lists_id", "lists", ["id"], unique=False)
+    op.create_index("ix_lists_user_id", "lists", ["user_id"], unique=False)
+
+    op.create_table(
+        "recipes",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("description", sa.Text(), nullable=False),
+        sa.Column("image", sa.String(length=255), nullable=False),
+        sa.Column("prep_time_minutes", sa.Integer(), nullable=False, server_default=sa.text("0")),
+        sa.Column("servings", sa.Integer(), nullable=True),
+        sa.Column("ingredients", sa.JSON(), nullable=False),
+        sa.Column("instructions", sa.JSON(), nullable=False),
+        sa.Column("vegan", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("vegetarian", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("lactose_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("egg_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("gluten_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("nut_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("shellfish_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("soy_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("sesame_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("sulfite_free", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+    )
+    op.create_index("ix_recipes_id", "recipes", ["id"], unique=False)
+    op.create_index("ix_recipes_name", "recipes", ["name"], unique=False)
+
+    op.create_table(
+        "tags",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("slug", sa.String(length=255), nullable=False),
+        sa.Column("category", TAG_CATEGORY_ENUM, nullable=False),
+        sa.UniqueConstraint("slug", name="uq_tags_slug"),
+    )
+    op.create_index("ix_tags_id", "tags", ["id"], unique=False)
+    op.create_index("ix_tags_slug", "tags", ["slug"], unique=False)
+    op.create_index("ix_tags_category", "tags", ["category"], unique=False)
+
+    op.create_table(
+        "favorite_recipes",
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("recipe_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["recipe_id"], ["recipes.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("user_id", "recipe_id", name="pk_favorite_recipes"),
+    )
+    op.create_index("ix_favorite_recipes_user_id", "favorite_recipes", ["user_id"], unique=False)
+    op.create_index("ix_favorite_recipes_recipe_id", "favorite_recipes", ["recipe_id"], unique=False)
+
+    op.create_table(
+        "list_items",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("list_id", sa.Integer(), nullable=False),
+        sa.Column("text", sa.String(length=255), nullable=False),
+        sa.Column("amount", sa.String(length=255), nullable=False, server_default=""),
+        sa.Column("checked", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.ForeignKeyConstraint(["list_id"], ["lists.id"], ondelete="CASCADE"),
+    )
+    op.create_index("ix_list_items_id", "list_items", ["id"], unique=False)
+    op.create_index("ix_list_items_list_id", "list_items", ["list_id"], unique=False)
+
+    op.create_table(
+        "list_recipes",
+        sa.Column("list_id", sa.Integer(), nullable=False),
+        sa.Column("recipe_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(["list_id"], ["lists.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["recipe_id"], ["recipes.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("list_id", "recipe_id", name="pk_list_recipes"),
+    )
+    op.create_index("ix_list_recipes_list_id", "list_recipes", ["list_id"], unique=False)
+    op.create_index("ix_list_recipes_recipe_id", "list_recipes", ["recipe_id"], unique=False)
+
+    op.create_table(
+        "recipe_ratings",
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("recipe_id", sa.Integer(), nullable=False),
+        sa.Column("rating", sa.Integer(), nullable=False),
+        sa.CheckConstraint("rating >= 1 AND rating <= 5", name="ck_recipe_ratings_rating_range"),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["recipe_id"], ["recipes.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("user_id", "recipe_id", name="pk_recipe_ratings"),
+    )
+    op.create_index("ix_recipe_ratings_user_id", "recipe_ratings", ["user_id"], unique=False)
+    op.create_index("ix_recipe_ratings_recipe_id", "recipe_ratings", ["recipe_id"], unique=False)
+
+    op.create_table(
+        "recipe_tags",
+        sa.Column("recipe_id", sa.Integer(), nullable=False),
+        sa.Column("tag_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(["recipe_id"], ["recipes.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["tag_id"], ["tags.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("recipe_id", "tag_id", name="pk_recipe_tags"),
+    )
+    op.create_index("ix_recipe_tags_recipe_id", "recipe_tags", ["recipe_id"], unique=False)
+    op.create_index("ix_recipe_tags_tag_id", "recipe_tags", ["tag_id"], unique=False)
+
+
+def downgrade() -> None:
+    op.drop_index("ix_recipe_tags_tag_id", table_name="recipe_tags")
+    op.drop_index("ix_recipe_tags_recipe_id", table_name="recipe_tags")
+    op.drop_table("recipe_tags")
+
+    op.drop_index("ix_recipe_ratings_recipe_id", table_name="recipe_ratings")
+    op.drop_index("ix_recipe_ratings_user_id", table_name="recipe_ratings")
+    op.drop_table("recipe_ratings")
+
+    op.drop_index("ix_list_recipes_recipe_id", table_name="list_recipes")
+    op.drop_index("ix_list_recipes_list_id", table_name="list_recipes")
+    op.drop_table("list_recipes")
+
+    op.drop_index("ix_list_items_list_id", table_name="list_items")
+    op.drop_index("ix_list_items_id", table_name="list_items")
+    op.drop_table("list_items")
+
+    op.drop_index("ix_favorite_recipes_recipe_id", table_name="favorite_recipes")
+    op.drop_index("ix_favorite_recipes_user_id", table_name="favorite_recipes")
+    op.drop_table("favorite_recipes")
+
+    op.drop_index("ix_tags_category", table_name="tags")
+    op.drop_index("ix_tags_slug", table_name="tags")
+    op.drop_index("ix_tags_id", table_name="tags")
+    op.drop_table("tags")
+
+    op.drop_index("ix_recipes_name", table_name="recipes")
+    op.drop_index("ix_recipes_id", table_name="recipes")
+    op.drop_table("recipes")
+
+    op.drop_index("ix_lists_user_id", table_name="lists")
+    op.drop_index("ix_lists_id", table_name="lists")
+    op.drop_table("lists")
+
+    op.drop_index("ix_users_clerk_user_id", table_name="users")
+    op.drop_index("ix_users_id", table_name="users")
+    op.drop_table("users")

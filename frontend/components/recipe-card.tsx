@@ -4,33 +4,20 @@ import Image from "next/image"
 import { Heart } from "lucide-react"
 import { DietaryBadge } from "./dietary-badge"
 import { StarRating } from "./star-rating"
-import type { DietaryOption } from "@/lib/dietary-options"
+import type { Recipe } from "@/features/recipes/types"
+import { formatPrepTime } from "@/features/recipes/types"
 import { cn } from "@/lib/utils"
-
-export interface Recipe {
-  id: string
-  name: string
-  image: string
-  rating: number
-  tags: string[]
-  description: string
-  prepTime: string
-  servings: number
-  ingredients: { name: string; amount: string }[]
-  instructions: string[]
-}
 
 interface RecipeCardProps {
   recipe: Recipe
-  isFavorite?: boolean
-  onFavoriteToggle?: (recipeId: string) => void
+  onFavoriteToggle?: (recipe: Recipe) => void
   onClick?: () => void
 }
 
-export function RecipeCard({ recipe, isFavorite = false, onFavoriteToggle, onClick }: RecipeCardProps) {
+export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    onFavoriteToggle?.(recipe.id)
+    onFavoriteToggle?.(recipe)
   }
 
   const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -66,24 +53,37 @@ export function RecipeCard({ recipe, isFavorite = false, onFavoriteToggle, onCli
             onClick={handleFavoriteClick}
             className={cn(
               "absolute top-2 right-2 p-1.5 rounded-full transition-all",
-              isFavorite
+              recipe.is_favorite
                 ? "bg-red-500/90 text-white"
                 : "bg-background/80 text-muted-foreground hover:bg-background hover:text-red-500"
             )}
           >
-          <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
+          <Heart className={cn("h-4 w-4", recipe.is_favorite && "fill-current")} />
         </button>
         )}
       </div>
       <div className="flex flex-col gap-2 p-3">
         <h3 className="font-medium text-foreground line-clamp-1">{recipe.name}</h3>
-        <StarRating rating={recipe.rating} />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <StarRating rating={recipe.average_rating ?? 0} />
+            <span className="text-xs text-muted-foreground">
+              {recipe.average_rating?.toFixed(1) ?? "New"} ({recipe.ratings_count})
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground">{formatPrepTime(recipe.prep_time_minutes)}</span>
+        </div>
         <div className="flex flex-wrap gap-1">
-          {recipe.tags.slice(0, 2).map((tag) => (
-            <DietaryBadge key={tag} type={tag as DietaryOption} />
+          {recipe.dietaryOptions.slice(0, 2).map((option) => (
+            <DietaryBadge key={option} type={option} />
           ))}
-          {recipe.tags.length > 2 && (
-            <span className="text-xs text-muted-foreground">+{recipe.tags.length - 2}</span>
+          {recipe.tags.slice(0, 1).map((tag) => (
+            <span key={tag.id} className="inline-flex items-center rounded border px-2 py-0.5 text-xs text-muted-foreground">
+              {tag.name}
+            </span>
+          ))}
+          {recipe.dietaryOptions.length + recipe.tags.length > 3 && (
+            <span className="text-xs text-muted-foreground">+{recipe.dietaryOptions.length + recipe.tags.length - 3}</span>
           )}
         </div>
       </div>

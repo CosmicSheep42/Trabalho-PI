@@ -21,11 +21,13 @@ export interface BackendUser {
   vegan: boolean
   vegetarian: boolean
   lactose_free: boolean
+  egg_free: boolean
   gluten_free: boolean
-  no_eggs: boolean
   nut_free: boolean
-  low_carb: boolean
-  high_protein: boolean
+  shellfish_free: boolean
+  soy_free: boolean
+  sesame_free: boolean
+  sulfite_free: boolean
 }
 
 export interface ProfileUser {
@@ -52,11 +54,13 @@ export function buildProfileUser(
           vegan: backendUser.vegan,
           vegetarian: backendUser.vegetarian,
           lactose_free: backendUser.lactose_free,
+          egg_free: backendUser.egg_free,
           gluten_free: backendUser.gluten_free,
-          no_eggs: backendUser.no_eggs,
           nut_free: backendUser.nut_free,
-          low_carb: backendUser.low_carb,
-          high_protein: backendUser.high_protein,
+          shellfish_free: backendUser.shellfish_free,
+          soy_free: backendUser.soy_free,
+          sesame_free: backendUser.sesame_free,
+          sulfite_free: backendUser.sulfite_free,
         })
       : [],
   }

@@ -2,9 +2,9 @@
 
 import type { Dispatch, SetStateAction } from "react"
 import { useClerk } from "@clerk/nextjs"
-import type { Recipe } from "@/components/recipe-card"
 import type { ShopList } from "@/components/shoplist-banner"
 import type { ListItem } from "@/features/lists/types"
+import type { Recipe } from "@/features/recipes/types"
 
 interface UseMainPageActionsParams {
   recipes: Recipe[]
@@ -16,7 +16,6 @@ interface UseMainPageActionsParams {
   setSelectedList: Dispatch<SetStateAction<ShopList | null>>
   setListDialogOpen: Dispatch<SetStateAction<boolean>>
   setSelectedRecipe: Dispatch<SetStateAction<Recipe | null>>
-  setFavoriteRecipes: Dispatch<SetStateAction<Set<string>>>
   createList: (payload: { name: string; color: string; date?: string | null }) => Promise<ShopList>
   updateList: (listId: string, payload: { name?: string; color?: string; date?: string | null }) => Promise<ShopList>
   deleteList: (listId: string) => Promise<void>
@@ -24,6 +23,11 @@ interface UseMainPageActionsParams {
   updateItem: (listId: string, itemId: string, payload: { text?: string; amount?: string; checked?: boolean }) => Promise<ListItem>
   deleteItem: (listId: string, itemId: string) => Promise<void>
   deleteItems: (listId: string, itemIds: string[]) => Promise<void>
+  addRecipeToList: (listId: string, recipeId: string) => Promise<void>
+  removeRecipeFromList: (listId: string, recipeId: string) => Promise<void>
+  toggleFavorite: (recipeId: string, isFavorite: boolean) => Promise<void>
+  rateRecipe: (recipeId: string, rating: number) => Promise<void>
+  removeRating: (recipeId: string) => Promise<void>
 }
 
 export function useMainPageActions({
@@ -36,7 +40,6 @@ export function useMainPageActions({
   setSelectedList,
   setListDialogOpen,
   setSelectedRecipe,
-  setFavoriteRecipes,
   createList,
   updateList,
   deleteList,
@@ -44,6 +47,11 @@ export function useMainPageActions({
   updateItem,
   deleteItem,
   deleteItems,
+  addRecipeToList,
+  removeRecipeFromList,
+  toggleFavorite,
+  rateRecipe,
+  removeRating,
 }: UseMainPageActionsParams) {
   const { signOut } = useClerk()
 
@@ -101,28 +109,14 @@ export function useMainPageActions({
   }
 
   const handleAddRecipeToList = async (listId: string, recipe: Recipe) => {
-    for (const ingredient of recipe.ingredients) {
-      await addItem(listId, {
-        text: ingredient.name,
-        amount: ingredient.amount,
-        checked: false,
-      })
-    }
-
+    await addRecipeToList(listId, recipe.id)
     setRecipeDialogOpen(false)
   }
 
-  const handleRemoveRecipeFromList = (recipeId: string) => {
+  const handleRemoveRecipeFromList = async (recipeId: string) => {
     if (!selectedList) return
 
-    setSelectedList((prev) =>
-      prev
-        ? {
-            ...prev,
-            linkedRecipeIds: prev.linkedRecipeIds?.filter((id) => id !== recipeId) || [],
-          }
-        : null
-    )
+    await removeRecipeFromList(selectedList.id, recipeId)
   }
 
   const handleViewRecipeFromList = (recipe: Recipe) => {
@@ -131,16 +125,8 @@ export function useMainPageActions({
     setRecipeDialogOpen(true)
   }
 
-  const handleToggleFavorite = (recipeId: string) => {
-    setFavoriteRecipes((prev) => {
-      const next = new Set(prev)
-      if (next.has(recipeId)) {
-        next.delete(recipeId)
-      } else {
-        next.add(recipeId)
-      }
-      return next
-    })
+  const handleToggleFavorite = async (recipe: Recipe) => {
+    await toggleFavorite(recipe.id, recipe.is_favorite)
   }
 
   const getLinkedRecipes = (list: ShopList): Recipe[] => {
@@ -166,6 +152,14 @@ export function useMainPageActions({
     await signOut({ redirectUrl: "/login" })
   }
 
+  const handleRateRecipe = async (recipeId: string, rating: number) => {
+    await rateRecipe(recipeId, rating)
+  }
+
+  const handleRemoveRating = async (recipeId: string) => {
+    await removeRating(recipeId)
+  }
+
   return {
     handleCreateList,
     handleDeleteList,
@@ -181,6 +175,8 @@ export function useMainPageActions({
     getLinkedRecipes,
     handleChangeListColor,
     handleChangeListDate,
+    handleRateRecipe,
+    handleRemoveRating,
     handleLogout,
   }
 }

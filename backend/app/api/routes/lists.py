@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_db, get_or_create_current_user
 from app.models.list_item import ListItem
+from app.models.list_recipe import ListRecipe
+from app.models.recipe import Recipe
 from app.models.shopping_list import ShoppingList
 from app.models.user import User
 from app.schemas.list import (
@@ -24,7 +26,7 @@ router = APIRouter(prefix="/lists", tags=["lists"])
 def _get_owned_list(db: Session, user_id: int, list_id: int) -> ShoppingList:
     shopping_list = (
         db.query(ShoppingList)
-        .options(selectinload(ShoppingList.items))
+        .options(selectinload(ShoppingList.items), selectinload(ShoppingList.recipe_links))
         .filter(ShoppingList.id == list_id, ShoppingList.user_id == user_id)
         .first()
     )
@@ -52,7 +54,7 @@ def get_lists(
 ) -> list[ShoppingList]:
     return (
         db.query(ShoppingList)
-        .options(selectinload(ShoppingList.items))
+        .options(selectinload(ShoppingList.items), selectinload(ShoppingList.recipe_links))
         .filter(ShoppingList.user_id == current_user.id)
         .order_by(ShoppingList.id.desc())
         .all()
@@ -114,6 +116,50 @@ def create_list_item(
     db.commit()
     db.refresh(item)
     return item
+
+
+@router.post("/{list_id}/recipes/{recipe_id}", response_model=ShoppingListResponse)
+def add_recipe_to_list(
+    list_id: int,
+    recipe_id: int,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> ShoppingList:
+    shopping_list = _get_owned_list(db, current_user.id, list_id)
+
+    recipe = db.query(Recipe.id).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+
+    existing_link = (
+        db.query(ListRecipe)
+        .filter(ListRecipe.list_id == list_id, ListRecipe.recipe_id == recipe_id)
+        .first()
+    )
+    if not existing_link:
+        db.add(ListRecipe(list_id=list_id, recipe_id=recipe_id))
+        db.commit()
+
+    return _get_owned_list(db, current_user.id, shopping_list.id)
+
+
+@router.delete("/{list_id}/recipes/{recipe_id}", response_model=ShoppingListResponse)
+def remove_recipe_from_list(
+    list_id: int,
+    recipe_id: int,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> ShoppingList:
+    shopping_list = _get_owned_list(db, current_user.id, list_id)
+
+    (
+        db.query(ListRecipe)
+        .filter(ListRecipe.list_id == list_id, ListRecipe.recipe_id == recipe_id)
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+
+    return _get_owned_list(db, current_user.id, shopping_list.id)
 
 
 @router.post("/{list_id}/items/bulk-delete")
