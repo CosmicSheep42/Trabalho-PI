@@ -7,9 +7,12 @@ from app.core.config import settings
 from app.db.base import Base
 from app.models import (  # noqa: F401
     FavoriteRecipe,
+    Holiday,
     ListItem,
     ListRecipe,
     Recipe,
+    RecipeHoliday,
+    RecipeIngredient,
     RecipeRating,
     RecipeTag,
     ShoppingList,

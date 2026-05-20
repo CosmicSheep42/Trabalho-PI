@@ -1,0 +1,668 @@
+{
+  "recipes": [
+    {
+      "name": "Chicken Teriyaki Rice Bowl",
+      "description": "Japanese-style chicken glazed with a sweet soy sauce.",
+      "image": "https://images.unsplash.com/photo-1609183480237-ccbb2d7c5772?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "chicken thigh",
+          "amount": "600g"
+        },
+        {
+          "name": "rice",
+          "amount": "300g"
+        },
+        {
+          "name": "soy sauce",
+          "amount": "80ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "30g"
+        },
+        {
+          "name": "ginger",
+          "amount": "10g"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        }
+      ],
+      "instructions": [
+        "Cook the rice until tender.",
+        "Cut the chicken thigh into bite-sized pieces.",
+        "Mince the garlic and ginger.",
+        "Cook the chicken in vegetable oil until browned.",
+        "Add soy sauce and sugar, then simmer until glazed."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": false,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "japanese",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": "chicken"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Beef Bulgogi Bowl",
+      "description": "Korean-style beef with rice and a savory-sweet sauce.",
+      "image": "https://images.unsplash.com/photo-1778075188682-c31961bdabcb?q=80&w=1528&auto=format&fit=crop",
+      "prep_time_minutes": 40,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "beef",
+          "amount": "600g"
+        },
+        {
+          "name": "rice",
+          "amount": "300g"
+        },
+        {
+          "name": "soy sauce",
+          "amount": "90ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "25g"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "pear",
+          "amount": "100g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        }
+      ],
+      "instructions": [
+        "Slice the beef thinly.",
+        "Blend the pear with soy sauce, sugar, and garlic.",
+        "Marinate the beef in the sauce.",
+        "Cook the beef in vegetable oil until browned.",
+        "Serve over rice."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": false,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "korean",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "stovetop",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Thai Green Curry Chicken",
+      "description": "A fragrant Thai curry with chicken and coconut milk.",
+      "image": "https://images.unsplash.com/photo-1750190623754-9f698db37f96?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 40,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "chicken breast",
+          "amount": "600g"
+        },
+        {
+          "name": "coconut milk",
+          "amount": "500ml"
+        },
+        {
+          "name": "green curry paste",
+          "amount": "60g"
+        },
+        {
+          "name": "eggplant",
+          "amount": "250g"
+        },
+        {
+          "name": "bell pepper",
+          "amount": "1"
+        },
+        {
+          "name": "rice",
+          "amount": "300g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Cook the rice until tender.",
+        "Cut the chicken breast and vegetables into pieces.",
+        "Cook the green curry paste in vegetable oil.",
+        "Add the chicken, coconut milk, and vegetables.",
+        "Simmer until the chicken is cooked through."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "thai",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "one-pot",
+        "main_protein": "chicken"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Vegetable Fried Rice",
+      "description": "A quick fried rice with vegetables and egg.",
+      "image": "https://images.unsplash.com/photo-1581184953987-5668072c8420?q=80&w=925&auto=format&fit=crop",
+      "prep_time_minutes": 25,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "rice",
+          "amount": "400g"
+        },
+        {
+          "name": "egg",
+          "amount": "2"
+        },
+        {
+          "name": "carrot",
+          "amount": "150g"
+        },
+        {
+          "name": "pea",
+          "amount": "150g"
+        },
+        {
+          "name": "soy sauce",
+          "amount": "50ml"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "30ml"
+        }
+      ],
+      "instructions": [
+        "Cook and cool the rice before frying.",
+        "Dice the carrot and mince the garlic.",
+        "Scramble the eggs in vegetable oil.",
+        "Add the vegetables and rice.",
+        "Stir in soy sauce and cook until hot."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": false,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "chinese",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Miso Soup with Tofu",
+      "description": "A light Japanese soup with tofu and seaweed.",
+      "image": "https://images.unsplash.com/photo-1591224876006-be862c0f1d7a?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 20,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "tofu",
+          "amount": "250g"
+        },
+        {
+          "name": "miso",
+          "amount": "60g"
+        },
+        {
+          "name": "seaweed",
+          "amount": "10g"
+        },
+        {
+          "name": "water",
+          "amount": "1L"
+        },
+        {
+          "name": "green onion",
+          "amount": "2"
+        }
+      ],
+      "instructions": [
+        "Cut the tofu into small cubes.",
+        "Slice the green onion.",
+        "Heat the water until hot but not boiling.",
+        "Dissolve the miso into the water.",
+        "Add tofu and seaweed, then warm gently."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": false,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "japanese",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Pork Gyoza Filling Bowl",
+      "description": "A skillet pork and cabbage bowl inspired by dumpling filling.",
+      "image": "https://images.unsplash.com/photo-1738681336104-608b4e7dc3b0?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 30,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "pork",
+          "amount": "500g"
+        },
+        {
+          "name": "cabbage",
+          "amount": "400g"
+        },
+        {
+          "name": "soy sauce",
+          "amount": "60ml"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "ginger",
+          "amount": "10g"
+        },
+        {
+          "name": "rice",
+          "amount": "300g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        }
+      ],
+      "instructions": [
+        "Cook the rice until tender.",
+        "Shred the cabbage and mince the garlic and ginger.",
+        "Brown the pork in vegetable oil.",
+        "Add cabbage, garlic, ginger, and soy sauce.",
+        "Cook until the cabbage softens and serve over rice."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": false,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "japanese",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": "pork"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Shrimp Pad Thai",
+      "description": "Thai rice noodles tossed with shrimp, egg, and lime.",
+      "image": "https://images.unsplash.com/photo-1729708475167-71a6eb3cd741?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "rice noodles",
+          "amount": "300g"
+        },
+        {
+          "name": "shrimp",
+          "amount": "400g"
+        },
+        {
+          "name": "egg",
+          "amount": "2"
+        },
+        {
+          "name": "tamarind paste",
+          "amount": "50g"
+        },
+        {
+          "name": "sugar",
+          "amount": "25g"
+        },
+        {
+          "name": "fish sauce",
+          "amount": "50ml"
+        },
+        {
+          "name": "lime juice",
+          "amount": "30ml"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "30ml"
+        }
+      ],
+      "instructions": [
+        "Soak the rice noodles until flexible.",
+        "Cook the shrimp in vegetable oil.",
+        "Push the shrimp aside and scramble the eggs.",
+        "Add the noodles, tamarind paste, sugar, and fish sauce.",
+        "Finish with lime juice and serve hot."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": false,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": false,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "thai",
+        "occasion": "date",
+        "weather": "hot-day",
+        "difficulty": "medium",
+        "cooking_method": "stovetop",
+        "main_protein": "seafood"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Indian Chickpea Curry",
+      "description": "A one-pot Indian chickpea curry with tomato and spices.",
+      "image": "https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?q=80&w=880&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "chickpea",
+          "amount": "500g"
+        },
+        {
+          "name": "tomato",
+          "amount": "500g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "ginger",
+          "amount": "10g"
+        },
+        {
+          "name": "cumin",
+          "amount": "5g"
+        },
+        {
+          "name": "coriander",
+          "amount": "5g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "30ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion and mince the garlic and ginger.",
+        "Cook the onion in vegetable oil until soft.",
+        "Add the garlic, ginger, cumin, and coriander.",
+        "Add the chickpea and tomato.",
+        "Simmer until thick and serve warm."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "indian",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Vietnamese Rice Noodle Salad",
+      "description": "A cool noodle salad with vegetables and lime dressing.",
+      "image": "https://images.unsplash.com/photo-1587206668170-5206b8f0bbf2?q=80&w=1632&auto=format&fit=crop",
+      "prep_time_minutes": 25,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "rice noodles",
+          "amount": "300g"
+        },
+        {
+          "name": "carrot",
+          "amount": "150g"
+        },
+        {
+          "name": "cucumber",
+          "amount": "200g"
+        },
+        {
+          "name": "lettuce",
+          "amount": "200g"
+        },
+        {
+          "name": "lime juice",
+          "amount": "60ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "20g"
+        },
+        {
+          "name": "fish sauce",
+          "amount": "40ml"
+        },
+        {
+          "name": "mint",
+          "amount": "10g"
+        }
+      ],
+      "instructions": [
+        "Soak the rice noodles until tender.",
+        "Slice the cucumber and lettuce, then grate the carrot.",
+        "Mix lime juice, sugar, and fish sauce.",
+        "Toss the noodles with the vegetables.",
+        "Add mint and dressing before serving."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "vietnamese",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "no-cook",
+        "main_protein": "fish"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Korean Potato Pancakes",
+      "description": "Crisp Korean-style potato pancakes cooked in a skillet.",
+      "image": "https://plus.unsplash.com/premium_photo-1696874423047-3903d439261f?q=80&w=743&auto=format&fit=crop",
+      "prep_time_minutes": 30,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "potato",
+          "amount": "600g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "rice flour",
+          "amount": "60g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "40ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Peel and grate the potatoes.",
+        "Grate the onion and mix it with the potatoes.",
+        "Stir in rice flour and salt.",
+        "Heat vegetable oil in a skillet.",
+        "Fry small pancakes until crisp on both sides."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "snack",
+        "cuisine": "korean",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    }
+  ]
+}

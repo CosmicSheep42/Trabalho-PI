@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import Depends, HTTPException, Request, status
 from clerk_backend_api import AuthenticateRequestOptions, authenticate_request
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -56,6 +57,18 @@ def get_or_create_current_user(
 
     user = User(clerk_user_id=clerk_user_id)
     db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+    try:
+        db.commit()
+        db.refresh(user)
+        return user
+    except IntegrityError:
+        db.rollback()
+
+    user = db.query(User).filter(User.clerk_user_id == clerk_user_id).first()
+    if user:
+        return user
+
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Unable to create or fetch current user",
+    )

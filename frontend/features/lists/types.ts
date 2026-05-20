@@ -8,8 +8,9 @@ export interface ListItem {
 export interface BackendListItem {
   id: number
   list_id: number
-  text: string
-  amount: string
+  name: string
+  quantity: number | null
+  unit: string | null
   checked: boolean
 }
 

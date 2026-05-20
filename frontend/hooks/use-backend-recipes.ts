@@ -39,6 +39,11 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
     meal_type: [],
     cuisine: [],
     occasion: [],
+    weather: [],
+    difficulty: [],
+    cooking_method: [],
+    main_protein: [],
+    holidays: [],
   })
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false)
   const [recipesError, setRecipesError] = useState<string | null>(null)
@@ -102,6 +107,9 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
         for (const tag of filters.tags) {
           params.append("tags", tag)
         }
+        for (const holiday of filters.holidays) {
+          params.append("holidays", holiday)
+        }
         for (const option of filters.dietary) {
           params.set(option.replaceAll("-", "_"), "true")
         }
@@ -139,6 +147,7 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
     filters.timeFilter,
     filters.dietary,
     filters.tags,
+    filters.holidays,
     getToken,
     isAuthLoaded,
     isSignedIn,

@@ -1,7 +1,10 @@
 from app.models.favorite_recipe import FavoriteRecipe
+from app.models.holiday import Holiday
 from app.models.list_item import ListItem
 from app.models.list_recipe import ListRecipe
 from app.models.recipe import Recipe
+from app.models.recipe_holiday import RecipeHoliday
+from app.models.recipe_ingredient import RecipeIngredient
 from app.models.recipe_rating import RecipeRating
 from app.models.recipe_tag import RecipeTag
 from app.models.shopping_list import ShoppingList
@@ -10,9 +13,12 @@ from app.models.user import User
 
 __all__ = [
     "FavoriteRecipe",
+    "Holiday",
     "ListItem",
     "ListRecipe",
     "Recipe",
+    "RecipeHoliday",
+    "RecipeIngredient",
     "RecipeRating",
     "RecipeTag",
     "ShoppingList",

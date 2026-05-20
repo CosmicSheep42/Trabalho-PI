@@ -9,7 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { dietaryBadgeConfig, type DietaryOption } from "@/lib/dietary-options"
-import type { BackendTagGroups, TimeFilter } from "@/features/recipes/types"
+import type { BackendTagGroups, RecipeTagCategory, TimeFilter } from "@/features/recipes/types"
 import { cn } from "@/lib/utils"
 
 const dietaryOptions = Object.entries(dietaryBadgeConfig).map(([id, config]) => ({
@@ -27,8 +27,19 @@ const timeOptions: { value: TimeFilter; label: string }[] = [
 export interface ActiveRecipeFilters {
   dietary: DietaryOption[]
   tags: string[]
+  holidays: string[]
   timeFilter: TimeFilter | null
 }
+
+const tagSections: { category: RecipeTagCategory; label: string }[] = [
+  { category: "meal_type", label: "Meal Type" },
+  { category: "cuisine", label: "Cuisine" },
+  { category: "occasion", label: "Occasion" },
+  { category: "weather", label: "Weather" },
+  { category: "difficulty", label: "Difficulty" },
+  { category: "cooking_method", label: "Cooking Method" },
+  { category: "main_protein", label: "Main Protein" },
+]
 
 interface RecipeFilterProps {
   filters: ActiveRecipeFilters
@@ -51,17 +62,35 @@ export function RecipeFilter({
   }
 
   const toggleTag = (tagId: string) => {
-    const tags = filters.tags.includes(tagId)
+    const isRemoving = filters.tags.includes(tagId)
+    const tags = isRemoving
       ? filters.tags.filter((item) => item !== tagId)
       : [...filters.tags, tagId]
-    onFiltersChange({ ...filters, tags })
+
+    onFiltersChange({
+      ...filters,
+      tags,
+      holidays: tagId === "holidays" && isRemoving ? [] : filters.holidays,
+    })
+  }
+
+  const toggleHoliday = (holidayId: string) => {
+    const holidays = filters.holidays.includes(holidayId)
+      ? filters.holidays.filter((item) => item !== holidayId)
+      : [...filters.holidays, holidayId]
+    onFiltersChange({ ...filters, holidays })
   }
 
   const clearFilters = () => {
-    onFiltersChange({ dietary: [], tags: [], timeFilter: null })
+    onFiltersChange({ dietary: [], tags: [], holidays: [], timeFilter: null })
   }
 
-  const activeFilterCount = filters.dietary.length + filters.tags.length + (filters.timeFilter ? 1 : 0)
+  const activeFilterCount =
+    filters.dietary.length +
+    filters.tags.length +
+    filters.holidays.length +
+    (filters.timeFilter ? 1 : 0)
+  const showHolidayFilters = filters.tags.includes("holidays")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -135,11 +164,7 @@ export function RecipeFilter({
 
           <div className="space-y-3">
             <h5 className="text-sm font-medium">Tags</h5>
-            {([
-              ["meal_type", "Meal Type"],
-              ["cuisine", "Cuisine"],
-              ["occasion", "Occasion"],
-            ] as const).map(([category, label]) => (
+            {tagSections.map(({ category, label }) => (
               <div key={category}>
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
                 <div className="flex flex-wrap gap-2">
@@ -160,6 +185,27 @@ export function RecipeFilter({
                 </div>
               </div>
             ))}
+            {showHolidayFilters && availableTags.holidays.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Holidays</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.holidays.map((holiday) => (
+                    <button
+                      key={holiday.id}
+                      onClick={() => toggleHoliday(holiday.slug)}
+                      className={cn(
+                        "px-2.5 py-1 text-sm rounded-md border transition-colors",
+                        filters.holidays.includes(holiday.slug)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:bg-secondary"
+                      )}
+                    >
+                      {holiday.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </PopoverContent>
@@ -172,17 +218,40 @@ export function ActiveFilters({
   availableTags,
   onFiltersChange,
 }: RecipeFilterProps) {
-  if (filters.dietary.length === 0 && filters.tags.length === 0 && !filters.timeFilter) return null
+  if (
+    filters.dietary.length === 0 &&
+    filters.tags.length === 0 &&
+    filters.holidays.length === 0 &&
+    !filters.timeFilter
+  ) {
+    return null
+  }
 
   const tagLookup = new Map(
-    [...availableTags.meal_type, ...availableTags.cuisine, ...availableTags.occasion].map((tag) => [tag.slug, tag.name])
+    [
+      ...availableTags.meal_type,
+      ...availableTags.cuisine,
+      ...availableTags.occasion,
+      ...availableTags.weather,
+      ...availableTags.difficulty,
+      ...availableTags.cooking_method,
+      ...availableTags.main_protein,
+    ].map((tag) => [tag.slug, tag.name])
   )
+  const holidayLookup = new Map(availableTags.holidays.map((holiday) => [holiday.slug, holiday.name]))
 
   const removeDietary = (option: DietaryOption) =>
     onFiltersChange({ ...filters, dietary: filters.dietary.filter((item) => item !== option) })
 
   const removeTag = (tagId: string) =>
-    onFiltersChange({ ...filters, tags: filters.tags.filter((item) => item !== tagId) })
+    onFiltersChange({
+      ...filters,
+      tags: filters.tags.filter((item) => item !== tagId),
+      holidays: tagId === "holidays" ? [] : filters.holidays,
+    })
+
+  const removeHoliday = (holidayId: string) =>
+    onFiltersChange({ ...filters, holidays: filters.holidays.filter((item) => item !== holidayId) })
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -218,6 +287,17 @@ export function ActiveFilters({
           </span>
         )
       })}
+      {filters.holidays.map((holidayId) => (
+        <span
+          key={holidayId}
+          className="inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-secondary"
+        >
+          {holidayLookup.get(holidayId) ?? holidayId}
+          <button onClick={() => removeHoliday(holidayId)} className="hover:text-destructive">
+            <X className="h-3 w-3" />
+          </button>
+        </span>
+      ))}
     </div>
   )
 }

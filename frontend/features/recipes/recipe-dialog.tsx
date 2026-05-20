@@ -141,6 +141,14 @@ export function RecipeDialog({
                   {tag.name}
                 </span>
               ))}
+              {recipe.holidays.map((holiday) => (
+                <span
+                  key={holiday.id}
+                  className="inline-flex items-center rounded border px-2 py-0.5 text-xs text-muted-foreground"
+                >
+                  {holiday.name}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -152,7 +160,9 @@ export function RecipeDialog({
               {recipe.ingredients.map((ingredient, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  <span className="text-muted-foreground">{ingredient.amount}</span>
+                  {ingredient.amount && (
+                    <span className="text-muted-foreground">{ingredient.amount}</span>
+                  )}
                   <span>{ingredient.name}</span>
                 </li>
               ))}

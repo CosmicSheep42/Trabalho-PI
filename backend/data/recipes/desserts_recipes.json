@@ -1,0 +1,592 @@
+{
+  "recipes": [
+    {
+      "name": "Chocolate Rice Pudding",
+      "description": "A creamy cocoa rice pudding served warm or chilled.",
+      "image": "https://images.unsplash.com/photo-1593990956432-86016492001b?q=80&w=1476&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "rice",
+          "amount": "150g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "700ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "80g"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": "25g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "vanilla",
+          "amount": "5ml"
+        }
+      ],
+      "instructions": [
+        "Rinse the rice and place it in a saucepan with the whole milk.",
+        "Cook over low heat, stirring often, until the rice becomes tender.",
+        "Stir in the sugar, cocoa powder, salt, and vanilla.",
+        "Keep cooking until the pudding becomes thick and creamy.",
+        "Serve warm or chill before serving."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "american",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Vanilla Custard Cups",
+      "description": "Simple baked vanilla custard with a smooth and gentle texture.",
+      "image": "https://plus.unsplash.com/premium_photo-1692785049138-369b03739c96?q=80&w=687&auto=format&fit=crop",
+      "prep_time_minutes": 50,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "eggs",
+          "amount": "3"
+        },
+        {
+          "name": "whole milk",
+          "amount": "500ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "70g"
+        },
+        {
+          "name": "vanilla",
+          "amount": "5ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Heat the oven and place four small cups in a baking dish.",
+        "Whisk the eggs, sugar, vanilla, and salt in a bowl.",
+        "Warm the whole milk and slowly whisk it into the egg mixture.",
+        "Pour the custard into the cups and add hot water to the baking dish.",
+        "Bake until the custard is set, then cool before serving."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "french",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Lemon Posset",
+      "description": "A bright chilled cream dessert with a smooth lemon flavor.",
+      "image": "https://plus.unsplash.com/premium_photo-1769853675360-0c04bb76f79f?q=80&w=1488&auto=format&fit=crop",
+      "prep_time_minutes": 15,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "table cream",
+          "amount": "500ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "100g"
+        },
+        {
+          "name": "lemon juice",
+          "amount": "80ml"
+        },
+        {
+          "name": "lemon zest",
+          "amount": "5g"
+        }
+      ],
+      "instructions": [
+        "Pour the table cream and sugar into a saucepan.",
+        "Heat gently and stir until the sugar dissolves.",
+        "Simmer briefly, then remove from heat.",
+        "Stir in the lemon juice and lemon zest.",
+        "Pour into cups and chill until firm."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "british",
+        "occasion": "date",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Cinnamon Baked Apples",
+      "description": "Warm apples baked with cinnamon and a light syrup.",
+      "image": "https://images.unsplash.com/photo-1602903310441-0b8a2cde0961?q=80&w=1074&auto=format&fit=crop",
+      "prep_time_minutes": 40,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "apple",
+          "amount": "4"
+        },
+        {
+          "name": "sugar",
+          "amount": "60g"
+        },
+        {
+          "name": "cinnamon",
+          "amount": "3g"
+        },
+        {
+          "name": "lemon juice",
+          "amount": "20ml"
+        },
+        {
+          "name": "water",
+          "amount": "100ml"
+        }
+      ],
+      "instructions": [
+        "Peel the apples if desired and remove the cores.",
+        "Place the apples in a baking dish.",
+        "Mix the sugar, cinnamon, lemon juice, and water.",
+        "Pour the syrup over the apples.",
+        "Bake until the apples are tender and glossy."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "american",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Strawberry Milk Pudding",
+      "description": "A chilled pudding with strawberries and a soft milk base.",
+      "image": "https://images.unsplash.com/photo-1604503036177-6ac038850279?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 20,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "strawberry",
+          "amount": "250g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "500ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "70g"
+        },
+        {
+          "name": "cornstarch",
+          "amount": "35g"
+        },
+        {
+          "name": "vanilla",
+          "amount": "5ml"
+        }
+      ],
+      "instructions": [
+        "Slice the strawberries and reserve a few for serving.",
+        "Whisk the whole milk, sugar, cornstarch, and vanilla in a saucepan.",
+        "Cook over medium heat while stirring until thick.",
+        "Fold in the strawberries.",
+        "Pour into cups and chill before serving."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "american",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Coconut Tapioca Cream",
+      "description": "A soft tapioca dessert made with coconut milk and sugar.",
+      "image": "https://images.unsplash.com/photo-1592503469196-3a7880cc2d05?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 30,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "tapioca pearls",
+          "amount": "120g"
+        },
+        {
+          "name": "coconut milk",
+          "amount": "500ml"
+        },
+        {
+          "name": "sugar",
+          "amount": "70g"
+        },
+        {
+          "name": "water",
+          "amount": "300ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Soak the tapioca pearls in water until slightly softened.",
+        "Simmer the tapioca with water until translucent.",
+        "Add the coconut milk, sugar, and salt.",
+        "Cook gently until the cream thickens.",
+        "Serve warm or chilled."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "brazilian",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Orange Semolina Cake",
+      "description": "A moist citrus cake with a soft crumb and orange syrup.",
+      "image": "https://images.unsplash.com/photo-1678895021120-94087cce9b9d?q=80&w=687&auto=format&fit=crop",
+      "prep_time_minutes": 55,
+      "servings": 8,
+      "ingredients": [
+        {
+          "name": "semolina",
+          "amount": "180g"
+        },
+        {
+          "name": "plain flour",
+          "amount": "80g"
+        },
+        {
+          "name": "eggs",
+          "amount": "3"
+        },
+        {
+          "name": "sugar",
+          "amount": "160g"
+        },
+        {
+          "name": "orange juice",
+          "amount": "180ml"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "100ml"
+        },
+        {
+          "name": "baking powder",
+          "amount": "10g"
+        }
+      ],
+      "instructions": [
+        "Heat the oven and grease a cake pan.",
+        "Whisk the eggs, sugar, orange juice, and vegetable oil.",
+        "Fold in the semolina, plain flour, and baking powder.",
+        "Pour the batter into the pan.",
+        "Bake until golden and let it cool before serving."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "mediterranean",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Caramel Banana Skillet",
+      "description": "Bananas cooked in a quick caramel sauce for a simple dessert.",
+      "image": "https://images.unsplash.com/photo-1657047869582-591602f79a7a?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 15,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "banana",
+          "amount": "4"
+        },
+        {
+          "name": "sugar",
+          "amount": "80g"
+        },
+        {
+          "name": "butter",
+          "amount": "30g"
+        },
+        {
+          "name": "water",
+          "amount": "40ml"
+        },
+        {
+          "name": "cinnamon",
+          "amount": "2g"
+        }
+      ],
+      "instructions": [
+        "Slice the bananas lengthwise.",
+        "Melt the sugar with water in a skillet until it turns golden.",
+        "Add the butter and stir until smooth.",
+        "Place the bananas in the caramel and cook briefly on each side.",
+        "Sprinkle with cinnamon and serve warm."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "brazilian",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Mango Lime Sorbet",
+      "description": "A refreshing fruit sorbet with mango and lime.",
+      "image": "https://images.unsplash.com/photo-1561994070-e5aeccfa674f?q=80&w=1074&auto=format&fit=crop",
+      "prep_time_minutes": 10,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "mango",
+          "amount": "500g"
+        },
+        {
+          "name": "sugar",
+          "amount": "70g"
+        },
+        {
+          "name": "lime juice",
+          "amount": "50ml"
+        },
+        {
+          "name": "water",
+          "amount": "80ml"
+        }
+      ],
+      "instructions": [
+        "Peel the mango and cut it into pieces.",
+        "Blend the mango with sugar, lime juice, and water.",
+        "Pour the mixture into a shallow container.",
+        "Freeze until firm, stirring once during freezing.",
+        "Scoop and serve cold."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "mexican",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "no-cook",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Chocolate Mug Cake",
+      "description": "A fast individual chocolate cake cooked without an oven.",
+      "image": "https://plus.unsplash.com/premium_photo-1669452303849-c678f2e891ca?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 8,
+      "servings": 1,
+      "ingredients": [
+        {
+          "name": "plain flour",
+          "amount": "30g"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": "10g"
+        },
+        {
+          "name": "sugar",
+          "amount": "25g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "45ml"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "baking powder",
+          "amount": "3g"
+        }
+      ],
+      "instructions": [
+        "Mix the plain flour, cocoa powder, sugar, and baking powder in a mug.",
+        "Add the whole milk and vegetable oil.",
+        "Stir until the batter is smooth.",
+        "Cook until the cake rises and becomes firm.",
+        "Let it cool briefly before eating."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "american",
+        "occasion": "on-the-go",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    }
+  ]
+}

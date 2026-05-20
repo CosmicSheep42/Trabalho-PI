@@ -16,6 +16,7 @@ export function useMainPageState() {
   const [recipeFilters, setRecipeFilters] = useState<ActiveRecipeFilters>({
     dietary: [],
     tags: [],
+    holidays: [],
     timeFilter: null,
   })
 
@@ -33,6 +34,7 @@ export function useMainPageState() {
       search: activeTab === "recipes" ? searchQuery : "",
       dietary: recipeFilters.dietary,
       tags: recipeFilters.tags,
+      holidays: recipeFilters.holidays,
       timeFilter: recipeFilters.timeFilter,
     },
     onListUpdated: backendLists.syncListResponse,

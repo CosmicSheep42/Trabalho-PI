@@ -12,6 +12,10 @@ class TagCategory(str, enum.Enum):
     meal_type = "meal_type"
     cuisine = "cuisine"
     occasion = "occasion"
+    weather = "weather"
+    difficulty = "difficulty"
+    cooking_method = "cooking_method"
+    main_protein = "main_protein"
 
 
 class Tag(Base):

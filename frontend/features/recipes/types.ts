@@ -7,11 +7,32 @@ export interface RecipeIngredient {
   amount: string
 }
 
+export interface BackendRecipeIngredient {
+  name: string
+  quantity: number | null
+  unit: string | null
+}
+
+export type RecipeTagCategory =
+  | "meal_type"
+  | "cuisine"
+  | "occasion"
+  | "weather"
+  | "difficulty"
+  | "cooking_method"
+  | "main_protein"
+
 export interface RecipeTag {
   id: number
   name: string
   slug: string
-  category: "meal_type" | "cuisine" | "occasion"
+  category: RecipeTagCategory
+}
+
+export interface RecipeHoliday {
+  id: number
+  name: string
+  slug: string
 }
 
 export interface BackendRecipe {
@@ -21,7 +42,7 @@ export interface BackendRecipe {
   image: string
   prep_time_minutes: number
   servings: number | null
-  ingredients: RecipeIngredient[]
+  ingredients: BackendRecipeIngredient[]
   instructions: string[]
   vegan: boolean
   vegetarian: boolean
@@ -34,6 +55,7 @@ export interface BackendRecipe {
   sesame_free: boolean
   sulfite_free: boolean
   tags: RecipeTag[]
+  holidays: RecipeHoliday[]
   average_rating: number | null
   ratings_count: number
   user_rating: number | null
@@ -60,6 +82,7 @@ export interface Recipe {
   sesame_free: boolean
   sulfite_free: boolean
   tags: RecipeTag[]
+  holidays: RecipeHoliday[]
   dietaryOptions: DietaryOption[]
   average_rating: number | null
   ratings_count: number
@@ -71,6 +94,11 @@ export interface BackendTagGroups {
   meal_type: RecipeTag[]
   cuisine: RecipeTag[]
   occasion: RecipeTag[]
+  weather: RecipeTag[]
+  difficulty: RecipeTag[]
+  cooking_method: RecipeTag[]
+  main_protein: RecipeTag[]
+  holidays: RecipeHoliday[]
 }
 
 export interface RecipeRatingSummary {
@@ -93,6 +121,7 @@ export interface RecipeFilters {
   search: string
   dietary: DietaryOption[]
   tags: string[]
+  holidays: string[]
   timeFilter: TimeFilter | null
 }
 
@@ -113,10 +142,33 @@ export function getRecipeDietaryOptions(recipe: Omit<Recipe, "dietaryOptions"> |
   return options
 }
 
+function formatAmount(quantity: number | null, unit: string | null) {
+  if (quantity === null && !unit) {
+    return ""
+  }
+
+  const quantityText =
+    quantity === null
+      ? ""
+      : Number.isInteger(quantity)
+        ? String(quantity)
+        : String(quantity)
+
+  if (!quantityText) {
+    return unit ?? ""
+  }
+
+  return unit ? `${quantityText} ${unit}` : quantityText
+}
+
 export function mapBackendRecipe(recipe: BackendRecipe): Recipe {
   return {
     ...recipe,
     id: String(recipe.id),
+    ingredients: recipe.ingredients.map((ingredient) => ({
+      name: ingredient.name,
+      amount: formatAmount(ingredient.quantity, ingredient.unit),
+    })),
     dietaryOptions: getRecipeDietaryOptions(recipe),
   }
 }

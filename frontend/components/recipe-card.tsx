@@ -29,6 +29,12 @@ export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProp
     }
   }
 
+  const visibleBadges =
+    Math.min(recipe.dietaryOptions.length, 2) +
+    Math.min(recipe.tags.length, 1) +
+    Math.min(recipe.holidays.length, 1)
+  const totalBadges = recipe.dietaryOptions.length + recipe.tags.length + recipe.holidays.length
+
   return (
     <div
       role={onClick ? "button" : undefined}
@@ -82,8 +88,13 @@ export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProp
               {tag.name}
             </span>
           ))}
-          {recipe.dietaryOptions.length + recipe.tags.length > 3 && (
-            <span className="text-xs text-muted-foreground">+{recipe.dietaryOptions.length + recipe.tags.length - 3}</span>
+          {recipe.holidays.length > 0 && (
+            <span className="inline-flex items-center rounded border px-2 py-0.5 text-xs text-muted-foreground">
+              {recipe.holidays[0].name}
+            </span>
+          )}
+          {totalBadges > visibleBadges && (
+            <span className="text-xs text-muted-foreground">+{totalBadges - visibleBadges}</span>
           )}
         </div>
       </div>

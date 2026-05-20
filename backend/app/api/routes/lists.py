@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_db, get_or_create_current_user
+from app.core.normalization import normalize_item_name
 from app.models.list_item import ListItem
 from app.models.list_recipe import ListRecipe
 from app.models.recipe import Recipe
@@ -23,13 +24,16 @@ from app.schemas.list import (
 router = APIRouter(prefix="/lists", tags=["lists"])
 
 
-def _get_owned_list(db: Session, user_id: int, list_id: int) -> ShoppingList:
-    shopping_list = (
+def _get_owned_list_query(db: Session, user_id: int):
+    return (
         db.query(ShoppingList)
         .options(selectinload(ShoppingList.items), selectinload(ShoppingList.recipe_links))
-        .filter(ShoppingList.id == list_id, ShoppingList.user_id == user_id)
-        .first()
+        .filter(ShoppingList.user_id == user_id)
     )
+
+
+def _get_owned_list(db: Session, user_id: int, list_id: int) -> ShoppingList:
+    shopping_list = _get_owned_list_query(db, user_id).filter(ShoppingList.id == list_id).first()
     if not shopping_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
     return shopping_list
@@ -47,18 +51,88 @@ def _get_owned_item(db: Session, user_id: int, item_id: int) -> ListItem:
     return item
 
 
+def _get_recipe_with_ingredients_or_404(db: Session, recipe_id: int) -> Recipe:
+    recipe = (
+        db.query(Recipe)
+        .options(selectinload(Recipe.ingredients))
+        .filter(Recipe.id == recipe_id)
+        .first()
+    )
+    if not recipe:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+    return recipe
+
+
+def _find_list_item_by_name_and_unit(
+    shopping_list: ShoppingList,
+    name: str,
+    unit: str | None,
+) -> ListItem | None:
+    normalized_name = normalize_item_name(name)
+    for item in shopping_list.items:
+        if normalize_item_name(item.name) == normalized_name and item.unit == unit:
+            return item
+    return None
+
+
+def _merge_recipe_ingredients_into_list(
+    db: Session,
+    shopping_list: ShoppingList,
+    recipe: Recipe,
+) -> None:
+    for ingredient in recipe.ingredients:
+        existing_item = _find_list_item_by_name_and_unit(shopping_list, ingredient.name, ingredient.unit)
+        if existing_item is not None:
+            if existing_item.quantity is not None and ingredient.quantity is not None:
+                existing_item.quantity += ingredient.quantity
+            db.add(existing_item)
+            continue
+
+        list_item = ListItem(
+            list_id=shopping_list.id,
+            name=ingredient.name,
+            quantity=ingredient.quantity,
+            unit=ingredient.unit,
+            checked=False,
+        )
+        shopping_list.items.append(list_item)
+        db.add(list_item)
+
+
+def _subtract_recipe_ingredients_from_list(
+    db: Session,
+    shopping_list: ShoppingList,
+    recipe: Recipe,
+) -> None:
+    for ingredient in recipe.ingredients:
+        existing_item = _find_list_item_by_name_and_unit(shopping_list, ingredient.name, ingredient.unit)
+        if existing_item is None:
+            continue
+
+        if existing_item.quantity is None and ingredient.quantity is None:
+            shopping_list.items.remove(existing_item)
+            db.delete(existing_item)
+            continue
+
+        if existing_item.quantity is None or ingredient.quantity is None:
+            continue
+
+        updated_quantity = existing_item.quantity - ingredient.quantity
+        if updated_quantity <= 0:
+            shopping_list.items.remove(existing_item)
+            db.delete(existing_item)
+            continue
+
+        existing_item.quantity = updated_quantity
+        db.add(existing_item)
+
+
 @router.get("", response_model=list[ShoppingListResponse])
 def get_lists(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> list[ShoppingList]:
-    return (
-        db.query(ShoppingList)
-        .options(selectinload(ShoppingList.items), selectinload(ShoppingList.recipe_links))
-        .filter(ShoppingList.user_id == current_user.id)
-        .order_by(ShoppingList.id.desc())
-        .all()
-    )
+    return _get_owned_list_query(db, current_user.id).order_by(ShoppingList.id.desc()).all()
 
 
 @router.post("", response_model=ShoppingListResponse, status_code=status.HTTP_201_CREATED)
@@ -127,9 +201,7 @@ def add_recipe_to_list(
 ) -> ShoppingList:
     shopping_list = _get_owned_list(db, current_user.id, list_id)
 
-    recipe = db.query(Recipe.id).filter(Recipe.id == recipe_id).first()
-    if not recipe:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+    recipe = _get_recipe_with_ingredients_or_404(db, recipe_id)
 
     existing_link = (
         db.query(ListRecipe)
@@ -138,6 +210,7 @@ def add_recipe_to_list(
     )
     if not existing_link:
         db.add(ListRecipe(list_id=list_id, recipe_id=recipe_id))
+        _merge_recipe_ingredients_into_list(db, shopping_list, recipe)
         db.commit()
 
     return _get_owned_list(db, current_user.id, shopping_list.id)
@@ -151,13 +224,17 @@ def remove_recipe_from_list(
     db: Session = Depends(get_db),
 ) -> ShoppingList:
     shopping_list = _get_owned_list(db, current_user.id, list_id)
+    recipe = _get_recipe_with_ingredients_or_404(db, recipe_id)
 
-    (
+    link = (
         db.query(ListRecipe)
         .filter(ListRecipe.list_id == list_id, ListRecipe.recipe_id == recipe_id)
-        .delete(synchronize_session=False)
+        .first()
     )
-    db.commit()
+    if link:
+        db.delete(link)
+        _subtract_recipe_ingredients_from_list(db, shopping_list, recipe)
+        db.commit()
 
     return _get_owned_list(db, current_user.id, shopping_list.id)
 

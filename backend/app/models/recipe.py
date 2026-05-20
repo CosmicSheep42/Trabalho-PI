@@ -15,7 +15,6 @@ class Recipe(Base):
     image: Mapped[str] = mapped_column(String(255), nullable=False)
     prep_time_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
     servings: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    ingredients: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=False)
     instructions: Mapped[list[str]] = mapped_column(JSON, nullable=False)
     vegan: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     vegetarian: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
@@ -30,6 +29,12 @@ class Recipe(Base):
 
     tag_links = relationship(
         "RecipeTag",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    holiday_links = relationship(
+        "RecipeHoliday",
         back_populates="recipe",
         cascade="all, delete-orphan",
         passive_deletes=True,
@@ -51,4 +56,11 @@ class Recipe(Base):
         back_populates="recipe",
         cascade="all, delete-orphan",
         passive_deletes=True,
+    )
+    ingredients = relationship(
+        "RecipeIngredient",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="RecipeIngredient.id",
     )

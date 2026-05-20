@@ -14,7 +14,16 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
-TAG_CATEGORY_ENUM = sa.Enum("meal_type", "cuisine", "occasion", name="tag_category")
+TAG_CATEGORY_ENUM = sa.Enum(
+    "meal_type",
+    "cuisine",
+    "occasion",
+    "weather",
+    "difficulty",
+    "cooking_method",
+    "main_protein",
+    name="tag_category",
+)
 
 
 def upgrade() -> None:
@@ -56,7 +65,6 @@ def upgrade() -> None:
         sa.Column("image", sa.String(length=255), nullable=False),
         sa.Column("prep_time_minutes", sa.Integer(), nullable=False, server_default=sa.text("0")),
         sa.Column("servings", sa.Integer(), nullable=True),
-        sa.Column("ingredients", sa.JSON(), nullable=False),
         sa.Column("instructions", sa.JSON(), nullable=False),
         sa.Column("vegan", sa.Boolean(), nullable=False, server_default=sa.text("0")),
         sa.Column("vegetarian", sa.Boolean(), nullable=False, server_default=sa.text("0")),
@@ -73,6 +81,19 @@ def upgrade() -> None:
     op.create_index("ix_recipes_name", "recipes", ["name"], unique=False)
 
     op.create_table(
+        "recipe_ingredients",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("recipe_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("quantity", sa.Numeric(precision=10, scale=2, asdecimal=False), nullable=True),
+        sa.Column("unit", sa.String(length=50), nullable=True),
+        sa.CheckConstraint("quantity IS NULL OR quantity >= 0", name="ck_recipe_ingredients_quantity_non_negative"),
+        sa.ForeignKeyConstraint(["recipe_id"], ["recipes.id"], ondelete="CASCADE"),
+    )
+    op.create_index("ix_recipe_ingredients_id", "recipe_ingredients", ["id"], unique=False)
+    op.create_index("ix_recipe_ingredients_recipe_id", "recipe_ingredients", ["recipe_id"], unique=False)
+
+    op.create_table(
         "tags",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
@@ -83,6 +104,16 @@ def upgrade() -> None:
     op.create_index("ix_tags_id", "tags", ["id"], unique=False)
     op.create_index("ix_tags_slug", "tags", ["slug"], unique=False)
     op.create_index("ix_tags_category", "tags", ["category"], unique=False)
+
+    op.create_table(
+        "holidays",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("slug", sa.String(length=255), nullable=False),
+        sa.UniqueConstraint("slug", name="uq_holidays_slug"),
+    )
+    op.create_index("ix_holidays_id", "holidays", ["id"], unique=False)
+    op.create_index("ix_holidays_slug", "holidays", ["slug"], unique=False)
 
     op.create_table(
         "favorite_recipes",
@@ -99,9 +130,11 @@ def upgrade() -> None:
         "list_items",
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
         sa.Column("list_id", sa.Integer(), nullable=False),
-        sa.Column("text", sa.String(length=255), nullable=False),
-        sa.Column("amount", sa.String(length=255), nullable=False, server_default=""),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("quantity", sa.Numeric(precision=10, scale=2, asdecimal=False), nullable=True),
+        sa.Column("unit", sa.String(length=50), nullable=True),
         sa.Column("checked", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.CheckConstraint("quantity IS NULL OR quantity >= 0", name="ck_list_items_quantity_non_negative"),
         sa.ForeignKeyConstraint(["list_id"], ["lists.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_list_items_id", "list_items", ["id"], unique=False)
@@ -142,8 +175,23 @@ def upgrade() -> None:
     op.create_index("ix_recipe_tags_recipe_id", "recipe_tags", ["recipe_id"], unique=False)
     op.create_index("ix_recipe_tags_tag_id", "recipe_tags", ["tag_id"], unique=False)
 
+    op.create_table(
+        "recipe_holidays",
+        sa.Column("recipe_id", sa.Integer(), nullable=False),
+        sa.Column("holiday_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(["recipe_id"], ["recipes.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["holiday_id"], ["holidays.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("recipe_id", "holiday_id", name="pk_recipe_holidays"),
+    )
+    op.create_index("ix_recipe_holidays_recipe_id", "recipe_holidays", ["recipe_id"], unique=False)
+    op.create_index("ix_recipe_holidays_holiday_id", "recipe_holidays", ["holiday_id"], unique=False)
+
 
 def downgrade() -> None:
+    op.drop_index("ix_recipe_holidays_holiday_id", table_name="recipe_holidays")
+    op.drop_index("ix_recipe_holidays_recipe_id", table_name="recipe_holidays")
+    op.drop_table("recipe_holidays")
+
     op.drop_index("ix_recipe_tags_tag_id", table_name="recipe_tags")
     op.drop_index("ix_recipe_tags_recipe_id", table_name="recipe_tags")
     op.drop_table("recipe_tags")
@@ -164,10 +212,18 @@ def downgrade() -> None:
     op.drop_index("ix_favorite_recipes_user_id", table_name="favorite_recipes")
     op.drop_table("favorite_recipes")
 
+    op.drop_index("ix_recipe_ingredients_recipe_id", table_name="recipe_ingredients")
+    op.drop_index("ix_recipe_ingredients_id", table_name="recipe_ingredients")
+    op.drop_table("recipe_ingredients")
+
     op.drop_index("ix_tags_category", table_name="tags")
     op.drop_index("ix_tags_slug", table_name="tags")
     op.drop_index("ix_tags_id", table_name="tags")
     op.drop_table("tags")
+
+    op.drop_index("ix_holidays_slug", table_name="holidays")
+    op.drop_index("ix_holidays_id", table_name="holidays")
+    op.drop_table("holidays")
 
     op.drop_index("ix_recipes_name", table_name="recipes")
     op.drop_index("ix_recipes_id", table_name="recipes")

@@ -5,7 +5,15 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
-TagCategory = Literal["meal_type", "cuisine", "occasion"]
+TagCategory = Literal[
+    "meal_type",
+    "cuisine",
+    "occasion",
+    "weather",
+    "difficulty",
+    "cooking_method",
+    "main_protein",
+]
 TimeFilter = Literal["under_15m", "under_30m", "under_60m", "above_60m"]
 
 
@@ -19,8 +27,19 @@ class TagResponse(BaseModel):
 
 
 class RecipeIngredient(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     name: str
-    amount: str
+    quantity: float | None = None
+    unit: str | None = None
+
+
+class HolidayResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    slug: str
 
 
 class RecipeRatingPayload(BaseModel):
@@ -28,6 +47,8 @@ class RecipeRatingPayload(BaseModel):
 
 
 class RecipeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     description: str
@@ -47,6 +68,7 @@ class RecipeResponse(BaseModel):
     sesame_free: bool
     sulfite_free: bool
     tags: list[TagResponse]
+    holidays: list[HolidayResponse]
     average_rating: float | None
     ratings_count: int
     user_rating: int | None
@@ -71,3 +93,8 @@ class TagGroupsResponse(BaseModel):
     meal_type: list[TagResponse]
     cuisine: list[TagResponse]
     occasion: list[TagResponse]
+    weather: list[TagResponse]
+    difficulty: list[TagResponse]
+    cooking_method: list[TagResponse]
+    main_protein: list[TagResponse]
+    holidays: list[HolidayResponse]

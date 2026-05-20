@@ -8,13 +8,17 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_db, get_or_create_current_user
 from app.models.favorite_recipe import FavoriteRecipe
+from app.models.holiday import Holiday
 from app.models.recipe import Recipe
+from app.models.recipe_holiday import RecipeHoliday
 from app.models.recipe_rating import RecipeRating
 from app.models.recipe_tag import RecipeTag
 from app.models.tag import Tag, TagCategory
 from app.models.user import User
 from app.schemas.recipe import (
     FavoriteRecipeResponse,
+    HolidayResponse,
+    RecipeIngredient as RecipeIngredientSchema,
     RecipeRatingPayload,
     RecipeRatingSummaryResponse,
     RecipeResponse,
@@ -54,10 +58,21 @@ DIETARY_FILTER_FIELDS: tuple[DietaryFilterName, ...] = (
 )
 
 
+def _normalize_slug_filters(values: list[str] | None) -> list[str]:
+    if not values:
+        return []
+
+    return sorted({value.strip() for value in values if value.strip()})
+
+
 def _get_recipe_or_404(db: Session, recipe_id: int) -> Recipe:
     recipe = (
         db.query(Recipe)
-        .options(selectinload(Recipe.tag_links).selectinload(RecipeTag.tag))
+        .options(
+            selectinload(Recipe.tag_links).selectinload(RecipeTag.tag),
+            selectinload(Recipe.holiday_links).selectinload(RecipeHoliday.holiday),
+            selectinload(Recipe.ingredients),
+        )
         .filter(Recipe.id == recipe_id)
         .first()
     )
@@ -110,7 +125,11 @@ def _build_recipe_query(db: Session, current_user: User):
             user_ratings_subquery.c.user_rating,
             case((favorites_subquery.c.recipe_id.is_not(None), True), else_=False).label("is_favorite"),
         )
-        .options(selectinload(Recipe.tag_links).selectinload(RecipeTag.tag))
+        .options(
+            selectinload(Recipe.tag_links).selectinload(RecipeTag.tag),
+            selectinload(Recipe.holiday_links).selectinload(RecipeHoliday.holiday),
+            selectinload(Recipe.ingredients),
+        )
         .outerjoin(ratings_subquery, ratings_subquery.c.recipe_id == Recipe.id)
         .outerjoin(user_ratings_subquery, user_ratings_subquery.c.recipe_id == Recipe.id)
         .outerjoin(favorites_subquery, favorites_subquery.c.recipe_id == Recipe.id)
@@ -131,7 +150,7 @@ def _serialize_recipe(
         image=recipe.image,
         prep_time_minutes=recipe.prep_time_minutes,
         servings=recipe.servings,
-        ingredients=recipe.ingredients,
+        ingredients=[RecipeIngredientSchema.model_validate(ingredient) for ingredient in recipe.ingredients],
         instructions=recipe.instructions,
         vegan=recipe.vegan,
         vegetarian=recipe.vegetarian,
@@ -144,6 +163,11 @@ def _serialize_recipe(
         sesame_free=recipe.sesame_free,
         sulfite_free=recipe.sulfite_free,
         tags=[TagResponse.model_validate(link.tag) for link in recipe.tag_links if link.tag is not None],
+        holidays=[
+            HolidayResponse.model_validate(link.holiday)
+            for link in recipe.holiday_links
+            if link.holiday is not None
+        ],
         average_rating=float(average_rating) if average_rating is not None else None,
         ratings_count=ratings_count,
         user_rating=user_rating,
@@ -177,6 +201,7 @@ def _get_rating_summary(db: Session, recipe_id: int, user_id: int) -> RecipeRati
 def get_recipes(
     search: str | None = Query(default=None),
     tags: list[str] | None = Query(default=None),
+    holidays: list[str] | None = Query(default=None),
     time_filter: TimeFilter | None = Query(default=None),
     vegan: bool | None = Query(default=None),
     vegetarian: bool | None = Query(default=None),
@@ -217,15 +242,23 @@ def get_recipes(
         if value is not None:
             query = query.filter(getattr(Recipe, field_name) == value)
 
-    if tags:
-        normalized_tags = sorted({tag.strip() for tag in tags if tag.strip()})
-        if normalized_tags:
-            query = (
-                query.join(RecipeTag, RecipeTag.recipe_id == Recipe.id)
-                .join(Tag, Tag.id == RecipeTag.tag_id)
-                .filter(Tag.slug.in_(normalized_tags))
-                .distinct()
-            )
+    normalized_tags = _normalize_slug_filters(tags)
+    if normalized_tags:
+        query = (
+            query.join(RecipeTag, RecipeTag.recipe_id == Recipe.id)
+            .join(Tag, Tag.id == RecipeTag.tag_id)
+            .filter(Tag.slug.in_(normalized_tags))
+            .distinct()
+        )
+
+    normalized_holidays = _normalize_slug_filters(holidays)
+    if normalized_holidays:
+        query = (
+            query.join(RecipeHoliday, RecipeHoliday.recipe_id == Recipe.id)
+            .join(Holiday, Holiday.id == RecipeHoliday.holiday_id)
+            .filter(Holiday.slug.in_(normalized_holidays))
+            .distinct()
+        )
 
     rows = query.order_by(Recipe.name.asc()).all()
     return [
@@ -331,11 +364,8 @@ def delete_recipe_rating(
 @tags_router.get("", response_model=TagGroupsResponse)
 def get_tags(db: Session = Depends(get_db)) -> TagGroupsResponse:
     tags = db.query(Tag).order_by(Tag.category.asc(), Tag.name.asc()).all()
-    grouped: dict[TagCategory, list[TagResponse]] = {
-        TagCategory.meal_type: [],
-        TagCategory.cuisine: [],
-        TagCategory.occasion: [],
-    }
+    holidays = db.query(Holiday).order_by(Holiday.name.asc()).all()
+    grouped: dict[TagCategory, list[TagResponse]] = {category: [] for category in TagCategory}
     for tag in tags:
         grouped[tag.category].append(TagResponse.model_validate(tag))
 
@@ -343,4 +373,9 @@ def get_tags(db: Session = Depends(get_db)) -> TagGroupsResponse:
         meal_type=grouped[TagCategory.meal_type],
         cuisine=grouped[TagCategory.cuisine],
         occasion=grouped[TagCategory.occasion],
+        weather=grouped[TagCategory.weather],
+        difficulty=grouped[TagCategory.difficulty],
+        cooking_method=grouped[TagCategory.cooking_method],
+        main_protein=grouped[TagCategory.main_protein],
+        holidays=[HolidayResponse.model_validate(holiday) for holiday in holidays],
     )

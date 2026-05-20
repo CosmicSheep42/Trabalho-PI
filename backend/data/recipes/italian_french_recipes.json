@@ -1,0 +1,696 @@
+{
+  "recipes": [
+    {
+      "name": "Spaghetti Pomodoro",
+      "description": "A simple Italian pasta with tomato, garlic, and olive oil.",
+      "image": "https://plus.unsplash.com/premium_photo-1674511582428-58ce834ce172?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 25,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "spaghetti",
+          "amount": "400g"
+        },
+        {
+          "name": "tomato",
+          "amount": "600g"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "olive oil",
+          "amount": "40ml"
+        },
+        {
+          "name": "basil",
+          "amount": "10g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Boil the spaghetti until tender.",
+        "Mince the garlic and chop the tomato.",
+        "Cook the garlic in olive oil.",
+        "Add the tomato and simmer into a sauce.",
+        "Toss the spaghetti with the sauce and basil."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "italian",
+        "occasion": "date",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Chicken Cacciatore",
+      "description": "Italian chicken simmered with tomato, peppers, and herbs.",
+      "image": "https://images.unsplash.com/photo-1612547945552-8782fa60a8e8?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 60,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "chicken thigh",
+          "amount": "700g"
+        },
+        {
+          "name": "tomato",
+          "amount": "500g"
+        },
+        {
+          "name": "bell pepper",
+          "amount": "2"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "olive oil",
+          "amount": "30ml"
+        },
+        {
+          "name": "oregano",
+          "amount": "4g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Season the chicken thigh with salt.",
+        "Slice the onion and bell pepper, then mince the garlic.",
+        "Brown the chicken in olive oil.",
+        "Add the vegetables, tomato, and oregano.",
+        "Simmer until the chicken is tender."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "italian",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "one-pot",
+        "main_protein": "chicken"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Minestrone Soup",
+      "description": "A vegetable and bean soup with small pasta.",
+      "image": "https://images.unsplash.com/photo-1643786661490-966f1877effa?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "small pasta",
+          "amount": "120g"
+        },
+        {
+          "name": "white bean",
+          "amount": "250g"
+        },
+        {
+          "name": "tomato",
+          "amount": "400g"
+        },
+        {
+          "name": "carrot",
+          "amount": "150g"
+        },
+        {
+          "name": "zucchini",
+          "amount": "200g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "1.2L"
+        },
+        {
+          "name": "olive oil",
+          "amount": "30ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the carrot, zucchini, and onion.",
+        "Cook the onion in olive oil until soft.",
+        "Add the vegetables, tomato, white bean, and vegetable broth.",
+        "Simmer until the vegetables are tender.",
+        "Add the small pasta and cook until done."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "italian",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Risotto Milanese",
+      "description": "A creamy saffron risotto with Parmesan cheese.",
+      "image": "https://images.unsplash.com/photo-1637361874063-e5e415d7bcf7?q=80&w=687&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "arborio rice",
+          "amount": "320g"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "1L"
+        },
+        {
+          "name": "Parmesan cheese",
+          "amount": "80g"
+        },
+        {
+          "name": "butter",
+          "amount": "40g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "saffron",
+          "amount": "1g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion.",
+        "Cook the onion in butter until soft.",
+        "Add the arborio rice and stir until glossy.",
+        "Add vegetable broth gradually while stirring.",
+        "Finish with saffron and Parmesan cheese."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "italian",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Margherita Flatbread",
+      "description": "A quick Italian-style flatbread with tomato and cheese.",
+      "image": "https://images.unsplash.com/photo-1588988949118-c86ba9c9c225?q=80&w=735&auto=format&fit=crop",
+      "prep_time_minutes": 30,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "plain flour",
+          "amount": "300g"
+        },
+        {
+          "name": "water",
+          "amount": "180ml"
+        },
+        {
+          "name": "mozzarella cheese",
+          "amount": "200g"
+        },
+        {
+          "name": "tomato sauce",
+          "amount": "180ml"
+        },
+        {
+          "name": "olive oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "basil",
+          "amount": "8g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Mix the plain flour, water, olive oil, and salt into a dough.",
+        "Roll the dough into thin flatbreads.",
+        "Spread tomato sauce over the dough.",
+        "Add mozzarella cheese and basil.",
+        "Bake until the cheese melts and the edges brown."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "italian",
+        "occasion": "party",
+        "weather": "hot-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "French Onion Soup",
+      "description": "A slow-cooked onion soup with melted cheese and bread.",
+      "image": "https://images.unsplash.com/photo-1549203438-a7696aed4dac?q=80&w=1046&auto=format&fit=crop",
+      "prep_time_minutes": 70,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "onion",
+          "amount": "5"
+        },
+        {
+          "name": "beef broth",
+          "amount": "1L"
+        },
+        {
+          "name": "butter",
+          "amount": "40g"
+        },
+        {
+          "name": "bread",
+          "amount": "120g"
+        },
+        {
+          "name": "Gruyere cheese",
+          "amount": "120g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Slice the onions thinly.",
+        "Cook the onions in butter until deeply browned.",
+        "Add the beef broth and simmer.",
+        "Place bread over each bowl of soup.",
+        "Top with Gruyere cheese and bake until melted."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "french",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Ratatouille",
+      "description": "A French vegetable stew with eggplant, zucchini, and tomato.",
+      "image": "https://plus.unsplash.com/premium_photo-1713635953474-b74990274152?q=80&w=1484&auto=format&fit=crop",
+      "prep_time_minutes": 50,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "eggplant",
+          "amount": "300g"
+        },
+        {
+          "name": "zucchini",
+          "amount": "300g"
+        },
+        {
+          "name": "tomato",
+          "amount": "500g"
+        },
+        {
+          "name": "bell pepper",
+          "amount": "2"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "olive oil",
+          "amount": "40ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the eggplant, zucchini, bell pepper, and onion.",
+        "Mince the garlic.",
+        "Cook the onion and garlic in olive oil.",
+        "Add the vegetables and tomato.",
+        "Simmer until the vegetables are tender."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "french",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Quiche Lorraine",
+      "description": "A savory French tart with eggs, cream, cheese, and pork.",
+      "image": "https://plus.unsplash.com/premium_photo-1726826707180-5bddbc3a7532?q=80&w=1123&auto=format&fit=crop",
+      "prep_time_minutes": 60,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "plain flour",
+          "amount": "220g"
+        },
+        {
+          "name": "butter",
+          "amount": "120g"
+        },
+        {
+          "name": "egg",
+          "amount": "4"
+        },
+        {
+          "name": "table cream",
+          "amount": "250ml"
+        },
+        {
+          "name": "pork",
+          "amount": "180g"
+        },
+        {
+          "name": "cheese",
+          "amount": "120g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Make a pastry dough with plain flour and butter.",
+        "Press the dough into a tart pan.",
+        "Dice the pork and cook it until browned.",
+        "Whisk the eggs with table cream and cheese.",
+        "Fill the crust and bake until set."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "french",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "hard",
+        "cooking_method": "oven",
+        "main_protein": "pork"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Beef Bourguignon",
+      "description": "A French beef stew cooked with vegetables and red wine.",
+      "image": "https://images.unsplash.com/photo-1667396702543-a239efa7a7f2?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 120,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "beef",
+          "amount": "900g"
+        },
+        {
+          "name": "red wine",
+          "amount": "500ml"
+        },
+        {
+          "name": "carrot",
+          "amount": "250g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "mushroom",
+          "amount": "250g"
+        },
+        {
+          "name": "beef broth",
+          "amount": "500ml"
+        },
+        {
+          "name": "butter",
+          "amount": "30g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Cut the beef into large cubes.",
+        "Dice the carrot and onion, then mince the garlic.",
+        "Brown the beef in butter.",
+        "Add the vegetables, red wine, and beef broth.",
+        "Simmer slowly until the beef is tender."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": false
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "french",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "hard",
+        "cooking_method": "slow-cooker",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Salade Niçoise",
+      "description": "A French salad with fish, eggs, potatoes, and vegetables.",
+      "image": "https://plus.unsplash.com/premium_photo-1673590981815-bdd1a5fceca1?q=80&w=687&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "fish",
+          "amount": "300g"
+        },
+        {
+          "name": "egg",
+          "amount": "4"
+        },
+        {
+          "name": "potato",
+          "amount": "400g"
+        },
+        {
+          "name": "green bean",
+          "amount": "200g"
+        },
+        {
+          "name": "tomato",
+          "amount": "250g"
+        },
+        {
+          "name": "olive",
+          "amount": "80g"
+        },
+        {
+          "name": "olive oil",
+          "amount": "40ml"
+        },
+        {
+          "name": "lemon juice",
+          "amount": "30ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Boil the potatoes until tender.",
+        "Boil the eggs and peel them.",
+        "Cook the green beans until crisp and tender.",
+        "Slice the tomato and arrange all ingredients on plates.",
+        "Drizzle with olive oil and lemon juice."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": false,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "french",
+        "occasion": "date",
+        "weather": "hot-day",
+        "difficulty": "medium",
+        "cooking_method": "stovetop",
+        "main_protein": "fish"
+      },
+      "holidays": []
+    }
+  ]
+}
