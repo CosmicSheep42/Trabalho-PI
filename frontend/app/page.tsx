@@ -1,6 +1,6 @@
 "use client"
 
-import { Leaf, Plus, User, Settings, Search, ShoppingCart, BookOpen, LogOut } from "lucide-react"
+import { Leaf, User, Settings, Search, ShoppingCart, BookOpen, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -119,7 +119,7 @@ export default function MainPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-6">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <TabsList className="bg-secondary">
               <TabsTrigger value="lists" className="gap-2">
@@ -133,20 +133,16 @@ export default function MainPage() {
             </TabsList>
 
             <div className="flex gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={activeTab === "lists" ? "Search lists..." : "Search recipes..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              {activeTab === "lists" && (
-                <Button onClick={() => setCreateListOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New List
-                </Button>
+              {activeTab === "recipes" && (
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search recipes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
               )}
               {activeTab === "recipes" && (
                 <RecipeFilter
@@ -170,10 +166,17 @@ export default function MainPage() {
           <TabsContent value="lists" className="mt-0">
             <ListsTab
               lists={filteredLists}
+              recipes={filteredRecipes}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
               onCreateList={() => setCreateListOpen(true)}
               onOpenList={(list) => {
                 setSelectedList(list)
                 setListDialogOpen(true)
+              }}
+              onOpenRecipe={(recipe) => {
+                setSelectedRecipe(recipe)
+                setRecipeDialogOpen(true)
               }}
               onEditList={(list) => {
                 setEditingList(list)
