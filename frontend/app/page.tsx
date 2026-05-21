@@ -134,13 +134,13 @@ export default function MainPage() {
 
             <div className="flex gap-2 w-full sm:w-auto">
               {activeTab === "recipes" && (
-                <div className="relative flex-1 sm:w-64">
+                <div className="relative flex-1 sm:w-72">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search recipes..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="h-10 rounded-xl border-border/70 bg-card pl-9 shadow-none placeholder:text-muted-foreground/80"
                   />
                 </div>
               )}
