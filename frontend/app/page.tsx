@@ -1,6 +1,6 @@
 "use client"
 
-import { Leaf, User, Settings, Search, ShoppingCart, BookOpen, LogOut } from "lucide-react"
+import { ArrowUpAZ, Leaf, ListOrdered, Search, Settings, ShoppingCart, Star, User, BookOpen, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -21,6 +21,13 @@ import { RecipeFilter, ActiveFilters } from "@/components/recipe-filter"
 import { ListsTab } from "@/features/home/components/lists-tab"
 import { RecipesTab } from "@/features/home/components/recipes-tab"
 import { useMainPage } from "@/hooks/use-main-page"
+import type { RecipeSortOrder } from "@/hooks/use-main-page-state"
+
+const recipeSortLabels: Record<RecipeSortOrder, string> = {
+  default: "Default",
+  alphabetical: "Alphabetical",
+  ratings: "Ratings",
+}
 
 export default function MainPage() {
   const {
@@ -28,6 +35,8 @@ export default function MainPage() {
     setActiveTab,
     searchQuery,
     setSearchQuery,
+    recipeSortOrder,
+    setRecipeSortOrder,
     lists,
     listItems,
     tagGroups,
@@ -54,6 +63,7 @@ export default function MainPage() {
     user,
     filteredRecipes,
     filteredLists,
+    hasActiveRecipeQuery,
     isLoadingRecipes,
     recipesError,
     handleCreateList,
@@ -145,6 +155,36 @@ export default function MainPage() {
                 </div>
               )}
               {activeTab === "recipes" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-xl border-border/70 bg-background px-3 text-sm shadow-none hover:bg-accent/50"
+                    >
+                      <ListOrdered className="h-4 w-4" />
+                      Order
+                      <span className="hidden sm:inline text-muted-foreground">
+                        {recipeSortLabels[recipeSortOrder]}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem onClick={() => setRecipeSortOrder("default")}>
+                      <ListOrdered className="h-4 w-4 mr-2" />
+                      Default
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecipeSortOrder("alphabetical")}>
+                      <ArrowUpAZ className="h-4 w-4 mr-2" />
+                      Alphabetical
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecipeSortOrder("ratings")}>
+                      <Star className="h-4 w-4 mr-2" />
+                      Ratings
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {activeTab === "recipes" && (
                 <RecipeFilter
                   filters={recipeFilters}
                   availableTags={tagGroups}
@@ -191,6 +231,7 @@ export default function MainPage() {
               recipes={filteredRecipes}
               isLoading={isLoadingRecipes}
               error={recipesError}
+              hasActiveQuery={hasActiveRecipeQuery}
               onFavoriteToggle={handleToggleFavorite}
               onOpenRecipe={(recipe) => {
                 setSelectedRecipe(recipe)

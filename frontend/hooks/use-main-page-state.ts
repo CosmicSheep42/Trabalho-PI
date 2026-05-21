@@ -8,11 +8,14 @@ import { useBackendUser } from "@/hooks/use-backend-user"
 import type { ActiveRecipeFilters } from "@/components/recipe-filter"
 import type { Recipe } from "@/features/recipes/types"
 
+export type RecipeSortOrder = "default" | "alphabetical" | "ratings"
+
 export function useMainPageState() {
   const backendLists = useBackendLists()
   const backendUser = useBackendUser()
   const [activeTab, setActiveTab] = useState("lists")
   const [searchQuery, setSearchQuery] = useState("")
+  const [recipeSortOrder, setRecipeSortOrder] = useState<RecipeSortOrder>("default")
   const [recipeFilters, setRecipeFilters] = useState<ActiveRecipeFilters>({
     dietary: [],
     tags: [],
@@ -94,6 +97,8 @@ export function useMainPageState() {
     setActiveTab,
     searchQuery,
     setSearchQuery,
+    recipeSortOrder,
+    setRecipeSortOrder,
     selectedList,
     setSelectedList,
     listDialogOpen,

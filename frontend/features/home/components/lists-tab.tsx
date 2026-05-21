@@ -263,6 +263,7 @@ export function ListsTab({
     }
   ) {
     const { day, draggable = false, fromDay = "bank", onDropAtCard } = options ?? {}
+    const mealTypeTag = recipe.tags.find((tag) => tag.category === "meal_type")
 
     return (
       <div
@@ -319,8 +320,8 @@ export function ListsTab({
               {recipe.servings ? (
                 <Badge variant="secondary">{recipe.servings} servings</Badge>
               ) : null}
-              {recipe.tags[0] ? (
-                <Badge variant="outline">{recipe.tags[0].name}</Badge>
+              {mealTypeTag ? (
+                <Badge variant="outline">{mealTypeTag.name}</Badge>
               ) : null}
             </div>
           </div>

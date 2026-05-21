@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AlertCircle, BookOpen, Heart, RotateCcw, Sparkles, Star } from "lucide-react"
+import { AlertCircle, BookOpen, Heart, RotateCcw, Search, Sparkles, Star } from "lucide-react"
 import { RecipeCard } from "@/components/recipe-card"
 import {
   Carousel,
@@ -18,6 +18,7 @@ interface RecipesTabProps {
   recipes: Recipe[]
   isLoading?: boolean
   error?: string | null
+  hasActiveQuery?: boolean
   onFavoriteToggle: (recipe: Recipe) => void
   onOpenRecipe: (recipe: Recipe) => void
 }
@@ -138,6 +139,7 @@ export function RecipesTab({
   recipes,
   isLoading = false,
   error = null,
+  hasActiveQuery = false,
   onFavoriteToggle,
   onOpenRecipe,
 }: RecipesTabProps) {
@@ -172,6 +174,31 @@ export function RecipesTab({
           Try a different search term or adjust your filters
         </p>
       </div>
+    )
+  }
+
+  if (hasActiveQuery) {
+    return (
+      <Card className="overflow-hidden py-0 shadow-sm">
+        <CardHeader className="border-b py-4">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Search className="h-5 w-5 shrink-0 text-primary" />
+            Matching Recipes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                onFavoriteToggle={onFavoriteToggle}
+                onClick={() => onOpenRecipe(recipe)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 

@@ -34,7 +34,8 @@ export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProp
     Math.min(recipe.tags.length, 1) +
     Math.min(recipe.holidays.length, 1)
   const totalBadges = recipe.dietaryOptions.length + recipe.tags.length + recipe.holidays.length
-  const primaryTag = recipe.tags[0]?.name
+  const mealTypeTag = recipe.tags.find((tag) => tag.category === "meal_type")?.name
+  const cuisineTag = recipe.tags.find((tag) => tag.category === "cuisine")?.name
   const primaryHoliday = recipe.holidays[0]?.name
 
   return (
@@ -58,12 +59,17 @@ export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProp
         />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent" />
         <div className="absolute bottom-2 left-2 flex flex-wrap gap-1.5">
-          {primaryTag && (
+          {mealTypeTag && (
             <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
-              {primaryTag}
+              {mealTypeTag}
             </span>
           )}
-          {!primaryTag && primaryHoliday && (
+          {cuisineTag && (
+            <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
+              {cuisineTag}
+            </span>
+          )}
+          {!mealTypeTag && !cuisineTag && primaryHoliday && (
             <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
               {primaryHoliday}
             </span>
@@ -120,7 +126,10 @@ export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProp
           {recipe.dietaryOptions.slice(0, 2).map((option) => (
             <DietaryBadge key={option} type={option} size="sm" />
           ))}
-          {recipe.tags.slice(primaryTag ? 1 : 0, primaryTag ? 2 : 1).map((tag) => (
+          {recipe.tags
+            .filter((tag) => tag.category !== "meal_type" && tag.category !== "cuisine")
+            .slice(0, 1)
+            .map((tag) => (
             <span key={tag.id} className="inline-flex items-center rounded border px-2 py-0.5 text-xs text-muted-foreground">
               {tag.name}
             </span>

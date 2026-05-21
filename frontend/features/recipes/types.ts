@@ -129,7 +129,7 @@ export function getRecipeDietaryOptions(recipe: Omit<Recipe, "dietaryOptions"> |
   const options: DietaryOption[] = []
 
   if (recipe.vegan) options.push("vegan")
-  if (recipe.vegetarian) options.push("vegetarian")
+  if (!recipe.vegan && recipe.vegetarian) options.push("vegetarian")
   if (recipe.lactose_free) options.push("lactose-free")
   if (recipe.egg_free) options.push("egg-free")
   if (recipe.gluten_free) options.push("gluten-free")
