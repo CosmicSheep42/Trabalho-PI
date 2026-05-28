@@ -4,6 +4,8 @@ import type { DietaryOption } from "@/lib/dietary-options"
 
 export interface RecipeIngredient {
   name: string
+  quantity: number | null
+  unit: string | null
   amount: string
 }
 
@@ -60,6 +62,8 @@ export interface BackendRecipe {
   ratings_count: number
   user_rating: number | null
   is_favorite: boolean
+  is_saved: boolean
+  saved_servings: number | null
 }
 
 export interface Recipe {
@@ -88,6 +92,8 @@ export interface Recipe {
   ratings_count: number
   user_rating: number | null
   is_favorite: boolean
+  is_saved: boolean
+  saved_servings: number | null
 }
 
 export interface BackendTagGroups {
@@ -114,6 +120,17 @@ export interface FavoriteRecipeResponse {
   recipe_id: number
   is_favorite: boolean
 }
+
+export interface SavedRecipeResponse {
+  success: boolean
+  recipe_id: number
+  servings: number | null
+}
+
+export type RecipeServingsContext =
+  | { type: "saved" }
+  | { type: "list"; listId: string }
+  | { type: "meal-planner"; entryId: string }
 
 export type TimeFilter = "under_15m" | "under_30m" | "under_60m" | "above_60m"
 
@@ -167,9 +184,51 @@ export function mapBackendRecipe(recipe: BackendRecipe): Recipe {
     id: String(recipe.id),
     ingredients: recipe.ingredients.map((ingredient) => ({
       name: ingredient.name,
+      quantity: ingredient.quantity,
+      unit: ingredient.unit,
       amount: formatAmount(ingredient.quantity, ingredient.unit),
     })),
     dietaryOptions: getRecipeDietaryOptions(recipe),
+  }
+}
+
+export function scaleIngredientAmount(
+  quantity: number | null,
+  unit: string | null,
+  multiplier: number
+) {
+  if (quantity === null) {
+    return formatAmount(quantity, unit)
+  }
+
+  return formatAmount(Number((quantity * multiplier).toFixed(2)), unit)
+}
+
+export function scaleRecipeIngredients(recipe: Recipe, servings: number | null) {
+  const baseServings = recipe.servings
+  const multiplier =
+    servings && servings > 0 && baseServings && baseServings > 0
+      ? servings / baseServings
+      : 1
+
+  return recipe.ingredients.map((ingredient) => ({
+    ...ingredient,
+    amount: scaleIngredientAmount(ingredient.quantity, ingredient.unit, multiplier),
+  }))
+}
+
+export function withRecipeServingsOverride(
+  recipe: Recipe,
+  servings: number | null | undefined
+): Recipe {
+  if (servings === undefined || servings === recipe.servings) {
+    return recipe
+  }
+
+  return {
+    ...recipe,
+    servings,
+    saved_servings: recipe.is_saved ? servings : recipe.saved_servings,
   }
 }
 

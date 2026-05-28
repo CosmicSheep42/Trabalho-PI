@@ -45,6 +45,12 @@ class Recipe(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    saved_links = relationship(
+        "SavedRecipe",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     rating_links = relationship(
         "RecipeRating",
         back_populates="recipe",
@@ -53,6 +59,12 @@ class Recipe(Base):
     )
     list_links = relationship(
         "ListRecipe",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    meal_plan_entries = relationship(
+        "MealPlanEntry",
         back_populates="recipe",
         cascade="all, delete-orphan",
         passive_deletes=True,

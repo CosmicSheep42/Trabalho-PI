@@ -79,9 +79,6 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
 
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
-      setRecipes([])
-      setIsLoadingRecipes(false)
-      setRecipesError(null)
       return
     }
 
@@ -177,6 +174,16 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
     )
   }
 
+  function updateSavedRecipeState(recipeId: string, isSaved: boolean, servings: number | null) {
+    setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, is_saved: isSaved, saved_servings: servings }
+          : recipe
+      )
+    )
+  }
+
   async function rateRecipe(recipeId: string, rating: number) {
     const response = await withToken((token) =>
       apiRequest<RecipeRatingSummary>(`/api/recipes/${recipeId}/rating`, {
@@ -232,5 +239,6 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
     removeRating,
     addRecipeToList,
     removeRecipeFromList,
+    updateSavedRecipeState,
   }
 }

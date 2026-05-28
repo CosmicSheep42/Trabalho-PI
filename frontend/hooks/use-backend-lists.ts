@@ -4,7 +4,11 @@ import { useAuth } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
 import type { ShopList } from "@/components/shoplist-banner"
 import { apiRequest } from "@/lib/api"
-import type { BackendList, BackendListItem, ListItem } from "@/features/lists/types"
+import type {
+  BackendList,
+  BackendListItem,
+  ListItem,
+} from "@/features/lists/types"
 
 interface ListPayload {
   name: string
@@ -69,6 +73,10 @@ function mapBackendList(list: BackendList): ShopList {
     color: list.color,
     itemCount: list.items.length,
     linkedRecipeIds: list.recipe_ids.map(String),
+    listRecipes: list.list_recipes.map((link) => ({
+      recipeId: String(link.recipe_id),
+      servings: link.servings,
+    })),
     date: list.date ?? undefined,
   }
 }
@@ -90,9 +98,6 @@ export function useBackendLists() {
 
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
-      setLists([])
-      setListItems({})
-      setIsLoadingLists(false)
       return
     }
 
@@ -298,6 +303,35 @@ export function useBackendLists() {
     )
   }
 
+  async function addRecipeToList(
+    listId: string,
+    recipeId: string,
+    servings?: number | null
+  ): Promise<void> {
+    const response = await withToken((token) =>
+      apiRequest<BackendList>(`/api/lists/${listId}/recipes/${recipeId}`, {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          servings: servings ?? null,
+        }),
+      })
+    )
+
+    syncListResponse(response)
+  }
+
+  async function removeRecipeFromList(listId: string, recipeId: string): Promise<void> {
+    const response = await withToken((token) =>
+      apiRequest<BackendList>(`/api/lists/${listId}/recipes/${recipeId}`, {
+        method: "DELETE",
+        token,
+      })
+    )
+
+    syncListResponse(response)
+  }
+
   return {
     lists,
     listItems,
@@ -310,5 +344,7 @@ export function useBackendLists() {
     updateItem,
     deleteItem,
     deleteItems,
+    addRecipeToList,
+    removeRecipeFromList,
   }
 }

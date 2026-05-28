@@ -18,6 +18,7 @@ export interface ShopList {
   color: string
   itemCount: number
   linkedRecipeIds?: string[]
+  listRecipes?: { recipeId: string; servings: number | null }[]
   date?: string // ISO date string, optional
 }
 

@@ -3,10 +3,13 @@
 import type { Dispatch, SetStateAction } from "react"
 import { useClerk } from "@clerk/nextjs"
 import type { ShopList } from "@/components/shoplist-banner"
+import type { DayOfWeek, MealPlanEntry } from "@/features/meal-planner/types"
 import type { ListItem } from "@/features/lists/types"
-import type { Recipe } from "@/features/recipes/types"
+import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
+import { withRecipeServingsOverride } from "@/features/recipes/types"
 
 interface UseMainPageActionsParams {
+  lists: ShopList[]
   recipes: Recipe[]
   selectedList: ShopList | null
   editingList: ShopList | null
@@ -15,7 +18,7 @@ interface UseMainPageActionsParams {
   setRecipeDialogOpen: Dispatch<SetStateAction<boolean>>
   setSelectedList: Dispatch<SetStateAction<ShopList | null>>
   setListDialogOpen: Dispatch<SetStateAction<boolean>>
-  setSelectedRecipe: Dispatch<SetStateAction<Recipe | null>>
+  openRecipe: (recipe: Recipe | null, context?: RecipeServingsContext) => void
   createList: (payload: { name: string; color: string; date?: string | null }) => Promise<ShopList>
   updateList: (listId: string, payload: { name?: string; color?: string; date?: string | null }) => Promise<ShopList>
   deleteList: (listId: string) => Promise<void>
@@ -23,14 +26,30 @@ interface UseMainPageActionsParams {
   updateItem: (listId: string, itemId: string, payload: { text?: string; amount?: string; checked?: boolean }) => Promise<ListItem>
   deleteItem: (listId: string, itemId: string) => Promise<void>
   deleteItems: (listId: string, itemIds: string[]) => Promise<void>
-  addRecipeToList: (listId: string, recipeId: string) => Promise<void>
+  addRecipeToList: (listId: string, recipeId: string, servings?: number | null) => Promise<void>
   removeRecipeFromList: (listId: string, recipeId: string) => Promise<void>
+  updateMealPlanEntry: (
+    entryId: string,
+    payload: {
+      listId?: string | null
+      dayOfWeek?: DayOfWeek
+      position?: number
+      servings?: number | null
+    }
+  ) => Promise<MealPlanEntry>
+  deleteMealPlanEntry: (entryId: string) => Promise<void>
+  saveRecipe: (recipeId: string, servings?: number | null) => Promise<void>
+  removeSavedRecipe: (recipeId: string) => Promise<void>
+  syncSavedRecipe: (recipe: Recipe, servings?: number | null) => void
+  loadSavedRecipes: () => Promise<void>
+  updateSavedRecipeState: (recipeId: string, isSaved: boolean, servings: number | null) => void
   toggleFavorite: (recipeId: string, isFavorite: boolean) => Promise<void>
   rateRecipe: (recipeId: string, rating: number) => Promise<void>
   removeRating: (recipeId: string) => Promise<void>
 }
 
 export function useMainPageActions({
+  lists,
   recipes,
   selectedList,
   editingList,
@@ -39,7 +58,7 @@ export function useMainPageActions({
   setRecipeDialogOpen,
   setSelectedList,
   setListDialogOpen,
-  setSelectedRecipe,
+  openRecipe,
   createList,
   updateList,
   deleteList,
@@ -49,11 +68,24 @@ export function useMainPageActions({
   deleteItems,
   addRecipeToList,
   removeRecipeFromList,
+  updateMealPlanEntry,
+  deleteMealPlanEntry,
+  saveRecipe,
+  removeSavedRecipe,
+  syncSavedRecipe,
+  loadSavedRecipes,
+  updateSavedRecipeState,
   toggleFavorite,
   rateRecipe,
   removeRating,
 }: UseMainPageActionsParams) {
   const { signOut } = useClerk()
+
+  function getRecipeLinkedListIds(recipeId: string) {
+    return lists
+      .filter((list) => list.linkedRecipeIds?.includes(recipeId))
+      .map((list) => list.id)
+  }
 
   const handleCreateList = async (name: string, color: string, date?: string) => {
     if (editingList) {
@@ -108,9 +140,41 @@ export function useMainPageActions({
     await updateItem(selectedList.id, itemId, { text: name, amount })
   }
 
-  const handleAddRecipeToList = async (listId: string, recipe: Recipe) => {
-    await addRecipeToList(listId, recipe.id)
+  const handleAddRecipeToList = async (listId: string, recipe: Recipe, servings?: number | null) => {
+    await addRecipeToList(listId, recipe.id, servings)
+    await loadSavedRecipes()
+    syncSavedRecipe(recipe, servings)
+    updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
     setRecipeDialogOpen(false)
+  }
+
+  const handleSaveRecipe = async (recipe: Recipe, servings?: number | null) => {
+    await saveRecipe(recipe.id, servings)
+    syncSavedRecipe(recipe, servings)
+    updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+    setRecipeDialogOpen(false)
+  }
+
+  const handleRemoveSavedRecipe = async (recipeId: string) => {
+    await removeSavedRecipe(recipeId)
+    updateSavedRecipeState(recipeId, false, null)
+  }
+
+  const handleRemoveSavedRecipeCompletely = async (recipeId: string) => {
+    const linkedListIds = getRecipeLinkedListIds(recipeId)
+    await Promise.all(linkedListIds.map((listId) => removeRecipeFromList(listId, recipeId)))
+    await removeSavedRecipe(recipeId)
+    updateSavedRecipeState(recipeId, false, null)
+  }
+
+  const handleRemoveMealPlanRecipeCompletely = async (entryId: string, recipeId: string) => {
+    const linkedListIds = getRecipeLinkedListIds(recipeId)
+    await Promise.all([
+      ...linkedListIds.map((listId) => removeRecipeFromList(listId, recipeId)),
+      deleteMealPlanEntry(entryId),
+      removeSavedRecipe(recipeId),
+    ])
+    updateSavedRecipeState(recipeId, false, null)
   }
 
   const handleRemoveRecipeFromList = async (recipeId: string) => {
@@ -120,9 +184,33 @@ export function useMainPageActions({
   }
 
   const handleViewRecipeFromList = (recipe: Recipe) => {
+    if (!selectedList) return
+
     setListDialogOpen(false)
-    setSelectedRecipe(recipe)
-    setRecipeDialogOpen(true)
+    openRecipe(recipe, { type: "list", listId: selectedList.id })
+  }
+
+  const handlePersistRecipeServings = async (
+    recipe: Recipe,
+    servings: number | null,
+    context: RecipeServingsContext
+  ) => {
+    if (context.type === "saved") {
+      await saveRecipe(recipe.id, servings)
+      syncSavedRecipe(recipe, servings)
+      updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+      return
+    }
+
+    if (context.type === "list") {
+      await addRecipeToList(context.listId, recipe.id, servings)
+      await loadSavedRecipes()
+      syncSavedRecipe(recipe, servings)
+      updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+      return
+    }
+
+    await updateMealPlanEntry(context.entryId, { servings })
   }
 
   const handleToggleFavorite = async (recipe: Recipe) => {
@@ -131,7 +219,15 @@ export function useMainPageActions({
 
   const getLinkedRecipes = (list: ShopList): Recipe[] => {
     if (!list.linkedRecipeIds) return []
-    return recipes.filter((recipe) => list.linkedRecipeIds?.includes(recipe.id))
+
+    return recipes.flatMap((recipe) => {
+      if (!list.linkedRecipeIds?.includes(recipe.id)) {
+        return []
+      }
+
+      const recipeLink = list.listRecipes?.find((link) => link.recipeId === recipe.id)
+      return [withRecipeServingsOverride(recipe, recipeLink?.servings)]
+    })
   }
 
   const handleChangeListColor = async (color: string) => {
@@ -169,14 +265,21 @@ export function useMainPageActions({
     handleDeleteItems,
     handleUpdateItem,
     handleAddRecipeToList,
+    handleSaveRecipe,
+    handleRemoveSavedRecipe,
+    handleRemoveSavedRecipeCompletely,
+    handleRemoveMealPlanRecipeCompletely,
     handleRemoveRecipeFromList,
     handleViewRecipeFromList,
     handleToggleFavorite,
     getLinkedRecipes,
+    handlePersistRecipeServings,
     handleChangeListColor,
     handleChangeListDate,
     handleRateRecipe,
     handleRemoveRating,
+    updateMealPlanEntry,
+    deleteMealPlanEntry,
     handleLogout,
   }
 }

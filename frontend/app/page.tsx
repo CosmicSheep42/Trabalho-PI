@@ -33,17 +33,24 @@ export default function MainPage() {
   const {
     activeTab,
     setActiveTab,
-    searchQuery,
-    setSearchQuery,
+    listSearchQuery,
+    setListSearchQuery,
+    recipeSearchQuery,
+    setRecipeSearchQuery,
     recipeSortOrder,
     setRecipeSortOrder,
     lists,
     listItems,
+    savedRecipes,
+    mealPlanEntries,
+    createMealPlanEntry,
     tagGroups,
     recipeFilters,
     setRecipeFilters,
     selectedRecipe,
-    setSelectedRecipe,
+    selectedRecipeContext,
+    openRecipe,
+    updateSelectedRecipeServings,
     recipeDialogOpen,
     setRecipeDialogOpen,
     selectedList,
@@ -61,6 +68,7 @@ export default function MainPage() {
     isSavingUser,
     saveUserAllergies,
     user,
+    recipes,
     filteredRecipes,
     filteredLists,
     hasActiveRecipeQuery,
@@ -74,12 +82,17 @@ export default function MainPage() {
     handleDeleteItems,
     handleUpdateItem,
     handleAddRecipeToList,
+    handleSaveRecipe,
+    handleRemoveSavedRecipeCompletely,
     handleRemoveRecipeFromList,
+    handleRemoveMealPlanRecipeCompletely,
     handleViewRecipeFromList,
     handleToggleFavorite,
     handleRateRecipe,
     handleRemoveRating,
+    handlePersistRecipeServings,
     getLinkedRecipes,
+    updateMealPlanEntry,
     handleChangeListColor,
     handleChangeListDate,
     handleLogout,
@@ -148,8 +161,8 @@ export default function MainPage() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search recipes..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={recipeSearchQuery}
+                    onChange={(e) => setRecipeSearchQuery(e.target.value)}
                     className="h-10 rounded-xl border-border/70 bg-card pl-9 shadow-none placeholder:text-muted-foreground/80"
                   />
                 </div>
@@ -206,23 +219,28 @@ export default function MainPage() {
           <TabsContent value="lists" className="mt-0">
             <ListsTab
               lists={filteredLists}
-              recipes={filteredRecipes}
-              searchQuery={searchQuery}
-              onSearchQueryChange={setSearchQuery}
+              recipes={recipes}
+              savedRecipes={savedRecipes}
+              mealPlanEntries={mealPlanEntries}
+              searchQuery={listSearchQuery}
+              onSearchQueryChange={setListSearchQuery}
               onCreateList={() => setCreateListOpen(true)}
               onOpenList={(list) => {
                 setSelectedList(list)
                 setListDialogOpen(true)
               }}
-              onOpenRecipe={(recipe) => {
-                setSelectedRecipe(recipe)
-                setRecipeDialogOpen(true)
+              onOpenRecipe={(recipe, context) => {
+                openRecipe(recipe, context)
               }}
               onEditList={(list) => {
                 setEditingList(list)
                 setCreateListOpen(true)
               }}
               onDeleteList={handleDeleteList}
+              onCreateMealPlanEntry={createMealPlanEntry}
+              onUpdateMealPlanEntry={updateMealPlanEntry}
+              onDeleteMealPlanEntry={handleRemoveMealPlanRecipeCompletely}
+              onDeleteSavedRecipe={handleRemoveSavedRecipeCompletely}
             />
           </TabsContent>
 
@@ -234,8 +252,7 @@ export default function MainPage() {
               hasActiveQuery={hasActiveRecipeQuery}
               onFavoriteToggle={handleToggleFavorite}
               onOpenRecipe={(recipe) => {
-                setSelectedRecipe(recipe)
-                setRecipeDialogOpen(true)
+                openRecipe(recipe)
               }}
             />
           </TabsContent>
@@ -244,12 +261,16 @@ export default function MainPage() {
 
       {/* Dialogs */}
       <RecipeDialog
+        key={`${selectedRecipe?.id ?? "recipe-dialog"}:${selectedRecipe?.servings ?? "default"}:${recipeDialogOpen ? "open" : "closed"}`}
         recipe={selectedRecipe}
         open={recipeDialogOpen}
         onOpenChange={setRecipeDialogOpen}
         lists={lists}
+        servingsContext={selectedRecipeContext}
         onAddToList={handleAddRecipeToList}
-        onToggleFavorite={handleToggleFavorite}
+        onSaveRecipe={handleSaveRecipe}
+        onUpdateServings={handlePersistRecipeServings}
+        onServingsPersisted={updateSelectedRecipeServings}
         onRateRecipe={handleRateRecipe}
         onRemoveRating={handleRemoveRating}
       />

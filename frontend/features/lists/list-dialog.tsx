@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import type { ShopList } from "@/components/shoplist-banner"
-import type { Recipe } from "@/features/recipes/types"
+import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
 import { DietaryBadge } from "@/components/dietary-badge"
 import { StarRating } from "@/components/star-rating"
 import Image from "next/image"
@@ -55,7 +55,7 @@ interface ListDialogProps {
   onDeleteItem: (itemId: string) => void
   onDeleteItems: (itemIds: string[]) => void
   onUpdateItem: (itemId: string, name: string, amount: string) => void
-  onViewRecipe: (recipe: Recipe) => void
+  onViewRecipe: (recipe: Recipe, context?: RecipeServingsContext) => void
   onRemoveRecipe: (recipeId: string) => void
   onChangeColor: (color: string) => void
   onChangeDate?: (date: string | undefined) => void
@@ -157,7 +157,7 @@ export function ListDialog({
   const handleRecipeRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, recipe: Recipe) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault()
-      onViewRecipe(recipe)
+      onViewRecipe(recipe, { type: "list", listId: list.id })
     }
   }
 
@@ -274,7 +274,7 @@ export function ListDialog({
                       <div
                         role="button"
                         tabIndex={0}
-                        onClick={() => onViewRecipe(recipe)}
+                        onClick={() => onViewRecipe(recipe, { type: "list", listId: list.id })}
                         onKeyDown={(e) => handleRecipeRowKeyDown(e, recipe)}
                         className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
                       >

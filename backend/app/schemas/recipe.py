@@ -73,6 +73,8 @@ class RecipeResponse(BaseModel):
     ratings_count: int
     user_rating: int | None
     is_favorite: bool
+    is_saved: bool
+    saved_servings: int | None
 
 
 class RecipeRatingSummaryResponse(BaseModel):
@@ -87,6 +89,16 @@ class FavoriteRecipeResponse(BaseModel):
     success: bool = True
     recipe_id: int
     is_favorite: bool
+
+
+class SavedRecipePayload(BaseModel):
+    servings: int | None = Field(default=None, gt=0)
+
+
+class SavedRecipeResponse(BaseModel):
+    success: bool = True
+    recipe_id: int
+    servings: int | None
 
 
 class TagGroupsResponse(BaseModel):
