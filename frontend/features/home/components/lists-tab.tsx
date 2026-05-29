@@ -81,6 +81,7 @@ interface ListsTabProps {
       servings?: number | null
     }
   ) => Promise<MealPlanEntry>
+  onUnplanMealPlanEntry: (entryId: string) => Promise<void>
   onDeleteMealPlanEntry: (entryId: string, recipeId: string) => Promise<void>
   onDeleteSavedRecipe: (recipeId: string) => Promise<void>
 }
@@ -108,6 +109,7 @@ function ListsTabComponent({
   onDeleteList,
   onCreateMealPlanEntry,
   onUpdateMealPlanEntry,
+  onUnplanMealPlanEntry,
   onDeleteMealPlanEntry,
   onDeleteSavedRecipe,
 }: ListsTabProps) {
@@ -265,7 +267,7 @@ function ListsTabComponent({
         return
       }
 
-      await onDeleteMealPlanEntry(entryId, recipeId)
+      await onUnplanMealPlanEntry(entryId)
       return
     }
 
@@ -605,13 +607,15 @@ function ListsTabComponent({
         </CardHeader>
         <CardContent className="overflow-x-hidden p-6">
             <div
-              className="rounded-2xl border bg-muted/10 p-4"
+              className={`rounded-2xl border bg-muted/10 p-4 transition-colors ${
+                draggedRecipeId ? "border-primary/40 bg-primary/5" : ""
+              }`}
               onDragOver={(event) => {
-                const fromDay = event.dataTransfer.getData("text/from-day")
-                if (!fromDay || fromDay === "bank") {
+                if (!draggedRecipeId) {
                   return
                 }
                 event.preventDefault()
+                event.dataTransfer.dropEffect = "move"
               }}
               onDrop={(event) => {
                 event.preventDefault()

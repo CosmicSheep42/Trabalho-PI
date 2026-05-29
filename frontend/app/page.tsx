@@ -93,6 +93,7 @@ export default function MainPage() {
     handlePersistRecipeServings,
     getLinkedRecipes,
     updateMealPlanEntry,
+    deleteMealPlanEntry,
     handleChangeListColor,
     handleChangeListDate,
     handleLogout,
@@ -239,6 +240,7 @@ export default function MainPage() {
               onDeleteList={handleDeleteList}
               onCreateMealPlanEntry={createMealPlanEntry}
               onUpdateMealPlanEntry={updateMealPlanEntry}
+              onUnplanMealPlanEntry={deleteMealPlanEntry}
               onDeleteMealPlanEntry={handleRemoveMealPlanRecipeCompletely}
               onDeleteSavedRecipe={handleRemoveSavedRecipeCompletely}
             />
