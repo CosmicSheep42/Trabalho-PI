@@ -1,0 +1,660 @@
+{
+  "recipes": [
+    {
+      "name": "Feijoada",
+      "description": "A hearty pot of Brazilian-style black beans with pork.",
+      "image": "https://plus.unsplash.com/premium_photo-1667844706940-8155d4efd498?q=80&w=1169&auto=format&fit=crop",
+      "prep_time_minutes": 75,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "black bean",
+          "amount": "500g"
+        },
+        {
+          "name": "pork",
+          "amount": "300g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "bay leaf",
+          "amount": "2"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Soak the black beans if needed.",
+        "Dice the pork and onion, then mince the garlic.",
+        "Brown the pork in vegetable oil.",
+        "Add the beans, onion, garlic, bay leaf, and water.",
+        "Simmer until the beans are tender and season with salt."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "brazilian",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "pressure-cooker",
+        "main_protein": "pork"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Moqueca de Peixe",
+      "description": "A Brazilian fish stew with tomato and coconut milk.",
+      "image": "https://images.unsplash.com/photo-1696071506684-98cc784a89df?q=80&w=1171&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "white fish",
+          "amount": "600g"
+        },
+        {
+          "name": "coconut milk",
+          "amount": "400ml"
+        },
+        {
+          "name": "tomato",
+          "amount": "300g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "bell pepper",
+          "amount": "1"
+        },
+        {
+          "name": "lime juice",
+          "amount": "40ml"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Cut the white fish into large pieces.",
+        "Slice the onion, tomato, and bell pepper.",
+        "Cook the vegetables in vegetable oil until soft.",
+        "Add the coconut milk and simmer briefly.",
+        "Add the fish and cook until tender."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "brazilian",
+        "occasion": "date",
+        "weather": "hot-day",
+        "difficulty": "medium",
+        "cooking_method": "one-pot",
+        "main_protein": "fish"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Pão de Queijo",
+      "description": "Small Brazilian cheese breads with a chewy center.",
+      "image": "https://images.unsplash.com/photo-1598142982901-df6cec10ae35?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "tapioca starch",
+          "amount": "300g"
+        },
+        {
+          "name": "cheese",
+          "amount": "180g"
+        },
+        {
+          "name": "egg",
+          "amount": "2"
+        },
+        {
+          "name": "whole milk",
+          "amount": "150ml"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "80ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Heat the whole milk and vegetable oil in a saucepan.",
+        "Pour the hot liquid over the tapioca starch and mix.",
+        "Add the eggs and cheese.",
+        "Shape the dough into small balls.",
+        "Bake until puffed and lightly golden."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "snack",
+        "cuisine": "brazilian",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Brazilian Carrot Cake",
+      "description": "A soft carrot cake with a simple chocolate topping.",
+      "image": "https://images.unsplash.com/photo-1650937254058-d952a67a4f46?q=80&w=627&auto=format&fit=crop",
+      "prep_time_minutes": 55,
+      "servings": 8,
+      "ingredients": [
+        {
+          "name": "carrot",
+          "amount": "300g"
+        },
+        {
+          "name": "egg",
+          "amount": "3"
+        },
+        {
+          "name": "sugar",
+          "amount": "180g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "150ml"
+        },
+        {
+          "name": "plain flour",
+          "amount": "240g"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": "20g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "80ml"
+        },
+        {
+          "name": "butter",
+          "amount": "20g"
+        },
+        {
+          "name": "baking powder",
+          "amount": "12g"
+        }
+      ],
+      "instructions": [
+        "Peel and cut the carrot into pieces.",
+        "Blend the carrot with eggs, sugar, and vegetable oil.",
+        "Fold in the plain flour and baking powder.",
+        "Bake the batter until the cake is firm.",
+        "Cook cocoa powder, whole milk, butter, and sugar into a topping and pour over the cake."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "brazilian",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Chicken Tinga",
+      "description": "Mexican shredded chicken simmered in tomato and chili sauce.",
+      "image": "https://plus.unsplash.com/premium_photo-1723708871094-2c02cf5f5394?q=80&w=1064&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "chicken breast",
+          "amount": "600g"
+        },
+        {
+          "name": "tomato",
+          "amount": "500g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "chipotle pepper",
+          "amount": "30g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Boil the chicken breast until cooked through.",
+        "Shred the chicken with two forks.",
+        "Blend the tomato, garlic, and chipotle pepper.",
+        "Cook the onion in vegetable oil and add the sauce.",
+        "Add the chicken and simmer until thick."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "mexican",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "stovetop",
+        "main_protein": "chicken"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Beef Picadillo",
+      "description": "A Mexican beef dish cooked with potato, tomato, and spices.",
+      "image": "https://images.unsplash.com/photo-1603076404701-d3412f433525?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 40,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "beef",
+          "amount": "500g"
+        },
+        {
+          "name": "potato",
+          "amount": "300g"
+        },
+        {
+          "name": "tomato",
+          "amount": "400g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "cumin",
+          "amount": "5g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the potato and onion, then mince the garlic.",
+        "Brown the beef in vegetable oil.",
+        "Add the potato, onion, garlic, tomato, and cumin.",
+        "Simmer until the potato is tender.",
+        "Season with salt and serve warm."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "mexican",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Mexican Street Corn Salad",
+      "description": "A creamy corn salad inspired by Mexican street corn.",
+      "image": "https://plus.unsplash.com/premium_photo-1680118540055-aa9f6ce1d93d?q=80&w=687&auto=format&fit=crop",
+      "prep_time_minutes": 20,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "corn",
+          "amount": "500g"
+        },
+        {
+          "name": "mayonnaise",
+          "amount": "80g"
+        },
+        {
+          "name": "cheese",
+          "amount": "80g"
+        },
+        {
+          "name": "lime juice",
+          "amount": "40ml"
+        },
+        {
+          "name": "chili powder",
+          "amount": "5g"
+        },
+        {
+          "name": "cilantro",
+          "amount": "10g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Cook the corn in a pan until lightly browned.",
+        "Chop the cilantro.",
+        "Mix mayonnaise, lime juice, chili powder, and salt.",
+        "Fold the corn and cheese into the dressing.",
+        "Serve warm or chilled."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "snack",
+        "cuisine": "mexican",
+        "occasion": "party",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Guacamole",
+      "description": "A simple avocado dip with lime, onion, and cilantro.",
+      "image": "https://images.unsplash.com/photo-1680992071073-cb1696ba8d3e?q=80&w=1174&auto=format&fit=crop",
+      "prep_time_minutes": 10,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "avocado",
+          "amount": "3"
+        },
+        {
+          "name": "lime juice",
+          "amount": "50ml"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "tomato",
+          "amount": "1"
+        },
+        {
+          "name": "cilantro",
+          "amount": "10g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Cut the avocados and scoop the flesh into a bowl.",
+        "Dice the onion and tomato.",
+        "Chop the cilantro.",
+        "Mash the avocado with lime juice and salt.",
+        "Fold in the onion, tomato, and cilantro."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "snack",
+        "cuisine": "mexican",
+        "occasion": "party",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "no-cook",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Mexican Rice",
+      "description": "A tomato-flavored rice side dish cooked in one pot.",
+      "image": "https://plus.unsplash.com/premium_photo-1675382223661-b3ff03c042ba?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 30,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "rice",
+          "amount": "250g"
+        },
+        {
+          "name": "tomato sauce",
+          "amount": "250ml"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "500ml"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion and mince the garlic.",
+        "Toast the rice in vegetable oil.",
+        "Add the onion and garlic.",
+        "Pour in the tomato sauce and vegetable broth.",
+        "Simmer until the rice is tender."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "mexican",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Brigadeiro Pots",
+      "description": "Creamy Brazilian chocolate sweets served in small cups.",
+      "image": "https://images.unsplash.com/photo-1630953899906-d16511a72558?q=80&w=715&auto=format&fit=crop",
+      "prep_time_minutes": 25,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "sweetened condensed milk",
+          "amount": "395g"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": "25g"
+        },
+        {
+          "name": "butter",
+          "amount": "20g"
+        },
+        {
+          "name": "chocolate sprinkles",
+          "amount": "40g"
+        }
+      ],
+      "instructions": [
+        "Add the sweetened condensed milk, cocoa powder, and butter to a saucepan.",
+        "Cook over low heat while stirring constantly.",
+        "Stop cooking when the mixture becomes thick and creamy.",
+        "Pour into small cups.",
+        "Top with chocolate sprinkles before serving."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "brazilian",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": []
+    }
+  ]
+}

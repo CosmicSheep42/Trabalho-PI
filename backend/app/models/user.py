@@ -12,14 +12,28 @@ class User(Base):
     vegan: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     vegetarian: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     lactose_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+    egg_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     gluten_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
-    no_eggs: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     nut_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
-    low_carb: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
-    high_protein: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+    shellfish_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+    soy_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+    sesame_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+    sulfite_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
 
     lists = relationship(
         "ShoppingList",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    favorite_recipe_links = relationship(
+        "FavoriteRecipe",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    recipe_rating_links = relationship(
+        "RecipeRating",
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,

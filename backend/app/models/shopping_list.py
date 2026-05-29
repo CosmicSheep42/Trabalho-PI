@@ -28,3 +28,13 @@ class ShoppingList(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    recipe_links = relationship(
+        "ListRecipe",
+        back_populates="shopping_list",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    @property
+    def recipe_ids(self) -> list[int]:
+        return [link.recipe_id for link in self.recipe_links]

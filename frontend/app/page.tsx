@@ -1,6 +1,6 @@
 "use client"
 
-import { Leaf, Plus, User, Settings, Search, ShoppingCart, BookOpen, LogOut } from "lucide-react"
+import { ArrowUpAZ, Leaf, ListOrdered, Search, Settings, ShoppingCart, Star, User, BookOpen, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -21,6 +21,13 @@ import { RecipeFilter, ActiveFilters } from "@/components/recipe-filter"
 import { ListsTab } from "@/features/home/components/lists-tab"
 import { RecipesTab } from "@/features/home/components/recipes-tab"
 import { useMainPage } from "@/hooks/use-main-page"
+import type { RecipeSortOrder } from "@/hooks/use-main-page-state"
+
+const recipeSortLabels: Record<RecipeSortOrder, string> = {
+  default: "Default",
+  alphabetical: "Alphabetical",
+  ratings: "Ratings",
+}
 
 export default function MainPage() {
   const {
@@ -28,13 +35,13 @@ export default function MainPage() {
     setActiveTab,
     searchQuery,
     setSearchQuery,
+    recipeSortOrder,
+    setRecipeSortOrder,
     lists,
     listItems,
-    favoriteRecipes,
-    selectedTags,
-    minRating,
-    setSelectedTags,
-    setMinRating,
+    tagGroups,
+    recipeFilters,
+    setRecipeFilters,
     selectedRecipe,
     setSelectedRecipe,
     recipeDialogOpen,
@@ -56,6 +63,9 @@ export default function MainPage() {
     user,
     filteredRecipes,
     filteredLists,
+    hasActiveRecipeQuery,
+    isLoadingRecipes,
+    recipesError,
     handleCreateList,
     handleDeleteList,
     handleToggleItem,
@@ -67,6 +77,8 @@ export default function MainPage() {
     handleRemoveRecipeFromList,
     handleViewRecipeFromList,
     handleToggleFavorite,
+    handleRateRecipe,
+    handleRemoveRating,
     getLinkedRecipes,
     handleChangeListColor,
     handleChangeListDate,
@@ -117,7 +129,7 @@ export default function MainPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-6">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <TabsList className="bg-secondary">
               <TabsTrigger value="lists" className="gap-2">
@@ -131,27 +143,52 @@ export default function MainPage() {
             </TabsList>
 
             <div className="flex gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={activeTab === "lists" ? "Search lists..." : "Search recipes..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              {activeTab === "lists" && (
-                <Button onClick={() => setCreateListOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New List
-                </Button>
+              {activeTab === "recipes" && (
+                <div className="relative flex-1 sm:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search recipes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-10 rounded-xl border-border/70 bg-card pl-9 shadow-none placeholder:text-muted-foreground/80"
+                  />
+                </div>
+              )}
+              {activeTab === "recipes" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-xl border-border/70 bg-background px-3 text-sm shadow-none hover:bg-accent/50"
+                    >
+                      <ListOrdered className="h-4 w-4" />
+                      Order
+                      <span className="hidden sm:inline text-muted-foreground">
+                        {recipeSortLabels[recipeSortOrder]}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem onClick={() => setRecipeSortOrder("default")}>
+                      <ListOrdered className="h-4 w-4 mr-2" />
+                      Default
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecipeSortOrder("alphabetical")}>
+                      <ArrowUpAZ className="h-4 w-4 mr-2" />
+                      Alphabetical
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRecipeSortOrder("ratings")}>
+                      <Star className="h-4 w-4 mr-2" />
+                      Ratings
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {activeTab === "recipes" && (
                 <RecipeFilter
-                  selectedTags={selectedTags}
-                  minRating={minRating}
-                  onTagsChange={setSelectedTags}
-                  onRatingChange={setMinRating}
+                  filters={recipeFilters}
+                  availableTags={tagGroups}
+                  onFiltersChange={setRecipeFilters}
                 />
               )}
             </div>
@@ -160,20 +197,26 @@ export default function MainPage() {
           {/* Active Filters Display */}
           {activeTab === "recipes" && (
             <ActiveFilters
-              selectedTags={selectedTags}
-              minRating={minRating}
-              onTagsChange={setSelectedTags}
-              onRatingChange={setMinRating}
+              filters={recipeFilters}
+              availableTags={tagGroups}
+              onFiltersChange={setRecipeFilters}
             />
           )}
 
           <TabsContent value="lists" className="mt-0">
             <ListsTab
               lists={filteredLists}
+              recipes={filteredRecipes}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
               onCreateList={() => setCreateListOpen(true)}
               onOpenList={(list) => {
                 setSelectedList(list)
                 setListDialogOpen(true)
+              }}
+              onOpenRecipe={(recipe) => {
+                setSelectedRecipe(recipe)
+                setRecipeDialogOpen(true)
               }}
               onEditList={(list) => {
                 setEditingList(list)
@@ -186,7 +229,9 @@ export default function MainPage() {
           <TabsContent value="recipes" className="mt-0">
             <RecipesTab
               recipes={filteredRecipes}
-              favoriteRecipes={favoriteRecipes}
+              isLoading={isLoadingRecipes}
+              error={recipesError}
+              hasActiveQuery={hasActiveRecipeQuery}
               onFavoriteToggle={handleToggleFavorite}
               onOpenRecipe={(recipe) => {
                 setSelectedRecipe(recipe)
@@ -204,6 +249,9 @@ export default function MainPage() {
         onOpenChange={setRecipeDialogOpen}
         lists={lists}
         onAddToList={handleAddRecipeToList}
+        onToggleFavorite={handleToggleFavorite}
+        onRateRecipe={handleRateRecipe}
+        onRemoveRating={handleRemoveRating}
       />
 
       <ListDialog

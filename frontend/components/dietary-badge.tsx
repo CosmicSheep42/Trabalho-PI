@@ -14,9 +14,8 @@ export function DietaryBadge({ type, size = "md", className }: DietaryBadgeProps
   return (
     <span
       className={cn(
-        "inline-flex items-center font-medium rounded border",
-        size === "sm" ? "px-1.5 py-0 text-[10px]" : "px-2 py-0.5 text-xs",
-        config.className,
+        "inline-flex items-center rounded-full border border-border bg-background font-medium text-muted-foreground",
+        size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
         className
       )}
     >

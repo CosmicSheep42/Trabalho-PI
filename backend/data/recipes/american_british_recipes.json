@@ -1,0 +1,680 @@
+{
+  "recipes": [
+    {
+      "name": "Chicken Pot Pie",
+      "description": "A comforting pie filled with chicken and vegetables.",
+      "image": "https://images.unsplash.com/photo-1581986675622-41eccf27129d?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 70,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "chicken breast",
+          "amount": "500g"
+        },
+        {
+          "name": "plain flour",
+          "amount": "220g"
+        },
+        {
+          "name": "butter",
+          "amount": "120g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "400ml"
+        },
+        {
+          "name": "carrot",
+          "amount": "150g"
+        },
+        {
+          "name": "pea",
+          "amount": "120g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the chicken breast, carrot, and onion.",
+        "Cook the chicken and vegetables in a pan until softened.",
+        "Make a sauce with butter, plain flour, and whole milk.",
+        "Fill a dish with the chicken mixture and cover with pastry.",
+        "Bake until the crust is golden."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "hard",
+        "cooking_method": "oven",
+        "main_protein": "chicken"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Beef Chili",
+      "description": "A thick American-style beef chili with beans and tomato.",
+      "image": "https://images.unsplash.com/photo-1591386767153-987783380885?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 50,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "beef",
+          "amount": "600g"
+        },
+        {
+          "name": "kidney bean",
+          "amount": "300g"
+        },
+        {
+          "name": "tomato",
+          "amount": "500g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "chili powder",
+          "amount": "10g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion and mince the garlic.",
+        "Brown the beef in vegetable oil.",
+        "Add the onion, garlic, tomato, kidney bean, and chili powder.",
+        "Simmer until the chili becomes thick.",
+        "Season with salt and serve hot."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "party",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "British Fish Pie",
+      "description": "A creamy baked fish pie topped with mashed potato.",
+      "image": "https://images.unsplash.com/photo-1551807501-9263ed1942d8?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 65,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "white fish",
+          "amount": "600g"
+        },
+        {
+          "name": "potato",
+          "amount": "800g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "500ml"
+        },
+        {
+          "name": "butter",
+          "amount": "60g"
+        },
+        {
+          "name": "pea",
+          "amount": "150g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Peel and boil the potatoes until tender.",
+        "Mash the potatoes with butter.",
+        "Cook the white fish with milk and onion.",
+        "Combine the fish with peas and a little cooking liquid.",
+        "Top with mashed potato and bake until golden."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "british",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": "fish"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Sausage and Mash",
+      "description": "A classic British plate of sausages with mashed potatoes.",
+      "image": "https://images.unsplash.com/photo-1658925111653-2c08083c08ff?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "pork sausage",
+          "amount": "600g"
+        },
+        {
+          "name": "potato",
+          "amount": "900g"
+        },
+        {
+          "name": "butter",
+          "amount": "50g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "120ml"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Peel and boil the potatoes until soft.",
+        "Cook the pork sausages in a pan until browned.",
+        "Mash the potatoes with butter and whole milk.",
+        "Slice the onion and cook it until soft.",
+        "Serve the sausages with mash and onion."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "british",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": "pork"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Macaroni and Cheese",
+      "description": "A creamy baked pasta dish with a golden cheese topping.",
+      "image": "https://images.unsplash.com/photo-1543339531-242d0bc29010?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "macaroni",
+          "amount": "400g"
+        },
+        {
+          "name": "cheddar cheese",
+          "amount": "250g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "600ml"
+        },
+        {
+          "name": "butter",
+          "amount": "50g"
+        },
+        {
+          "name": "plain flour",
+          "amount": "40g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Boil the macaroni until just tender.",
+        "Make a sauce with butter, plain flour, and whole milk.",
+        "Stir in the cheddar cheese until melted.",
+        "Combine the macaroni with the cheese sauce.",
+        "Bake until the top is golden."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Corn Chowder",
+      "description": "A sweet and creamy corn soup with potato.",
+      "image": "https://images.unsplash.com/photo-1665593998976-d957f2827fe7?q=80&w=1172&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "corn",
+          "amount": "400g"
+        },
+        {
+          "name": "potato",
+          "amount": "300g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "whole milk",
+          "amount": "500ml"
+        },
+        {
+          "name": "butter",
+          "amount": "30g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the potato and onion.",
+        "Cook the onion in butter until soft.",
+        "Add the corn, potato, and whole milk.",
+        "Simmer until the potato is tender.",
+        "Mash part of the soup and serve warm."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Shepherd Style Beef Bake",
+      "description": "A beef and vegetable bake topped with mashed potato.",
+      "image": "https://images.unsplash.com/photo-1546964124-0cce460f38ef?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 60,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "beef",
+          "amount": "600g"
+        },
+        {
+          "name": "potato",
+          "amount": "900g"
+        },
+        {
+          "name": "carrot",
+          "amount": "200g"
+        },
+        {
+          "name": "pea",
+          "amount": "150g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "butter",
+          "amount": "40g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        },
+        {
+          "name": "black pepper",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Peel and boil the potatoes until soft.",
+        "Brown the beef in a pan.",
+        "Dice the carrot and onion, then cook them with the beef.",
+        "Add the peas and season the filling.",
+        "Top with mashed potato and bake until browned."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "british",
+        "occasion": "date",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "American Sloppy Joes",
+      "description": "A saucy beef sandwich filling served warm.",
+      "image": "https://images.unsplash.com/photo-1665799363044-11b3e2f63fbf?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 30,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "beef",
+          "amount": "500g"
+        },
+        {
+          "name": "tomato sauce",
+          "amount": "300ml"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "green pepper",
+          "amount": "1"
+        },
+        {
+          "name": "brown sugar",
+          "amount": "20g"
+        },
+        {
+          "name": "bread",
+          "amount": "4"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion and green pepper.",
+        "Brown the beef in a skillet.",
+        "Add the onion, green pepper, tomato sauce, and brown sugar.",
+        "Simmer until the sauce thickens.",
+        "Serve the beef mixture on bread."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": "beef"
+      },
+      "holidays": []
+    },
+    {
+      "name": "Pea and Mint Soup",
+      "description": "A simple British soup with peas and mint.",
+      "image": "https://images.unsplash.com/photo-1584046748598-19108644d7ca?q=80&w=1046&auto=format&fit=crop",
+      "prep_time_minutes": 25,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "pea",
+          "amount": "500g"
+        },
+        {
+          "name": "potato",
+          "amount": "200g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "800ml"
+        },
+        {
+          "name": "mint",
+          "amount": "8g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion and potato.",
+        "Cook the onion in vegetable oil until soft.",
+        "Add the potato and vegetable broth, then simmer until tender.",
+        "Add the peas and mint.",
+        "Blend until smooth and serve."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "british",
+        "occasion": "for-kids",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": []
+    },
+    {
+      "name": "Apple Crumble",
+      "description": "A British baked apple dessert with a crisp flour topping.",
+      "image": "https://images.unsplash.com/photo-1706799419621-14d7f424de83?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "apple",
+          "amount": "700g"
+        },
+        {
+          "name": "plain flour",
+          "amount": "150g"
+        },
+        {
+          "name": "butter",
+          "amount": "90g"
+        },
+        {
+          "name": "sugar",
+          "amount": "100g"
+        },
+        {
+          "name": "cinnamon",
+          "amount": "3g"
+        },
+        {
+          "name": "lemon juice",
+          "amount": "20ml"
+        }
+      ],
+      "instructions": [
+        "Peel and slice the apples.",
+        "Place the apples in a baking dish with lemon juice and cinnamon.",
+        "Rub the butter into the plain flour and sugar.",
+        "Scatter the crumble topping over the apples.",
+        "Bake until golden and bubbling."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "british",
+        "occasion": "for-kids",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": []
+    }
+  ]
+}

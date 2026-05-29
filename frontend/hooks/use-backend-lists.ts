@@ -18,11 +18,46 @@ interface ListItemPayload {
   checked?: boolean
 }
 
+function formatAmount(quantity: number | null, unit: string | null): string {
+  if (quantity === null && !unit) {
+    return ""
+  }
+
+  const quantityText =
+    quantity === null
+      ? ""
+      : Number.isInteger(quantity)
+        ? String(quantity)
+        : String(quantity)
+
+  if (!quantityText) {
+    return unit ?? ""
+  }
+
+  return unit ? `${quantityText} ${unit}` : quantityText
+}
+
+function parseAmount(value: string): { quantity?: number | null; unit?: string | null } {
+  const rawValue = value.trim()
+  if (!rawValue) {
+    return { quantity: null, unit: null }
+  }
+
+  const match = rawValue.match(/^(\d+(?:[.,]\d+)?)(?:\s*(.*))?$/)
+  if (!match) {
+    return { quantity: null, unit: rawValue }
+  }
+
+  const quantity = Number.parseFloat(match[1].replace(",", "."))
+  const unit = match[2]?.trim() || null
+  return { quantity, unit }
+}
+
 function mapBackendItem(item: BackendListItem): ListItem {
   return {
     id: String(item.id),
-    text: item.text,
-    amount: item.amount,
+    text: item.name,
+    amount: formatAmount(item.quantity, item.unit),
     checked: item.checked,
   }
 }
@@ -33,7 +68,7 @@ function mapBackendList(list: BackendList): ShopList {
     name: list.name,
     color: list.color,
     itemCount: list.items.length,
-    linkedRecipeIds: [],
+    linkedRecipeIds: list.recipe_ids.map(String),
     date: list.date ?? undefined,
   }
 }
@@ -109,6 +144,22 @@ export function useBackendLists() {
     return callback(token)
   }
 
+  function syncListResponse(response: BackendList): ShopList {
+    const nextList = mapBackendList(response)
+    setLists((prev) => {
+      const exists = prev.some((list) => list.id === nextList.id)
+      if (!exists) {
+        return [nextList, ...prev]
+      }
+      return prev.map((list) => (list.id === nextList.id ? nextList : list))
+    })
+    setListItems((prev) => ({
+      ...prev,
+      [nextList.id]: response.items.map(mapBackendItem),
+    }))
+    return nextList
+  }
+
   async function createList(payload: ListPayload): Promise<ShopList> {
     const response = await withToken((token) =>
       apiRequest<BackendList>("/api/lists", {
@@ -118,13 +169,7 @@ export function useBackendLists() {
       })
     )
 
-    const nextList = mapBackendList(response)
-    setLists((prev) => [nextList, ...prev])
-    setListItems((prev) => ({
-      ...prev,
-      [nextList.id]: response.items.map(mapBackendItem),
-    }))
-    return nextList
+    return syncListResponse(response)
   }
 
   async function updateList(listId: string, payload: Partial<ListPayload>): Promise<ShopList> {
@@ -136,13 +181,7 @@ export function useBackendLists() {
       })
     )
 
-    const nextList = mapBackendList(response)
-    setLists((prev) => prev.map((list) => (list.id === listId ? nextList : list)))
-    setListItems((prev) => ({
-      ...prev,
-      [listId]: response.items.map(mapBackendItem),
-    }))
-    return nextList
+    return syncListResponse(response)
   }
 
   async function deleteList(listId: string): Promise<void> {
@@ -161,13 +200,15 @@ export function useBackendLists() {
   }
 
   async function addItem(listId: string, payload: Required<Pick<ListItemPayload, "text">> & ListItemPayload): Promise<ListItem> {
+    const parsedAmount = parseAmount(payload.amount ?? "")
     const response = await withToken((token) =>
       apiRequest<BackendListItem>(`/api/lists/${listId}/items`, {
         method: "POST",
         token,
         body: JSON.stringify({
-          text: payload.text,
-          amount: payload.amount ?? "",
+          name: payload.text,
+          quantity: parsedAmount.quantity ?? null,
+          unit: parsedAmount.unit ?? null,
           checked: payload.checked ?? false,
         }),
       })
@@ -187,11 +228,24 @@ export function useBackendLists() {
   }
 
   async function updateItem(listId: string, itemId: string, payload: ListItemPayload): Promise<ListItem> {
+    const nextPayload: Record<string, boolean | number | string | null> = {}
+    if (payload.text !== undefined) {
+      nextPayload.name = payload.text
+    }
+    if (payload.amount !== undefined) {
+      const parsedAmount = parseAmount(payload.amount)
+      nextPayload.quantity = parsedAmount.quantity ?? null
+      nextPayload.unit = parsedAmount.unit ?? null
+    }
+    if (payload.checked !== undefined) {
+      nextPayload.checked = payload.checked
+    }
+
     const response = await withToken((token) =>
       apiRequest<BackendListItem>(`/api/lists/items/${itemId}`, {
         method: "PATCH",
         token,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(nextPayload),
       })
     )
 
@@ -248,6 +302,7 @@ export function useBackendLists() {
     lists,
     listItems,
     isLoadingLists,
+    syncListResponse,
     createList,
     updateList,
     deleteList,

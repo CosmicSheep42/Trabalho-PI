@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from datetime import date as dt_date
-
 from pydantic import BaseModel, ConfigDict
 
 
 class ListItemBase(BaseModel):
-    text: str
-    amount: str = ""
+    name: str
+    quantity: float | None = None
+    unit: str | None = None
     checked: bool = False
 
 
@@ -16,8 +16,9 @@ class ListItemCreate(ListItemBase):
 
 
 class ListItemUpdate(BaseModel):
-    text: str | None = None
-    amount: str | None = None
+    name: str | None = None
+    quantity: float | None = None
+    unit: str | None = None
     checked: bool | None = None
 
 
@@ -49,6 +50,7 @@ class ShoppingListResponse(ShoppingListBase):
 
     id: int
     items: list[ListItemResponse]
+    recipe_ids: list[int]
 
 
 class BulkDeleteListItemsPayload(BaseModel):

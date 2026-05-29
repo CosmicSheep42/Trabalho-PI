@@ -1,12 +1,14 @@
 "use client"
 
-import { MoreHorizontal, Trash2, Edit2, BookOpen, Calendar } from "lucide-react"
+import { MoreHorizontal, Trash2, Edit2, BookOpen, Calendar, Pin } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -32,23 +34,48 @@ const colorClasses: Record<string, string> = {
 
 interface ShopListBannerProps {
   list: ShopList
+  pinned?: boolean
   onClick?: () => void
+  onTogglePin?: () => void
   onEdit?: () => void
   onDelete?: () => void
 }
 
-export function ShopListBanner({ list, onClick, onEdit, onDelete }: ShopListBannerProps) {
+const placeholderCollaborators = [
+  { id: "a", initials: "AL" },
+  { id: "b", initials: "BM" },
+  { id: "c", initials: "CR" },
+  { id: "d", initials: "DT" },
+]
+
+export function ShopListBanner({
+  list,
+  pinned = false,
+  onClick,
+  onTogglePin,
+  onEdit,
+  onDelete,
+}: ShopListBannerProps) {
   return (
     <div
       className={cn(
-        "relative flex items-center justify-between p-4 rounded-lg border cursor-pointer",
+        "relative flex items-center justify-between gap-4 rounded-lg border p-4 cursor-pointer",
         "hover:border-primary/50 transition-all duration-200",
+        pinned && "ring-1 ring-primary/40",
         colorClasses[list.color] || colorClasses.green
       )}
       onClick={onClick}
     >
-      <div className="flex flex-col gap-1">
-        <h3 className="font-medium text-foreground">{list.name}</h3>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <h3 className="truncate font-medium text-foreground">{list.name}</h3>
+          {pinned && (
+            <Badge variant="secondary" className="gap-1 bg-background/70">
+              <Pin className="h-3 w-3" />
+              Pinned
+            </Badge>
+          )}
+        </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
           <span>{list.itemCount} {list.itemCount === 1 ? "item" : "items"}</span>
           {list.linkedRecipeIds && list.linkedRecipeIds.length > 0 && (
@@ -68,27 +95,58 @@ export function ShopListBanner({ list, onClick, onEdit, onDelete }: ShopListBann
             </span>
           )}
         </div>
+        <div className="flex items-center">
+          <div className="flex -space-x-2">
+            {placeholderCollaborators.slice(0, 4).map((collaborator) => (
+              <Avatar key={collaborator.id} className="h-7 w-7 border-2 border-background">
+                <AvatarFallback className="bg-background/80 text-[10px] text-foreground">
+                  {collaborator.initials}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+            <Avatar className="h-7 w-7 border-2 border-background">
+              <AvatarFallback className="bg-muted text-[12px] font-semibold text-muted-foreground">
+                +
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        </div>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(); }}>
-            <Edit2 className="h-4 w-4 mr-2" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-            className="text-destructive"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+
+      <div className="flex items-start gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("h-8 w-8 shrink-0", pinned && "text-primary")}
+          onClick={(e) => {
+            e.stopPropagation()
+            onTogglePin?.()
+          }}
+          aria-label={pinned ? "Unpin list" : "Pin list"}
+        >
+          <Pin className={cn("h-4 w-4", pinned && "fill-current")} />
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(); }}>
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+              className="text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

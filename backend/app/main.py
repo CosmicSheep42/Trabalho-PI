@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import settings
+from app.db.seed import seed_recipes_from_data_directory
+from app.db.session import SessionLocal
 
 app = FastAPI(title=settings.app_name, version=settings.app_version)
 
@@ -15,6 +17,15 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.api_prefix)
+
+
+@app.on_event("startup")
+def seed_database() -> None:
+    db = SessionLocal()
+    try:
+        seed_recipes_from_data_directory(db)
+    finally:
+        db.close()
 
 
 @app.get("/")

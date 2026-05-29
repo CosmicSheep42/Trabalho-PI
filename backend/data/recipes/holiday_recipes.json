@@ -1,0 +1,700 @@
+{
+  "recipes": [
+    {
+      "name": "Christmas Roast Chicken",
+      "description": "A festive roast chicken with potatoes and herbs.",
+      "image": "https://images.unsplash.com/photo-1650855543755-f300cd0dff3c?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 90,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "chicken",
+          "amount": "1"
+        },
+        {
+          "name": "potato",
+          "amount": "800g"
+        },
+        {
+          "name": "carrot",
+          "amount": "400g"
+        },
+        {
+          "name": "onion",
+          "amount": "2"
+        },
+        {
+          "name": "butter",
+          "amount": "60g"
+        },
+        {
+          "name": "rosemary",
+          "amount": "8g"
+        },
+        {
+          "name": "garlic",
+          "amount": "4"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Heat the oven and place the chicken in a roasting dish.",
+        "Peel and cut the potatoes and carrots.",
+        "Mince the garlic and mix it with butter and rosemary.",
+        "Rub the chicken with the butter mixture.",
+        "Roast with the vegetables until the chicken is cooked through."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": "chicken"
+      },
+      "holidays": [
+        "christmas"
+      ]
+    },
+    {
+      "name": "Thanksgiving Turkey Style Chicken",
+      "description": "Chicken baked with stuffing flavors for a smaller holiday meal.",
+      "image": "https://images.unsplash.com/photo-1672787380741-6fe6c7450668?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 75,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "chicken breast",
+          "amount": "800g"
+        },
+        {
+          "name": "bread",
+          "amount": "250g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "celery",
+          "amount": "150g"
+        },
+        {
+          "name": "butter",
+          "amount": "70g"
+        },
+        {
+          "name": "chicken broth",
+          "amount": "400ml"
+        },
+        {
+          "name": "sage",
+          "amount": "5g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion, celery, and bread.",
+        "Cook the onion and celery in butter.",
+        "Mix the bread with chicken broth and sage.",
+        "Place the chicken breast in a baking dish with the stuffing mixture.",
+        "Bake until the chicken is cooked through."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": "chicken"
+      },
+      "holidays": [
+        "thanksgiving"
+      ]
+    },
+    {
+      "name": "Easter Herb Fish",
+      "description": "A light baked fish dish with lemon and herbs for Easter lunch.",
+      "image": "https://images.unsplash.com/photo-1716816211582-ef70b1cd2e70?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "white fish",
+          "amount": "700g"
+        },
+        {
+          "name": "lemon juice",
+          "amount": "60ml"
+        },
+        {
+          "name": "olive oil",
+          "amount": "40ml"
+        },
+        {
+          "name": "parsley",
+          "amount": "12g"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "potato",
+          "amount": "600g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Cut the potatoes into small pieces and start roasting them.",
+        "Mince the garlic and chop the parsley.",
+        "Place the white fish in a baking dish.",
+        "Add lemon juice, olive oil, garlic, parsley, and salt.",
+        "Bake until the fish flakes easily."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "mediterranean",
+        "occasion": "holidays",
+        "weather": "hot-day",
+        "difficulty": "easy",
+        "cooking_method": "oven",
+        "main_protein": "fish"
+      },
+      "holidays": [
+        "easter"
+      ]
+    },
+    {
+      "name": "Halloween Pumpkin Soup",
+      "description": "A smooth pumpkin soup for a cozy Halloween meal.",
+      "image": "https://images.unsplash.com/photo-1605034997223-1a4819bb58cf?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 40,
+      "servings": 4,
+      "ingredients": [
+        {
+          "name": "pumpkin",
+          "amount": "800g"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "800ml"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "2"
+        },
+        {
+          "name": "table cream",
+          "amount": "150ml"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "20ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Peel and cut the pumpkin into cubes.",
+        "Dice the onion and mince the garlic.",
+        "Cook the onion and garlic in vegetable oil.",
+        "Add pumpkin and vegetable broth, then simmer until soft.",
+        "Blend the soup and stir in table cream."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": [
+        "halloween"
+      ]
+    },
+    {
+      "name": "Valentine Chocolate Lava Cakes",
+      "description": "Small chocolate cakes with soft centers for a romantic dessert.",
+      "image": "https://plus.unsplash.com/premium_photo-1669687759435-c1dc7e707e0f?q=80&w=1169&auto=format&fit=crop",
+      "prep_time_minutes": 25,
+      "servings": 2,
+      "ingredients": [
+        {
+          "name": "dark chocolate",
+          "amount": "120g"
+        },
+        {
+          "name": "butter",
+          "amount": "80g"
+        },
+        {
+          "name": "egg",
+          "amount": "2"
+        },
+        {
+          "name": "sugar",
+          "amount": "50g"
+        },
+        {
+          "name": "plain flour",
+          "amount": "30g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Melt the dark chocolate with butter.",
+        "Whisk the eggs and sugar until smooth.",
+        "Fold in the chocolate mixture and plain flour.",
+        "Pour into small ramekins.",
+        "Bake until the edges set and the centers stay soft."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "french",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": [
+        "valentines-day"
+      ]
+    },
+    {
+      "name": "New Year Lentil Stew",
+      "description": "A hearty lentil stew often served for a hopeful new year.",
+      "image": "https://plus.unsplash.com/premium_photo-1723579374186-cca58e8672d7?q=80&w=753&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "lentil",
+          "amount": "500g"
+        },
+        {
+          "name": "carrot",
+          "amount": "200g"
+        },
+        {
+          "name": "tomato",
+          "amount": "400g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "1L"
+        },
+        {
+          "name": "olive oil",
+          "amount": "30ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the carrot and onion, then mince the garlic.",
+        "Cook the onion and garlic in olive oil.",
+        "Add the lentil, carrot, tomato, and vegetable broth.",
+        "Simmer until the lentils are tender.",
+        "Season with salt and serve hot."
+      ],
+      "dietary_flags": {
+        "vegan": true,
+        "vegetarian": true,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "italian",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "one-pot",
+        "main_protein": ""
+      },
+      "holidays": [
+        "new-year"
+      ]
+    },
+    {
+      "name": "Christmas Ginger Cookies",
+      "description": "Spiced cookies shaped for Christmas celebrations.",
+      "image": "https://images.unsplash.com/photo-1638434451266-136aaab54e43?q=80&w=1632&auto=format&fit=crop",
+      "prep_time_minutes": 45,
+      "servings": 8,
+      "ingredients": [
+        {
+          "name": "plain flour",
+          "amount": "300g"
+        },
+        {
+          "name": "butter",
+          "amount": "120g"
+        },
+        {
+          "name": "sugar",
+          "amount": "120g"
+        },
+        {
+          "name": "egg",
+          "amount": "1"
+        },
+        {
+          "name": "ginger",
+          "amount": "8g"
+        },
+        {
+          "name": "cinnamon",
+          "amount": "5g"
+        },
+        {
+          "name": "baking powder",
+          "amount": "8g"
+        }
+      ],
+      "instructions": [
+        "Mix butter and sugar until creamy.",
+        "Add the egg and stir well.",
+        "Fold in plain flour, ginger, cinnamon, and baking powder.",
+        "Shape the dough into cookies.",
+        "Bake until firm and lightly browned."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "british",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": [
+        "christmas"
+      ]
+    },
+    {
+      "name": "Thanksgiving Sweet Potato Mash",
+      "description": "A smooth sweet potato side dish for a holiday table.",
+      "image": "https://plus.unsplash.com/premium_photo-1777050317106-94e8e4102674?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 35,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "sweet potato",
+          "amount": "900g"
+        },
+        {
+          "name": "butter",
+          "amount": "60g"
+        },
+        {
+          "name": "whole milk",
+          "amount": "120ml"
+        },
+        {
+          "name": "brown sugar",
+          "amount": "40g"
+        },
+        {
+          "name": "cinnamon",
+          "amount": "3g"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Peel and cut the sweet potatoes.",
+        "Boil them until tender.",
+        "Mash the sweet potatoes with butter and whole milk.",
+        "Stir in brown sugar, cinnamon, and salt.",
+        "Serve warm as a side dish."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "american",
+        "occasion": "holidays",
+        "weather": "cold-day",
+        "difficulty": "easy",
+        "cooking_method": "stovetop",
+        "main_protein": ""
+      },
+      "holidays": [
+        "thanksgiving"
+      ]
+    },
+    {
+      "name": "Easter Carrot Cupcakes",
+      "description": "Soft carrot cupcakes for Easter gatherings.",
+      "image": "https://plus.unsplash.com/premium_photo-1711015956675-dc50bd9fc7d5?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 50,
+      "servings": 8,
+      "ingredients": [
+        {
+          "name": "carrot",
+          "amount": "250g"
+        },
+        {
+          "name": "plain flour",
+          "amount": "220g"
+        },
+        {
+          "name": "egg",
+          "amount": "2"
+        },
+        {
+          "name": "sugar",
+          "amount": "140g"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": "120ml"
+        },
+        {
+          "name": "cream cheese",
+          "amount": "120g"
+        },
+        {
+          "name": "butter",
+          "amount": "40g"
+        },
+        {
+          "name": "baking powder",
+          "amount": "10g"
+        }
+      ],
+      "instructions": [
+        "Peel and grate the carrot.",
+        "Whisk eggs, sugar, and vegetable oil.",
+        "Fold in carrot, plain flour, and baking powder.",
+        "Bake the batter in cupcake molds.",
+        "Mix cream cheese and butter for topping after cooling."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": true,
+        "lactose_free": false,
+        "egg_free": false,
+        "gluten_free": false,
+        "nut_free": true,
+        "shellfish_free": true,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "dessert",
+        "cuisine": "american",
+        "occasion": "holidays",
+        "weather": "hot-day",
+        "difficulty": "medium",
+        "cooking_method": "oven",
+        "main_protein": ""
+      },
+      "holidays": [
+        "easter"
+      ]
+    },
+    {
+      "name": "New Year Seafood Rice",
+      "description": "A festive seafood rice dish for a celebratory dinner.",
+      "image": "https://images.unsplash.com/photo-1768204039740-9e418a65328b?q=80&w=1170&auto=format&fit=crop",
+      "prep_time_minutes": 50,
+      "servings": 6,
+      "ingredients": [
+        {
+          "name": "shrimp",
+          "amount": "400g"
+        },
+        {
+          "name": "white fish",
+          "amount": "300g"
+        },
+        {
+          "name": "rice",
+          "amount": "350g"
+        },
+        {
+          "name": "tomato",
+          "amount": "300g"
+        },
+        {
+          "name": "onion",
+          "amount": "1"
+        },
+        {
+          "name": "garlic",
+          "amount": "3"
+        },
+        {
+          "name": "vegetable broth",
+          "amount": "800ml"
+        },
+        {
+          "name": "olive oil",
+          "amount": "40ml"
+        },
+        {
+          "name": "salt",
+          "amount": ""
+        }
+      ],
+      "instructions": [
+        "Dice the onion and tomato, then mince the garlic.",
+        "Cook the onion and garlic in olive oil.",
+        "Add the rice and tomato.",
+        "Pour in vegetable broth and simmer.",
+        "Add shrimp and white fish near the end and cook until done."
+      ],
+      "dietary_flags": {
+        "vegan": false,
+        "vegetarian": false,
+        "lactose_free": true,
+        "egg_free": true,
+        "gluten_free": true,
+        "nut_free": true,
+        "shellfish_free": false,
+        "soy_free": true,
+        "sesame_free": true,
+        "sulfite_free": true
+      },
+      "tags": {
+        "meal_type": "lunch or dinner",
+        "cuisine": "mediterranean",
+        "occasion": "holidays",
+        "weather": "hot-day",
+        "difficulty": "medium",
+        "cooking_method": "one-pot",
+        "main_protein": "seafood"
+      },
+      "holidays": [
+        "new-year"
+      ]
+    }
+  ]
+}
