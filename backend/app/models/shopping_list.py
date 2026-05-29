@@ -34,7 +34,16 @@ class ShoppingList(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    meal_plan_entries = relationship(
+        "MealPlanEntry",
+        back_populates="shopping_list",
+        passive_deletes=True,
+    )
 
     @property
     def recipe_ids(self) -> list[int]:
         return [link.recipe_id for link in self.recipe_links]
+
+    @property
+    def list_recipes(self):
+        return self.recipe_links

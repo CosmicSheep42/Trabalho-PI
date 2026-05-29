@@ -4,14 +4,14 @@ import type { ShopList } from "@/components/shoplist-banner"
 
 interface UseMainPageFiltersParams {
   lists: ShopList[]
-  searchQuery: string
+  listSearchQuery: string
 }
 
 export function useMainPageFilters({
   lists,
-  searchQuery,
+  listSearchQuery,
 }: UseMainPageFiltersParams) {
-  const normalizedQuery = searchQuery.toLowerCase()
+  const normalizedQuery = listSearchQuery.trim().toLowerCase()
 
   const filteredLists = lists.filter((list) =>
     list.name.toLowerCase().includes(normalizedQuery)

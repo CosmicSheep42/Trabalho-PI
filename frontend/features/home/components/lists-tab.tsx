@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 import {
   addMonths,
   eachDayOfInterval,
@@ -26,6 +26,16 @@ import {
   ShoppingCart,
   Soup,
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   CardAction,
@@ -38,35 +48,58 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { ShopListBanner, type ShopList } from "@/components/shoplist-banner"
-import type { Recipe } from "@/features/recipes/types"
+import type { DayOfWeek, MealPlanEntry } from "@/features/meal-planner/types"
+import { weekDays } from "@/features/meal-planner/types"
+import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
+import { withRecipeServingsOverride } from "@/features/recipes/types"
 
 interface ListsTabProps {
   lists: ShopList[]
   recipes: Recipe[]
+  savedRecipes: Recipe[]
+  mealPlanEntries: MealPlanEntry[]
   searchQuery: string
   onSearchQueryChange: (value: string) => void
   onCreateList: () => void
   onOpenList: (list: ShopList) => void
-  onOpenRecipe: (recipe: Recipe) => void
+  onOpenRecipe: (recipe: Recipe, context?: RecipeServingsContext) => void
   onEditList: (list: ShopList) => void
   onDeleteList: (listId: string) => void
+  onCreateMealPlanEntry: (payload: {
+    recipeId: string
+    listId?: string | null
+    dayOfWeek: DayOfWeek
+    position: number
+    servings?: number | null
+  }) => Promise<MealPlanEntry>
+  onUpdateMealPlanEntry: (
+    entryId: string,
+    payload: {
+      listId?: string | null
+      dayOfWeek?: DayOfWeek
+      position?: number
+      servings?: number | null
+    }
+  ) => Promise<MealPlanEntry>
+  onUnplanMealPlanEntry: (entryId: string) => Promise<void>
+  onDeleteMealPlanEntry: (entryId: string, recipeId: string) => Promise<void>
+  onDeleteSavedRecipe: (recipeId: string) => Promise<void>
 }
 
-const weekDays = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const
+interface PendingRemoval {
+  source: "saved" | "planner"
+  recipeId: string
+  recipeName: string
+  entryId?: string
+}
 
 const calendarWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-export function ListsTab({
+function ListsTabComponent({
   lists,
   recipes,
+  savedRecipes,
+  mealPlanEntries,
   searchQuery,
   onSearchQueryChange,
   onCreateList,
@@ -74,57 +107,32 @@ export function ListsTab({
   onOpenRecipe,
   onEditList,
   onDeleteList,
+  onCreateMealPlanEntry,
+  onUpdateMealPlanEntry,
+  onUnplanMealPlanEntry,
+  onDeleteMealPlanEntry,
+  onDeleteSavedRecipe,
 }: ListsTabProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
   const [pinnedListIds, setPinnedListIds] = useState<string[]>([])
   const [draggedRecipeId, setDraggedRecipeId] = useState<string | null>(null)
   const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false)
+  const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null)
   const autoScrollDirectionRef = useRef<1 | -1 | 0>(0)
   const autoScrollFrameRef = useRef<number | null>(null)
-
-  const mealPlannerRecipes = useMemo(() => {
-    const linkedRecipeIds = Array.from(
-      new Set(lists.flatMap((list) => list.linkedRecipeIds ?? []))
-    )
-
-    const linkedRecipes = linkedRecipeIds
-      .map((recipeId) => recipes.find((recipe) => recipe.id === recipeId))
-      .filter((recipe): recipe is Recipe => Boolean(recipe))
-
-    return linkedRecipes.length > 0 ? linkedRecipes : recipes
-  }, [lists, recipes])
-
-  const [weeklyPlan, setWeeklyPlan] = useState<Record<string, string[]>>({})
-
-  useEffect(() => {
-    setWeeklyPlan((currentPlan) => {
-      const availableIds = new Set(mealPlannerRecipes.map((recipe) => recipe.id))
-      const nextPlan = { ...currentPlan } as Record<string, string[]>
-      const usedRecipeIds = new Set<string>()
-
-      weekDays.forEach((day) => {
-        const existingDayPlan = (nextPlan[day] ?? []).filter((recipeId) => availableIds.has(recipeId))
-        if (existingDayPlan.length > 0) {
-          nextPlan[day] = existingDayPlan
-          existingDayPlan.forEach((recipeId) => usedRecipeIds.add(recipeId))
-          return
-        }
-        nextPlan[day] = []
-      })
-
-      const remainingRecipeIds = mealPlannerRecipes
-        .map((recipe) => recipe.id)
-        .filter((recipeId) => !usedRecipeIds.has(recipeId))
-
-      remainingRecipeIds.forEach((recipeId, index) => {
-        const targetDay = weekDays[index % weekDays.length]
-        nextPlan[targetDay] = [...(nextPlan[targetDay] ?? []), recipeId]
-      })
-
-      return nextPlan
-    })
-  }, [mealPlannerRecipes])
+  const mealPlannerRecipeIds = useMemo(
+    () => new Set(mealPlanEntries.map((entry) => entry.recipeId)),
+    [mealPlanEntries]
+  )
+  const mealPlannerRecipes = useMemo(
+    () => savedRecipes.filter((recipe) => !mealPlannerRecipeIds.has(recipe.id)),
+    [mealPlannerRecipeIds, savedRecipes]
+  )
+  const recipeMap = useMemo(
+    () => new Map(recipes.map((recipe) => [recipe.id, recipe])),
+    [recipes]
+  )
 
   useEffect(() => {
     if (!draggedRecipeId) {
@@ -214,56 +222,144 @@ export function ListsTab({
       end: gridEnd,
     })
   }, [calendarMonth])
+  const plannerEntriesByDay = useMemo(
+    () =>
+      Object.fromEntries(
+        weekDays.map((day) => [
+          day,
+          mealPlanEntries
+            .filter((entry) => entry.dayOfWeek === day)
+            .sort((left, right) => left.position - right.position),
+        ])
+      ) as Record<DayOfWeek, MealPlanEntry[]>,
+    [mealPlanEntries]
+  )
 
-  function moveRecipe(
+  async function persistDayEntries(day: DayOfWeek, entries: MealPlanEntry[]) {
+    await Promise.all(
+      entries.map((entry, index) => {
+        const persistedEntry = mealPlanEntries.find((currentEntry) => currentEntry.id === entry.id)
+        if (
+          persistedEntry &&
+          persistedEntry.dayOfWeek === day &&
+          persistedEntry.position === index
+        ) {
+          return Promise.resolve(entry)
+        }
+
+        return onUpdateMealPlanEntry(entry.id, {
+          dayOfWeek: day,
+          position: index,
+        })
+      })
+    )
+  }
+
+  async function moveRecipe(
     recipeId: string,
-    fromDay: string,
-    toDay: string,
-    targetIndex?: number
+    fromDay: DayOfWeek | "bank",
+    toDay: DayOfWeek | "bank",
+    targetIndex?: number,
+    entryId?: string
   ) {
-    setWeeklyPlan((currentPlan) => {
-      const nextPlan = Object.fromEntries(
-        weekDays.map((day) => [day, [...(currentPlan[day] ?? [])]])
-      ) as Record<string, string[]>
+    if (toDay === "bank") {
+      if (!entryId) {
+        return
+      }
 
-      weekDays.forEach((day) => {
-        nextPlan[day] = nextPlan[day].filter((id) => id !== recipeId)
+      await onUnplanMealPlanEntry(entryId)
+      return
+    }
+
+    let insertionIndex = Math.max(
+      0,
+      Math.min(targetIndex ?? plannerEntriesByDay[toDay].length, plannerEntriesByDay[toDay].length)
+    )
+
+    if (fromDay === "bank") {
+      const savedRecipe = mealPlannerRecipes.find((recipe) => recipe.id === recipeId)
+      const createdEntry = await onCreateMealPlanEntry({
+        recipeId,
+        dayOfWeek: toDay,
+        position: insertionIndex,
+        servings: savedRecipe?.servings,
       })
 
-      const sourceRecipes = fromDay === "bank" ? [] : nextPlan[fromDay] ?? []
-      const targetRecipes =
-        fromDay === toDay ? sourceRecipes : [...(nextPlan[toDay] ?? [])]
-      const insertionIndex =
-        targetIndex === undefined ? targetRecipes.length : Math.max(0, Math.min(targetIndex, targetRecipes.length))
+      const nextTargetEntries = [...plannerEntriesByDay[toDay]]
+      nextTargetEntries.splice(insertionIndex, 0, createdEntry)
+      await persistDayEntries(toDay, nextTargetEntries)
+      return
+    }
 
-      targetRecipes.splice(insertionIndex, 0, recipeId)
+    if (!entryId) {
+      return
+    }
 
-      const result = {
-        ...nextPlan,
-        [fromDay]: fromDay === toDay ? targetRecipes : sourceRecipes,
-        [toDay]: targetRecipes,
-      }
+    const movingEntry = mealPlanEntries.find((entry) => entry.id === entryId)
+    if (!movingEntry) {
+      return
+    }
 
-      if (fromDay === "bank") {
-        delete result.bank
-      }
+    if (fromDay === toDay && targetIndex !== undefined && movingEntry.position < targetIndex) {
+      insertionIndex = Math.max(0, insertionIndex - 1)
+    }
 
-      return result
+    const nextSourceEntries = plannerEntriesByDay[fromDay].filter((entry) => entry.id !== entryId)
+    const nextTargetEntries =
+      fromDay === toDay
+        ? nextSourceEntries
+        : [...plannerEntriesByDay[toDay]]
+
+    nextTargetEntries.splice(insertionIndex, 0, {
+      ...movingEntry,
+      dayOfWeek: toDay,
+      position: insertionIndex,
     })
+
+    await persistDayEntries(toDay, nextTargetEntries)
+    if (fromDay !== toDay) {
+      await persistDayEntries(fromDay, nextSourceEntries)
+    }
+  }
+
+  async function confirmRemoval() {
+    if (!pendingRemoval) {
+      return
+    }
+
+    if (pendingRemoval.source === "saved") {
+      await onDeleteSavedRecipe(pendingRemoval.recipeId)
+      setPendingRemoval(null)
+      return
+    }
+
+    if (pendingRemoval.entryId) {
+      await onDeleteMealPlanEntry(pendingRemoval.entryId, pendingRemoval.recipeId)
+    }
+    setPendingRemoval(null)
   }
 
   function renderRecipeCard(
     recipe: Recipe,
     options?: {
-      day?: string
+      day?: DayOfWeek
+      entry?: MealPlanEntry
       index?: number
       draggable?: boolean
-      fromDay?: string
+      fromDay?: DayOfWeek | "bank"
       onDropAtCard?: (event: React.DragEvent<HTMLDivElement>) => void
+      onRemove?: () => void
     }
   ) {
-    const { day, draggable = false, fromDay = "bank", onDropAtCard } = options ?? {}
+    const { day, entry, draggable = false, fromDay = "bank", onDropAtCard, onRemove } = options ?? {}
     const mealTypeTag = recipe.tags.find((tag) => tag.category === "meal_type")
+    const effectiveServings = entry?.servings ?? recipe.servings
+    const recipeForDialog = withRecipeServingsOverride(recipe, effectiveServings)
+    const recipeContext: RecipeServingsContext | undefined = entry
+      ? { type: "meal-planner", entryId: entry.id }
+      : fromDay === "bank"
+        ? { type: "saved" }
+        : undefined
 
     return (
       <div
@@ -271,11 +367,11 @@ export function ListsTab({
         draggable={draggable}
         role="button"
         tabIndex={0}
-        onClick={() => onOpenRecipe(recipe)}
+        onClick={() => onOpenRecipe(recipeForDialog, recipeContext)}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault()
-            onOpenRecipe(recipe)
+            onOpenRecipe(recipeForDialog, recipeContext)
           }
         }}
         onDragStart={(event) => {
@@ -284,6 +380,9 @@ export function ListsTab({
           }
           event.dataTransfer.setData("text/recipe-id", recipe.id)
           event.dataTransfer.setData("text/from-day", fromDay)
+          if (entry) {
+            event.dataTransfer.setData("text/entry-id", entry.id)
+          }
           setDraggedRecipeId(recipe.id)
         }}
         onDragEnd={() => setDraggedRecipeId(null)}
@@ -303,8 +402,42 @@ export function ListsTab({
             src={recipe.image}
             alt={recipe.name}
             fill
+            draggable={false}
             className="object-cover"
           />
+          {entry && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8 bg-background/85 backdrop-blur-sm"
+              onClick={(event) => {
+                event.stopPropagation()
+                setPendingRemoval({
+                  source: "planner",
+                  recipeId: recipe.id,
+                  recipeName: recipe.name,
+                  entryId: entry.id,
+                })
+              }}
+            >
+              <span className="text-base leading-none">×</span>
+            </Button>
+          )}
+          {!entry && onRemove ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8 bg-background/85 backdrop-blur-sm"
+              onClick={(event) => {
+                event.stopPropagation()
+                onRemove()
+              }}
+            >
+              <span className="text-base leading-none">×</span>
+            </Button>
+          ) : null}
         </div>
         <div className="flex items-start gap-3 p-4">
           <div className="rounded-full bg-muted p-2 text-muted-foreground">
@@ -317,8 +450,8 @@ export function ListsTab({
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Badge variant="secondary">{recipe.prep_time_minutes} min</Badge>
-              {recipe.servings ? (
-                <Badge variant="secondary">{recipe.servings} servings</Badge>
+              {effectiveServings ? (
+                <Badge variant="secondary">{effectiveServings} servings</Badge>
               ) : null}
               {mealTypeTag ? (
                 <Badge variant="outline">{mealTypeTag.name}</Badge>
@@ -334,24 +467,8 @@ export function ListsTab({
     ? mealPlannerRecipes
     : mealPlannerRecipes.slice(0, 4)
 
-  if (lists.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <ShoppingCart className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-        <h3 className="text-lg font-medium mb-2">No lists yet</h3>
-        <p className="text-muted-foreground mb-4">
-          Create your first shopping list to get started
-        </p>
-        <Button onClick={onCreateList}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create List
-        </Button>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.9fr)_minmax(420px,1.1fr)]">
         <Card className="overflow-hidden py-0">
           <CardHeader className="min-h-16 border-b py-3">
@@ -379,25 +496,39 @@ export function ListsTab({
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[32rem]">
-              <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-                {sortedLists.map((list) => (
-                  <ShopListBanner
-                    key={list.id}
-                    list={list}
-                    pinned={pinnedListIds.includes(list.id)}
-                    onClick={() => onOpenList(list)}
-                    onTogglePin={() =>
-                      setPinnedListIds((currentPinned) =>
-                        currentPinned.includes(list.id)
-                          ? currentPinned.filter((id) => id !== list.id)
-                          : [list.id, ...currentPinned]
-                      )
-                    }
-                    onEdit={() => onEditList(list)}
-                    onDelete={() => onDeleteList(list.id)}
-                  />
-                ))}
-              </div>
+              {sortedLists.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
+                  {sortedLists.map((list) => (
+                    <ShopListBanner
+                      key={list.id}
+                      list={list}
+                      pinned={pinnedListIds.includes(list.id)}
+                      onClick={() => onOpenList(list)}
+                      onTogglePin={() =>
+                        setPinnedListIds((currentPinned) =>
+                          currentPinned.includes(list.id)
+                            ? currentPinned.filter((id) => id !== list.id)
+                            : [list.id, ...currentPinned]
+                        )
+                      }
+                      onEdit={() => onEditList(list)}
+                      onDelete={() => onDeleteList(list.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex h-full min-h-[20rem] flex-col items-center justify-center px-6 text-center">
+                  <ShoppingCart className="mb-4 h-12 w-12 text-muted-foreground/50" />
+                  <h3 className="mb-2 text-lg font-medium">No lists yet</h3>
+                  <p className="mb-4 text-muted-foreground">
+                    Create a shopping list, or start planning meals directly below.
+                  </p>
+                  <Button onClick={onCreateList}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create List
+                  </Button>
+                </div>
+              )}
             </ScrollArea>
           </CardContent>
         </Card>
@@ -474,12 +605,35 @@ export function ListsTab({
             Saved Recipes
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="rounded-2xl border bg-muted/10 p-4">
-            <div className="mb-3 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold">Saved Recipes From Lists</p>
-              </div>
+        <CardContent className="overflow-x-hidden p-6">
+            <div
+              className={`rounded-2xl border bg-muted/10 p-4 transition-colors ${
+                draggedRecipeId ? "border-primary/40 bg-primary/5" : ""
+              }`}
+              onDragOver={(event) => {
+                if (!draggedRecipeId) {
+                  return
+                }
+                event.preventDefault()
+                event.dataTransfer.dropEffect = "move"
+              }}
+              onDrop={(event) => {
+                event.preventDefault()
+                const recipeId = event.dataTransfer.getData("text/recipe-id")
+                const fromDay = event.dataTransfer.getData("text/from-day")
+                const entryId = event.dataTransfer.getData("text/entry-id") || undefined
+                if (!recipeId || !fromDay || fromDay === "bank") {
+                  return
+                }
+                void moveRecipe(recipeId, fromDay as DayOfWeek, "bank", undefined, entryId)
+                setDraggedRecipeId(null)
+              }}
+            >
+              <div className="mb-3 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold">Saved Recipes</p>
+                  <p className="text-sm text-muted-foreground">Drag any recipe into a day.</p>
+                </div>
               {mealPlannerRecipes.length > 4 && (
                 <Button
                   variant="outline"
@@ -507,11 +661,22 @@ export function ListsTab({
                     {renderRecipeCard(recipe, {
                       draggable: true,
                       fromDay: "bank",
+                      onRemove: () =>
+                        setPendingRemoval({
+                          source: "saved",
+                          recipeId: recipe.id,
+                          recipeName: recipe.name,
+                        }),
                     })}
                   </div>
                 ))}
               </div>
             </div>
+            {mealPlannerRecipes.length === 0 && (
+              <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                Save recipes from the recipe dialog to build your planner bank.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -523,10 +688,10 @@ export function ListsTab({
             Weekly Meal Planner
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="overflow-x-hidden p-6">
           <div className="space-y-3">
             {weekDays.map((day) => {
-              const plannedRecipeIds = weeklyPlan[day] ?? []
+              const plannedEntries = plannerEntriesByDay[day]
 
               return (
                 <div
@@ -539,10 +704,11 @@ export function ListsTab({
                     event.preventDefault()
                     const recipeId = event.dataTransfer.getData("text/recipe-id")
                     const fromDay = event.dataTransfer.getData("text/from-day")
+                    const entryId = event.dataTransfer.getData("text/entry-id") || undefined
                     if (!recipeId || !fromDay) {
                       return
                     }
-                    moveRecipe(recipeId, fromDay, day)
+                    void moveRecipe(recipeId, fromDay as DayOfWeek | "bank", day, undefined, entryId)
                     setDraggedRecipeId(null)
                   }}
                 >
@@ -552,18 +718,19 @@ export function ListsTab({
                     </div>
 
                     <div className="min-h-24 rounded-2xl border border-dashed bg-muted/15 p-3">
-                      {plannedRecipeIds.length > 0 ? (
+                      {plannedEntries.length > 0 ? (
                         <div className="flex flex-wrap gap-3">
-                          {plannedRecipeIds.map((recipeId, index) => {
-                            const recipe = mealPlannerRecipes.find((item) => item.id === recipeId)
+                          {plannedEntries.map((entry, index) => {
+                            const recipe = recipeMap.get(entry.recipeId)
                             if (!recipe) {
                               return null
                             }
 
                             return (
-                              <div key={`${day}-${recipe.id}`} className="min-w-[290px] max-w-[340px]">
+                              <div key={entry.id} className="w-full sm:min-w-[320px] sm:max-w-[360px]">
                                 {renderRecipeCard(recipe, {
                                   day,
+                                  entry,
                                   index,
                                   draggable: true,
                                   fromDay: day,
@@ -571,10 +738,17 @@ export function ListsTab({
                                     event.preventDefault()
                                     const incomingRecipeId = event.dataTransfer.getData("text/recipe-id")
                                     const originDay = event.dataTransfer.getData("text/from-day")
+                                    const incomingEntryId = event.dataTransfer.getData("text/entry-id") || undefined
                                     if (!incomingRecipeId || !originDay) {
                                       return
                                     }
-                                    moveRecipe(incomingRecipeId, originDay, day, index)
+                                    void moveRecipe(
+                                      incomingRecipeId,
+                                      originDay as DayOfWeek | "bank",
+                                      day,
+                                      index,
+                                      incomingEntryId
+                                    )
                                     setDraggedRecipeId(null)
                                   },
                                 })}
@@ -595,6 +769,36 @@ export function ListsTab({
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={pendingRemoval !== null} onOpenChange={(open) => {
+        if (!open) {
+          setPendingRemoval(null)
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove recipe?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRemoval
+                ? `Removing "${pendingRemoval.recipeName}" will also remove it from linked lists. Please confirm to continue.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                void confirmRemoval()
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
+
+export const ListsTab = memo(ListsTabComponent)

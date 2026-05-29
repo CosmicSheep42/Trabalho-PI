@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,6 +19,7 @@ class ListRecipe(Base):
         primary_key=True,
         index=True,
     )
+    servings: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     shopping_list = relationship("ShoppingList", back_populates="recipe_links")
     recipe = relationship("Recipe", back_populates="list_links")

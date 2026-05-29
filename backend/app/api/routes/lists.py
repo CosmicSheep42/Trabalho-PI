@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_db, get_or_create_current_user
@@ -8,11 +8,13 @@ from app.core.normalization import normalize_item_name
 from app.models.list_item import ListItem
 from app.models.list_recipe import ListRecipe
 from app.models.recipe import Recipe
+from app.models.saved_recipe import SavedRecipe
 from app.models.shopping_list import ShoppingList
 from app.models.user import User
 from app.schemas.list import (
     BulkDeleteListItemsPayload,
     ListItemCreate,
+    ListRecipeCreate,
     ListItemResponse,
     ListItemUpdate,
     ShoppingListCreate,
@@ -27,7 +29,10 @@ router = APIRouter(prefix="/lists", tags=["lists"])
 def _get_owned_list_query(db: Session, user_id: int):
     return (
         db.query(ShoppingList)
-        .options(selectinload(ShoppingList.items), selectinload(ShoppingList.recipe_links))
+        .options(
+            selectinload(ShoppingList.items),
+            selectinload(ShoppingList.recipe_links),
+        )
         .filter(ShoppingList.user_id == user_id)
     )
 
@@ -79,19 +84,23 @@ def _merge_recipe_ingredients_into_list(
     db: Session,
     shopping_list: ShoppingList,
     recipe: Recipe,
+    servings: int | None,
 ) -> None:
+    multiplier = _get_servings_multiplier(servings, recipe.servings)
+
     for ingredient in recipe.ingredients:
         existing_item = _find_list_item_by_name_and_unit(shopping_list, ingredient.name, ingredient.unit)
+        scaled_quantity = _scale_ingredient_quantity(ingredient.quantity, multiplier)
         if existing_item is not None:
-            if existing_item.quantity is not None and ingredient.quantity is not None:
-                existing_item.quantity += ingredient.quantity
+            if existing_item.quantity is not None and scaled_quantity is not None:
+                existing_item.quantity += scaled_quantity
             db.add(existing_item)
             continue
 
         list_item = ListItem(
             list_id=shopping_list.id,
             name=ingredient.name,
-            quantity=ingredient.quantity,
+            quantity=scaled_quantity,
             unit=ingredient.unit,
             checked=False,
         )
@@ -103,21 +112,26 @@ def _subtract_recipe_ingredients_from_list(
     db: Session,
     shopping_list: ShoppingList,
     recipe: Recipe,
+    servings: int | None,
 ) -> None:
+    multiplier = _get_servings_multiplier(servings, recipe.servings)
+
     for ingredient in recipe.ingredients:
         existing_item = _find_list_item_by_name_and_unit(shopping_list, ingredient.name, ingredient.unit)
         if existing_item is None:
             continue
 
-        if existing_item.quantity is None and ingredient.quantity is None:
+        scaled_quantity = _scale_ingredient_quantity(ingredient.quantity, multiplier)
+
+        if existing_item.quantity is None and scaled_quantity is None:
             shopping_list.items.remove(existing_item)
             db.delete(existing_item)
             continue
 
-        if existing_item.quantity is None or ingredient.quantity is None:
+        if existing_item.quantity is None or scaled_quantity is None:
             continue
 
-        updated_quantity = existing_item.quantity - ingredient.quantity
+        updated_quantity = existing_item.quantity - scaled_quantity
         if updated_quantity <= 0:
             shopping_list.items.remove(existing_item)
             db.delete(existing_item)
@@ -125,6 +139,55 @@ def _subtract_recipe_ingredients_from_list(
 
         existing_item.quantity = updated_quantity
         db.add(existing_item)
+
+
+def _resolve_list_recipe_servings(requested_servings: int | None, recipe_servings: int | None) -> int | None:
+    if requested_servings is not None:
+        return requested_servings
+
+    if recipe_servings is not None and recipe_servings > 0:
+        return recipe_servings
+
+    return None
+
+
+def _get_servings_multiplier(custom_servings: int | None, recipe_servings: int | None) -> float:
+    if (
+        custom_servings is None
+        or custom_servings <= 0
+        or recipe_servings is None
+        or recipe_servings <= 0
+    ):
+        return 1.0
+
+    return custom_servings / recipe_servings
+
+
+def _scale_ingredient_quantity(quantity: float | None, multiplier: float) -> float | None:
+    if quantity is None:
+        return None
+
+    return round(quantity * multiplier, 2)
+
+
+def _upsert_saved_recipe(
+    db: Session,
+    user_id: int,
+    recipe_id: int,
+    servings: int | None,
+) -> None:
+    saved_recipe = (
+        db.query(SavedRecipe)
+        .filter(SavedRecipe.user_id == user_id, SavedRecipe.recipe_id == recipe_id)
+        .first()
+    )
+
+    if saved_recipe is not None:
+        saved_recipe.servings = servings
+        db.add(saved_recipe)
+        return
+
+    db.add(SavedRecipe(user_id=user_id, recipe_id=recipe_id, servings=servings))
 
 
 @router.get("", response_model=list[ShoppingListResponse])
@@ -196,22 +259,37 @@ def create_list_item(
 def add_recipe_to_list(
     list_id: int,
     recipe_id: int,
+    payload: ListRecipeCreate | None = Body(default=None),
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> ShoppingList:
     shopping_list = _get_owned_list(db, current_user.id, list_id)
 
     recipe = _get_recipe_with_ingredients_or_404(db, recipe_id)
+    resolved_servings = _resolve_list_recipe_servings(
+        payload.servings if payload is not None else None,
+        recipe.servings,
+    )
 
     existing_link = (
         db.query(ListRecipe)
         .filter(ListRecipe.list_id == list_id, ListRecipe.recipe_id == recipe_id)
         .first()
     )
-    if not existing_link:
-        db.add(ListRecipe(list_id=list_id, recipe_id=recipe_id))
-        _merge_recipe_ingredients_into_list(db, shopping_list, recipe)
+    if existing_link:
+        _upsert_saved_recipe(db, current_user.id, recipe_id, resolved_servings)
+        if existing_link.servings != resolved_servings:
+            _subtract_recipe_ingredients_from_list(db, shopping_list, recipe, existing_link.servings)
+            existing_link.servings = resolved_servings
+            _merge_recipe_ingredients_into_list(db, shopping_list, recipe, existing_link.servings)
+            db.add(existing_link)
         db.commit()
+        return _get_owned_list(db, current_user.id, shopping_list.id)
+
+    db.add(ListRecipe(list_id=list_id, recipe_id=recipe_id, servings=resolved_servings))
+    _merge_recipe_ingredients_into_list(db, shopping_list, recipe, resolved_servings)
+    _upsert_saved_recipe(db, current_user.id, recipe_id, resolved_servings)
+    db.commit()
 
     return _get_owned_list(db, current_user.id, shopping_list.id)
 
@@ -233,7 +311,7 @@ def remove_recipe_from_list(
     )
     if link:
         db.delete(link)
-        _subtract_recipe_ingredients_from_list(db, shopping_list, recipe)
+        _subtract_recipe_ingredients_from_list(db, shopping_list, recipe, link.servings)
         db.commit()
 
     return _get_owned_list(db, current_user.id, shopping_list.id)

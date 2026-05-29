@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { memo } from "react"
 import { Clock3, Heart, Users } from "lucide-react"
 import { DietaryBadge } from "./dietary-badge"
 import { StarRating } from "./star-rating"
@@ -14,7 +15,7 @@ interface RecipeCardProps {
   onClick?: () => void
 }
 
-export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProps) {
+function RecipeCardComponent({ recipe, onFavoriteToggle, onClick }: RecipeCardProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     onFavoriteToggle?.(recipe)
@@ -147,3 +148,5 @@ export function RecipeCard({ recipe, onFavoriteToggle, onClick }: RecipeCardProp
     </div>
   )
 }
+
+export const RecipeCard = memo(RecipeCardComponent)

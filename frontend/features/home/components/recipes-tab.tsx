@@ -135,7 +135,7 @@ function buildRecipeSections(recipes: Recipe[]): RecipeSection[] {
   ]
 }
 
-export function RecipesTab({
+function RecipesTabComponent({
   recipes,
   isLoading = false,
   error = null,
@@ -143,7 +143,7 @@ export function RecipesTab({
   onFavoriteToggle,
   onOpenRecipe,
 }: RecipesTabProps) {
-  const sections = buildRecipeSections(recipes)
+  const sections = React.useMemo(() => buildRecipeSections(recipes), [recipes])
   const dragStateRef = React.useRef({
     pointerDown: false,
     startX: 0,
@@ -301,3 +301,5 @@ export function RecipesTab({
     </div>
   )
 }
+
+export const RecipesTab = React.memo(RecipesTabComponent)

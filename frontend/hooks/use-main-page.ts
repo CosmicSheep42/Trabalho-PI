@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import type { Recipe } from "@/features/recipes/types"
 import { useMainPageActions } from "@/hooks/use-main-page-actions"
 import { useMainPageFilters } from "@/hooks/use-main-page-filters"
@@ -26,10 +27,11 @@ export function useMainPage() {
   const state = useMainPageState()
   const filters = useMainPageFilters({
     lists: state.lists,
-    searchQuery: state.searchQuery,
+    listSearchQuery: state.listSearchQuery,
   })
 
   const actions = useMainPageActions({
+    lists: state.lists,
     recipes: state.recipes,
     selectedList: state.selectedList,
     editingList: state.editingList,
@@ -38,7 +40,7 @@ export function useMainPage() {
     setRecipeDialogOpen: state.setRecipeDialogOpen,
     setSelectedList: state.setSelectedList,
     setListDialogOpen: state.setListDialogOpen,
-    setSelectedRecipe: state.setSelectedRecipe,
+    openRecipe: state.openRecipe,
     createList: state.createList,
     updateList: state.updateList,
     deleteList: state.deleteList,
@@ -48,24 +50,39 @@ export function useMainPage() {
     deleteItems: state.deleteItems,
     addRecipeToList: state.addRecipeToList,
     removeRecipeFromList: state.removeRecipeFromList,
+    updateMealPlanEntry: state.updateMealPlanEntry,
+    deleteMealPlanEntry: state.deleteMealPlanEntry,
+    saveRecipe: state.saveRecipe,
+    removeSavedRecipe: state.removeSavedRecipe,
+    syncSavedRecipe: state.syncSavedRecipe,
+    loadSavedRecipes: state.loadSavedRecipes,
+    updateSavedRecipeState: state.updateSavedRecipeState,
     toggleFavorite: state.toggleFavorite,
     rateRecipe: state.rateRecipe,
     removeRating: state.removeRating,
   })
 
-  const hasActiveRecipeQuery =
-    state.searchQuery.trim().length > 0 ||
-    state.recipeFilters.dietary.length > 0 ||
-    state.recipeFilters.tags.length > 0 ||
-    state.recipeFilters.holidays.length > 0 ||
-    state.recipeFilters.timeFilter !== null
+  const hasActiveRecipeQuery = useMemo(
+    () =>
+      state.recipeSearchQuery.trim().length > 0 ||
+      state.recipeFilters.dietary.length > 0 ||
+      state.recipeFilters.tags.length > 0 ||
+      state.recipeFilters.holidays.length > 0 ||
+      state.recipeFilters.timeFilter !== null,
+    [state.recipeFilters, state.recipeSearchQuery]
+  )
 
-  const sortedRecipes =
-    state.recipeSortOrder === "alphabetical"
-      ? [...state.recipes].sort((left, right) => left.name.localeCompare(right.name))
-      : state.recipeSortOrder === "ratings"
-        ? sortByRatings(state.recipes)
-        : state.recipes
+  const sortedRecipes = useMemo(() => {
+    if (state.recipeSortOrder === "alphabetical") {
+      return [...state.recipes].sort((left, right) => left.name.localeCompare(right.name))
+    }
+
+    if (state.recipeSortOrder === "ratings") {
+      return sortByRatings(state.recipes)
+    }
+
+    return state.recipes
+  }, [state.recipeSortOrder, state.recipes])
 
   return {
     ...state,

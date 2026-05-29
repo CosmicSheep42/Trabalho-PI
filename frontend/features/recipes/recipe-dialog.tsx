@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Image from "next/image"
-import { Bookmark, Clock, Heart, Plus, Search, Trash2, Users } from "lucide-react"
+import { Bookmark, Clock, Plus, Search, Trash2, Users } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -15,17 +15,23 @@ import { DietaryBadge } from "@/components/dietary-badge"
 import { Input } from "@/components/ui/input"
 import { StarRating } from "@/components/star-rating"
 import type { ShopList } from "@/components/shoplist-banner"
-import type { Recipe } from "@/features/recipes/types"
-import { formatPrepTime } from "@/features/recipes/types"
-import { cn } from "@/lib/utils"
+import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
+import { formatPrepTime, scaleRecipeIngredients } from "@/features/recipes/types"
 
 interface RecipeDialogProps {
   recipe: Recipe | null
   open: boolean
   onOpenChange: (open: boolean) => void
   lists: ShopList[]
-  onAddToList: (listId: string, recipe: Recipe) => void
-  onToggleFavorite: (recipe: Recipe) => void
+  servingsContext?: RecipeServingsContext | null
+  onAddToList: (listId: string, recipe: Recipe, servings?: number | null) => Promise<void> | void
+  onSaveRecipe: (recipe: Recipe, servings?: number | null) => Promise<void> | void
+  onUpdateServings?: (
+    recipe: Recipe,
+    servings: number | null,
+    context: RecipeServingsContext
+  ) => Promise<void> | void
+  onServingsPersisted?: (servings: number | null) => void
   onRateRecipe: (recipeId: string, rating: number) => void
   onRemoveRating: (recipeId: string) => void
 }
@@ -35,13 +41,19 @@ export function RecipeDialog({
   open,
   onOpenChange,
   lists,
+  servingsContext = null,
   onAddToList,
-  onToggleFavorite,
+  onSaveRecipe,
+  onUpdateServings,
+  onServingsPersisted,
   onRateRecipe,
   onRemoveRating,
 }: RecipeDialogProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [listSearch, setListSearch] = useState("")
+  const [servingsInput, setServingsInput] = useState(recipe?.servings ? String(recipe.servings) : "")
+  const [persistedServings, setPersistedServings] = useState<number | null>(recipe?.servings ?? null)
+  const [isPersistingServings, setIsPersistingServings] = useState(false)
 
   const filteredLists = useMemo(() => {
     const query = listSearch.trim().toLowerCase()
@@ -51,10 +63,48 @@ export function RecipeDialog({
 
   if (!recipe) return null
 
-  const mealType = recipe.tags.find((tag) => tag.category === "meal_type")?.name
-  const cuisine = recipe.tags.find((tag) => tag.category === "cuisine")?.name
+  const currentRecipe = recipe
+
+  const normalizedServings = Number.parseInt(servingsInput, 10)
+  const selectedServings =
+    Number.isFinite(normalizedServings) && normalizedServings > 0 ? normalizedServings : null
+  const scaledIngredients = scaleRecipeIngredients(currentRecipe, selectedServings)
+  const canPersistServingsInline = Boolean(servingsContext && onUpdateServings)
+  const mealType = currentRecipe.tags.find((tag) => tag.category === "meal_type")?.name
+  const cuisine = currentRecipe.tags.find((tag) => tag.category === "cuisine")?.name
   const averageRatingLabel =
-    recipe.average_rating !== null ? recipe.average_rating.toFixed(1) : null
+    currentRecipe.average_rating !== null ? currentRecipe.average_rating.toFixed(1) : null
+
+  async function handleSaveRecipe() {
+    await onSaveRecipe(currentRecipe, selectedServings)
+    setSaveDialogOpen(false)
+    setListSearch("")
+  }
+
+  async function handleAddRecipeToList(listId: string) {
+    await onAddToList(listId, currentRecipe, selectedServings)
+    setSaveDialogOpen(false)
+    setListSearch("")
+  }
+
+  async function persistServingsIfNeeded(nextServings: number | null = selectedServings) {
+    if (!canPersistServingsInline || !servingsContext || !onUpdateServings) {
+      return
+    }
+
+    if (isPersistingServings || nextServings === persistedServings) {
+      return
+    }
+
+    setIsPersistingServings(true)
+    try {
+      await onUpdateServings(currentRecipe, nextServings, servingsContext)
+      setPersistedServings(nextServings)
+      onServingsPersisted?.(nextServings)
+    } finally {
+      setIsPersistingServings(false)
+    }
+  }
 
   return (
     <>
@@ -62,13 +112,15 @@ export function RecipeDialog({
         open={open}
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
+            void persistServingsIfNeeded()
             setSaveDialogOpen(false)
             setListSearch("")
+            setServingsInput(recipe.servings ? String(recipe.servings) : "")
           }
           onOpenChange(nextOpen)
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto p-0">
+        <DialogContent className="max-h-[90vh] max-w-[41rem] overflow-x-hidden overflow-y-auto p-0 lg:max-w-[48rem]">
           <DialogHeader className="sr-only">
             <DialogTitle>{recipe.name}</DialogTitle>
             <DialogDescription>{recipe.description}</DialogDescription>
@@ -96,7 +148,7 @@ export function RecipeDialog({
               </div>
             </div>
 
-            <div className="px-5 pb-5">
+            <div className="px-6 pb-6 lg:px-7">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-1 rounded-full bg-primary/70" />
@@ -115,7 +167,7 @@ export function RecipeDialog({
                 </div>
               )}
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-[1.2fr_0.8fr_0.8fr]">
+              <div className="mt-5 grid gap-4 lg:grid-cols-[1.25fr_0.9fr_0.9fr]">
                 <div className="rounded-xl border border-border/70 bg-card p-4">
                   <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                     Community Rating
@@ -137,7 +189,7 @@ export function RecipeDialog({
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-border/70 bg-muted/25 px-4 py-3">
+                <div className="rounded-xl border border-border/70 bg-muted/25 px-4 py-3.5">
                   <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                     Prep Time
                   </p>
@@ -147,14 +199,37 @@ export function RecipeDialog({
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border/70 bg-muted/25 px-4 py-3">
+                <div className="rounded-xl border border-border/70 bg-muted/25 px-4 py-3.5">
                   <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                     Servings
                   </p>
-                  <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                  <div className="mt-2 flex items-center gap-3">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    {recipe.servings ?? "?"}
+                    <Input
+                      type="number"
+                      min="1"
+                      inputMode="numeric"
+                      value={servingsInput}
+                      onChange={(event) => setServingsInput(event.target.value)}
+                      onBlur={() => {
+                        void persistServingsIfNeeded()
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.currentTarget.blur()
+                        }
+                      }}
+                      className="h-9 w-24"
+                    />
                   </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Leave blank to use the recipe default.
+                  </p>
+                  {canPersistServingsInline ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {isPersistingServings ? "Saving servings..." : "Changes save automatically here."}
+                    </p>
+                  ) : null}
                 </div>
               </div>
 
@@ -190,10 +265,10 @@ export function RecipeDialog({
                   <div className="h-6 w-1 rounded-full bg-primary/70" />
                   <h4 className="text-base font-semibold">Ingredients</h4>
                 </div>
-                <div className="rounded-xl border border-border/70 bg-muted/25 p-4">
+                <div className="rounded-xl border border-border/70 bg-muted/25 px-5 py-4">
                   <ul className="space-y-2.5">
-                    {recipe.ingredients.map((ingredient, i) => (
-                      <li key={i} className="flex items-start gap-3 text-sm">
+                    {scaledIngredients.map((ingredient, i) => (
+                      <li key={i} className="flex items-start gap-3.5 text-sm">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                         <div className="min-w-0">
                           <span className="font-medium text-foreground">
@@ -214,11 +289,11 @@ export function RecipeDialog({
                   <div className="h-6 w-1 rounded-full bg-primary/70" />
                   <h4 className="text-base font-semibold">Instructions</h4>
                 </div>
-                <ol className="space-y-3">
+                <ol className="space-y-3.5">
                   {recipe.instructions.map((instruction, i) => (
                     <li
                       key={i}
-                      className="flex gap-3 rounded-xl border border-border/70 bg-card p-3 text-sm"
+                      className="flex gap-3.5 rounded-xl border border-border/70 bg-card p-4 text-sm"
                     >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
                         {i + 1}
@@ -260,11 +335,11 @@ export function RecipeDialog({
                   </p>
                 </div>
                 <Button
-                  variant={recipe.is_favorite ? "default" : "outline"}
-                  onClick={() => onToggleFavorite(recipe)}
+                  variant={recipe.is_saved ? "default" : "outline"}
+                  onClick={() => void handleSaveRecipe()}
                 >
-                  <Heart className={cn("h-4 w-4", recipe.is_favorite && "fill-current")} />
-                  {recipe.is_favorite ? "Saved" : "Save"}
+                  <Bookmark className="h-4 w-4" />
+                  {recipe.is_saved ? "Update saved recipe" : "Save recipe"}
                 </Button>
               </div>
             </div>
@@ -291,7 +366,7 @@ export function RecipeDialog({
                     <button
                       key={list.id}
                       type="button"
-                      onClick={() => onAddToList(list.id, recipe)}
+                      onClick={() => void handleAddRecipeToList(list.id)}
                       className="flex w-full items-center justify-between rounded-xl border border-border/70 bg-background px-3 py-3 text-left transition-colors hover:bg-muted/40"
                     >
                       <div className="min-w-0">
@@ -313,6 +388,7 @@ export function RecipeDialog({
                 )}
               </div>
             </div>
+
           </div>
         </DialogContent>
       </Dialog>

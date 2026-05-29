@@ -21,4 +21,15 @@ export interface BackendList {
   date: string | null
   items: BackendListItem[]
   recipe_ids: number[]
+  list_recipes: BackendListRecipe[]
+}
+
+export interface BackendListRecipe {
+  recipe_id: number
+  servings: number | null
+}
+
+export interface ListRecipeLink {
+  recipeId: string
+  servings: number | null
 }

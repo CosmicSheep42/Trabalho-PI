@@ -9,10 +9,14 @@ from sqlalchemy.orm import Session, selectinload
 from app.api.deps import get_db, get_or_create_current_user
 from app.models.favorite_recipe import FavoriteRecipe
 from app.models.holiday import Holiday
+from app.models.list_recipe import ListRecipe
+from app.models.meal_plan_entry import MealPlanEntry
 from app.models.recipe import Recipe
 from app.models.recipe_holiday import RecipeHoliday
 from app.models.recipe_rating import RecipeRating
 from app.models.recipe_tag import RecipeTag
+from app.models.saved_recipe import SavedRecipe
+from app.models.shopping_list import ShoppingList
 from app.models.tag import Tag, TagCategory
 from app.models.user import User
 from app.schemas.recipe import (
@@ -22,6 +26,8 @@ from app.schemas.recipe import (
     RecipeRatingPayload,
     RecipeRatingSummaryResponse,
     RecipeResponse,
+    SavedRecipePayload,
+    SavedRecipeResponse,
     TagGroupsResponse,
     TagResponse,
     TimeFilter,
@@ -116,6 +122,14 @@ def _build_recipe_query(db: Session, current_user: User):
         .filter(FavoriteRecipe.user_id == current_user.id)
         .subquery()
     )
+    saved_recipes_subquery = (
+        db.query(
+            SavedRecipe.recipe_id.label("recipe_id"),
+            SavedRecipe.servings.label("saved_servings"),
+        )
+        .filter(SavedRecipe.user_id == current_user.id)
+        .subquery()
+    )
 
     return (
         db.query(
@@ -124,6 +138,8 @@ def _build_recipe_query(db: Session, current_user: User):
             func.coalesce(ratings_subquery.c.ratings_count, 0).label("ratings_count"),
             user_ratings_subquery.c.user_rating,
             case((favorites_subquery.c.recipe_id.is_not(None), True), else_=False).label("is_favorite"),
+            case((saved_recipes_subquery.c.recipe_id.is_not(None), True), else_=False).label("is_saved"),
+            saved_recipes_subquery.c.saved_servings,
         )
         .options(
             selectinload(Recipe.tag_links).selectinload(RecipeTag.tag),
@@ -133,6 +149,7 @@ def _build_recipe_query(db: Session, current_user: User):
         .outerjoin(ratings_subquery, ratings_subquery.c.recipe_id == Recipe.id)
         .outerjoin(user_ratings_subquery, user_ratings_subquery.c.recipe_id == Recipe.id)
         .outerjoin(favorites_subquery, favorites_subquery.c.recipe_id == Recipe.id)
+        .outerjoin(saved_recipes_subquery, saved_recipes_subquery.c.recipe_id == Recipe.id)
     )
 
 
@@ -142,6 +159,8 @@ def _serialize_recipe(
     ratings_count: int,
     user_rating: int | None,
     is_favorite: bool,
+    is_saved: bool,
+    saved_servings: int | None,
 ) -> RecipeResponse:
     return RecipeResponse(
         id=recipe.id,
@@ -172,6 +191,8 @@ def _serialize_recipe(
         ratings_count=ratings_count,
         user_rating=user_rating,
         is_favorite=is_favorite,
+        is_saved=is_saved,
+        saved_servings=saved_servings,
     )
 
 
@@ -262,8 +283,66 @@ def get_recipes(
 
     rows = query.order_by(Recipe.name.asc()).all()
     return [
-        _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite)
-        for recipe, average_rating, ratings_count, user_rating, is_favorite in rows
+        _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings)
+        for recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings in rows
+    ]
+
+
+@router.get("/saved-recipes", response_model=list[RecipeResponse])
+def get_saved_recipes(
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> list[RecipeResponse]:
+    planned_recipe_ids = {
+        recipe_id
+        for (recipe_id,) in (
+            db.query(MealPlanEntry.recipe_id)
+            .filter(MealPlanEntry.user_id == current_user.id)
+            .distinct()
+            .all()
+        )
+    }
+    existing_saved_recipe_ids = {
+        recipe_id
+        for (recipe_id,) in (
+            db.query(SavedRecipe.recipe_id)
+            .filter(SavedRecipe.user_id == current_user.id)
+            .all()
+        )
+    }
+    missing_saved_recipes = (
+        db.query(ListRecipe.recipe_id, ListRecipe.servings)
+        .join(ShoppingList, ShoppingList.id == ListRecipe.list_id)
+        .filter(ShoppingList.user_id == current_user.id)
+        .all()
+    )
+    should_commit = False
+    for recipe_id, servings in missing_saved_recipes:
+        if recipe_id in planned_recipe_ids:
+            continue
+
+        if recipe_id in existing_saved_recipe_ids:
+            continue
+
+        db.add(SavedRecipe(user_id=current_user.id, recipe_id=recipe_id, servings=servings))
+        existing_saved_recipe_ids.add(recipe_id)
+        should_commit = True
+
+    if should_commit:
+        db.commit()
+
+    rows = (
+        _build_recipe_query(db, current_user)
+        .join(SavedRecipe, SavedRecipe.recipe_id == Recipe.id)
+        .filter(SavedRecipe.user_id == current_user.id)
+        .filter(~Recipe.id.in_(planned_recipe_ids) if planned_recipe_ids else True)
+        .order_by(Recipe.name.asc())
+        .all()
+    )
+
+    return [
+        _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings)
+        for recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings in rows
     ]
 
 
@@ -277,8 +356,8 @@ def get_recipe(
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
 
-    recipe, average_rating, ratings_count, user_rating, is_favorite = row
-    return _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite)
+    recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings = row
+    return _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings)
 
 
 @router.post("/{recipe_id}/favorite", response_model=FavoriteRecipeResponse, status_code=status.HTTP_201_CREATED)
@@ -317,6 +396,49 @@ def remove_recipe_from_favorites(
     db.commit()
 
     return FavoriteRecipeResponse(recipe_id=recipe_id, is_favorite=False)
+
+
+@router.post("/{recipe_id}/save", response_model=SavedRecipeResponse, status_code=status.HTTP_201_CREATED)
+def save_recipe(
+    recipe_id: int,
+    payload: SavedRecipePayload,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> SavedRecipeResponse:
+    recipe = _get_recipe_or_404(db, recipe_id)
+    resolved_servings = payload.servings if payload.servings is not None else recipe.servings
+
+    saved_recipe = (
+        db.query(SavedRecipe)
+        .filter(SavedRecipe.recipe_id == recipe_id, SavedRecipe.user_id == current_user.id)
+        .first()
+    )
+    if saved_recipe:
+        saved_recipe.servings = resolved_servings
+        db.add(saved_recipe)
+    else:
+        db.add(SavedRecipe(user_id=current_user.id, recipe_id=recipe_id, servings=resolved_servings))
+
+    db.commit()
+    return SavedRecipeResponse(recipe_id=recipe_id, servings=resolved_servings)
+
+
+@router.delete("/{recipe_id}/save", response_model=SavedRecipeResponse)
+def remove_saved_recipe(
+    recipe_id: int,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> SavedRecipeResponse:
+    _get_recipe_or_404(db, recipe_id)
+
+    (
+        db.query(SavedRecipe)
+        .filter(SavedRecipe.recipe_id == recipe_id, SavedRecipe.user_id == current_user.id)
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+
+    return SavedRecipeResponse(recipe_id=recipe_id, servings=None)
 
 
 @router.post("/{recipe_id}/rating", response_model=RecipeRatingSummaryResponse)
