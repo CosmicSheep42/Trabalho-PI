@@ -16,6 +16,7 @@ import { mapBackendRecipe } from "@/features/recipes/types"
 
 interface UseBackendRecipesParams {
   filters: RecipeFilters
+  enabled?: boolean
   onListUpdated?: (list: BackendList) => void
 }
 
@@ -32,7 +33,11 @@ function updateRecipeRatingState(recipe: Recipe, summary: RecipeRatingSummary): 
   }
 }
 
-export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesParams) {
+export function useBackendRecipes({
+  filters,
+  enabled = true,
+  onListUpdated,
+}: UseBackendRecipesParams) {
   const { getToken, isLoaded: isAuthLoaded, isSignedIn } = useAuth()
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [tagGroups, setTagGroups] = useState<BackendTagGroups>({
@@ -78,7 +83,7 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
   }, [getToken, isAuthLoaded, isSignedIn])
 
   useEffect(() => {
-    if (!isAuthLoaded || !isSignedIn) {
+    if (!isAuthLoaded || !isSignedIn || !enabled) {
       return
     }
 
@@ -148,6 +153,7 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
     getToken,
     isAuthLoaded,
     isSignedIn,
+    enabled,
   ])
 
   async function withToken<T>(callback: (token: string) => Promise<T>) {

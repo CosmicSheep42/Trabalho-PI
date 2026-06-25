@@ -49,8 +49,9 @@ export function useMainPageState() {
   const [hasCustomizedDietaryFilters, setHasCustomizedDietaryFilters] = useState(false)
   const deferredRecipeSearchQuery = useDeferredValue(recipeSearchQuery)
   const debouncedRecipeSearchQuery = useDebouncedValue(deferredRecipeSearchQuery, 250)
+  const areProfileDietaryFiltersReady = hasCustomizedDietaryFilters || backendUser.hasResolvedUser
   const effectiveRecipeFilters = useMemo(() => {
-    if (hasCustomizedDietaryFilters || backendUser.user.allergies.length === 0) {
+    if (hasCustomizedDietaryFilters || !backendUser.hasResolvedUser) {
       return recipeFilters
     }
 
@@ -58,8 +59,10 @@ export function useMainPageState() {
       ...recipeFilters,
       dietary: backendUser.user.allergies,
     }
-  }, [backendUser.user.allergies, hasCustomizedDietaryFilters, recipeFilters])
+  }, [backendUser.hasResolvedUser, backendUser.user.allergies, hasCustomizedDietaryFilters, recipeFilters])
+
   const backendRecipes = useBackendRecipes({
+    enabled: areProfileDietaryFiltersReady,
     filters: {
       search: activeTab === "recipes" ? debouncedRecipeSearchQuery : "",
       dietary: effectiveRecipeFilters.dietary,
