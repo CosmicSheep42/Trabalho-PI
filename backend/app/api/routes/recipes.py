@@ -126,6 +126,7 @@ def _build_recipe_query(db: Session, current_user: User):
         db.query(
             SavedRecipe.recipe_id.label("recipe_id"),
             SavedRecipe.servings.label("saved_servings"),
+            SavedRecipe.notes.label("saved_notes"),
         )
         .filter(SavedRecipe.user_id == current_user.id)
         .subquery()
@@ -140,6 +141,7 @@ def _build_recipe_query(db: Session, current_user: User):
             case((favorites_subquery.c.recipe_id.is_not(None), True), else_=False).label("is_favorite"),
             case((saved_recipes_subquery.c.recipe_id.is_not(None), True), else_=False).label("is_saved"),
             saved_recipes_subquery.c.saved_servings,
+            saved_recipes_subquery.c.saved_notes,
         )
         .options(
             selectinload(Recipe.tag_links).selectinload(RecipeTag.tag),
@@ -161,6 +163,7 @@ def _serialize_recipe(
     is_favorite: bool,
     is_saved: bool,
     saved_servings: int | None,
+    saved_notes: str | None,
 ) -> RecipeResponse:
     return RecipeResponse(
         id=recipe.id,
@@ -193,6 +196,7 @@ def _serialize_recipe(
         is_favorite=is_favorite,
         is_saved=is_saved,
         saved_servings=saved_servings,
+        saved_notes=saved_notes,
     )
 
 
@@ -283,8 +287,17 @@ def get_recipes(
 
     rows = query.order_by(Recipe.name.asc()).all()
     return [
-        _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings)
-        for recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings in rows
+        _serialize_recipe(
+            recipe,
+            average_rating,
+            ratings_count,
+            user_rating,
+            is_favorite,
+            is_saved,
+            saved_servings,
+            saved_notes,
+        )
+        for recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings, saved_notes in rows
     ]
 
 
@@ -341,8 +354,17 @@ def get_saved_recipes(
     )
 
     return [
-        _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings)
-        for recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings in rows
+        _serialize_recipe(
+            recipe,
+            average_rating,
+            ratings_count,
+            user_rating,
+            is_favorite,
+            is_saved,
+            saved_servings,
+            saved_notes,
+        )
+        for recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings, saved_notes in rows
     ]
 
 
@@ -356,8 +378,17 @@ def get_recipe(
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
 
-    recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings = row
-    return _serialize_recipe(recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings)
+    recipe, average_rating, ratings_count, user_rating, is_favorite, is_saved, saved_servings, saved_notes = row
+    return _serialize_recipe(
+        recipe,
+        average_rating,
+        ratings_count,
+        user_rating,
+        is_favorite,
+        is_saved,
+        saved_servings,
+        saved_notes,
+    )
 
 
 @router.post("/{recipe_id}/favorite", response_model=FavoriteRecipeResponse, status_code=status.HTTP_201_CREATED)
@@ -414,13 +445,22 @@ def save_recipe(
         .first()
     )
     if saved_recipe:
-        saved_recipe.servings = resolved_servings
+        if "servings" in payload.model_fields_set:
+            saved_recipe.servings = resolved_servings
+        if "notes" in payload.model_fields_set:
+            saved_recipe.notes = payload.notes
         db.add(saved_recipe)
     else:
-        db.add(SavedRecipe(user_id=current_user.id, recipe_id=recipe_id, servings=resolved_servings))
+        saved_recipe = SavedRecipe(
+            user_id=current_user.id,
+            recipe_id=recipe_id,
+            servings=resolved_servings,
+            notes=payload.notes if "notes" in payload.model_fields_set else None,
+        )
+        db.add(saved_recipe)
 
     db.commit()
-    return SavedRecipeResponse(recipe_id=recipe_id, servings=resolved_servings)
+    return SavedRecipeResponse(recipe_id=recipe_id, servings=saved_recipe.servings, notes=saved_recipe.notes)
 
 
 @router.delete("/{recipe_id}/save", response_model=SavedRecipeResponse)
@@ -438,7 +478,7 @@ def remove_saved_recipe(
     )
     db.commit()
 
-    return SavedRecipeResponse(recipe_id=recipe_id, servings=None)
+    return SavedRecipeResponse(recipe_id=recipe_id, servings=None, notes=None)
 
 
 @router.post("/{recipe_id}/rating", response_model=RecipeRatingSummaryResponse)

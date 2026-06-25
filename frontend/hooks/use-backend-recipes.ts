@@ -174,11 +174,16 @@ export function useBackendRecipes({ filters, onListUpdated }: UseBackendRecipesP
     )
   }
 
-  function updateSavedRecipeState(recipeId: string, isSaved: boolean, servings: number | null) {
+  function updateSavedRecipeState(
+    recipeId: string,
+    isSaved: boolean,
+    servings: number | null,
+    notes: string | null
+  ) {
     setRecipes((prev) =>
       prev.map((recipe) =>
         recipe.id === recipeId
-          ? { ...recipe, is_saved: isSaved, saved_servings: servings }
+          ? { ...recipe, is_saved: isSaved, saved_servings: servings, saved_notes: notes }
           : recipe
       )
     )

@@ -26,7 +26,7 @@ def get_current_clerk_user_id(request: Request) -> str:
         AuthenticateRequestOptions(
             secret_key=settings.clerk_secret_key,
             jwt_key=settings.clerk_jwt_key or None,
-            authorized_parties=[settings.frontend_url],
+            authorized_parties=settings.frontend_urls,
             accepts_token=["session_token"],
         ),
     )

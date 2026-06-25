@@ -85,6 +85,7 @@ export default function MainPage() {
     handleUpdateItem,
     handleAddRecipeToList,
     handleSaveRecipe,
+    handleSaveRecipeNotes,
     handleRemoveSavedRecipeCompletely,
     handleRemoveRecipeFromList,
     handleRemoveMealPlanRecipeCompletely,
@@ -282,6 +283,7 @@ export default function MainPage() {
         servingsContext={selectedRecipeContext}
         onAddToList={handleAddRecipeToList}
         onSaveRecipe={handleSaveRecipe}
+        onSaveNotes={handleSaveRecipeNotes}
         onUpdateServings={handlePersistRecipeServings}
         onServingsPersisted={updateSelectedRecipeServings}
         onRateRecipe={handleRateRecipe}

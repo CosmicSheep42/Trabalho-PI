@@ -38,6 +38,14 @@ class Settings:
     mysql_password = os.getenv("MYSQL_PASSWORD", "")
 
     @property
+    def frontend_urls(self) -> list[str]:
+        raw_value = os.getenv("FRONTEND_URLS", "")
+        urls = [value.strip() for value in raw_value.split(",") if value.strip()]
+        if self.frontend_url and self.frontend_url not in urls:
+            urls.append(self.frontend_url)
+        return urls or ["http://localhost:3000"]
+
+    @property
     def database_url(self) -> str:
         return (
             f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
