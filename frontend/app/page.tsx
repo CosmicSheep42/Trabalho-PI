@@ -42,6 +42,7 @@ export default function MainPage() {
     lists,
     listItems,
     savedRecipes,
+    events,
     mealPlanEntries,
     createMealPlanEntry,
     tagGroups,
@@ -74,6 +75,7 @@ export default function MainPage() {
     hasActiveRecipeQuery,
     isLoadingRecipes,
     recipesError,
+    createList,
     handleCreateList,
     handleDeleteList,
     handleToggleItem,
@@ -96,6 +98,9 @@ export default function MainPage() {
     deleteMealPlanEntry,
     handleChangeListColor,
     handleChangeListDate,
+    createEvent,
+    updateEvent,
+    deleteEvent,
     handleLogout,
   } = useMainPage()
 
@@ -220,8 +225,10 @@ export default function MainPage() {
           <TabsContent value="lists" className="mt-0">
             <ListsTab
               lists={filteredLists}
+              allLists={lists}
               recipes={recipes}
               savedRecipes={savedRecipes}
+              events={events}
               mealPlanEntries={mealPlanEntries}
               searchQuery={listSearchQuery}
               onSearchQueryChange={setListSearchQuery}
@@ -243,6 +250,10 @@ export default function MainPage() {
               onUnplanMealPlanEntry={deleteMealPlanEntry}
               onDeleteMealPlanEntry={handleRemoveMealPlanRecipeCompletely}
               onDeleteSavedRecipe={handleRemoveSavedRecipeCompletely}
+              onCreateEvent={createEvent}
+              onUpdateEvent={updateEvent}
+              onDeleteEvent={deleteEvent}
+              onCreateListForEvent={createList}
             />
           </TabsContent>
 

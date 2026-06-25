@@ -6,6 +6,7 @@ import type { ShopList } from "@/components/shoplist-banner"
 import type { ActiveRecipeFilters } from "@/components/recipe-filter"
 import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
 import { withRecipeServingsOverride } from "@/features/recipes/types"
+import { useBackendEvents } from "@/hooks/use-backend-events"
 import { useBackendLists } from "@/hooks/use-backend-lists"
 import { useBackendMealPlanner } from "@/hooks/use-backend-meal-planner"
 import { useBackendSavedRecipes } from "@/hooks/use-backend-saved-recipes"
@@ -17,6 +18,7 @@ export type RecipeSortOrder = "default" | "alphabetical" | "ratings"
 
 export function useMainPageState() {
   const backendLists = useBackendLists()
+  const backendEvents = useBackendEvents()
   const backendMealPlanner = useBackendMealPlanner()
   const backendSavedRecipes = useBackendSavedRecipes()
   const backendUser = useBackendUser()
@@ -206,6 +208,7 @@ export function useMainPageState() {
     editingList,
     setEditingList,
     ...backendRecipes,
+    ...backendEvents,
     ...backendLists,
     ...backendMealPlanner,
     ...backendSavedRecipes,

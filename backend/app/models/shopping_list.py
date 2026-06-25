@@ -34,6 +34,12 @@ class ShoppingList(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    event_links = relationship(
+        "EventList",
+        back_populates="shopping_list",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     meal_plan_entries = relationship(
         "MealPlanEntry",
         back_populates="shopping_list",

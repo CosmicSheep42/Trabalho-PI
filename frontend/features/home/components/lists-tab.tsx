@@ -15,16 +15,24 @@ import {
   subMonths,
 } from "date-fns"
 import {
+  CalendarPlus,
   CalendarDays,
+  CakeSlice,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Gift,
   GripVertical,
+  Heart,
+  PartyPopper,
   Pin,
   Plus,
   Search,
   ShoppingCart,
+  Sparkles,
   Soup,
+  Trash2,
+  UtensilsCrossed,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -44,11 +52,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { ShopListBanner, type ShopList } from "@/components/shoplist-banner"
+import type { CalendarEvent } from "@/features/events/types"
 import type { DayOfWeek, MealPlanEntry } from "@/features/meal-planner/types"
 import { weekDays } from "@/features/meal-planner/types"
 import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
@@ -56,8 +81,10 @@ import { withRecipeServingsOverride } from "@/features/recipes/types"
 
 interface ListsTabProps {
   lists: ShopList[]
+  allLists: ShopList[]
   recipes: Recipe[]
   savedRecipes: Recipe[]
+  events: CalendarEvent[]
   mealPlanEntries: MealPlanEntry[]
   searchQuery: string
   onSearchQueryChange: (value: string) => void
@@ -85,6 +112,29 @@ interface ListsTabProps {
   onUnplanMealPlanEntry: (entryId: string) => Promise<void>
   onDeleteMealPlanEntry: (entryId: string, recipeId: string) => Promise<void>
   onDeleteSavedRecipe: (recipeId: string) => Promise<void>
+  onCreateEvent: (payload: {
+    name: string
+    description: string
+    icon: string
+    date: string
+    listIds: string[]
+  }) => Promise<CalendarEvent>
+  onUpdateEvent: (
+    eventId: string,
+    payload: {
+      name: string
+      description: string
+      icon: string
+      date: string
+      listIds: string[]
+    }
+  ) => Promise<CalendarEvent>
+  onDeleteEvent: (eventId: string) => Promise<void>
+  onCreateListForEvent: (payload: {
+    name: string
+    color: string
+    date?: string | null
+  }) => Promise<ShopList>
 }
 
 interface PendingRemoval {
@@ -101,12 +151,51 @@ interface SavedRecipeTab {
   emptyMessage: string
 }
 
+interface EventFormState {
+  name: string
+  description: string
+  icon: string
+  date: string
+  listIds: string[]
+}
+
+interface EventInlineListFormState {
+  name: string
+  color: string
+}
+
 const calendarWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+const eventIconOptions = [
+  { value: "party", label: "Party", icon: PartyPopper },
+  { value: "dinner", label: "Dinner", icon: UtensilsCrossed },
+  { value: "cake", label: "Cake", icon: CakeSlice },
+  { value: "gift", label: "Gift", icon: Gift },
+  { value: "heart", label: "Heart", icon: Heart },
+  { value: "sparkles", label: "Sparkles", icon: Sparkles },
+] as const
+
+const inlineListColorOptions = [
+  { name: "green", className: "bg-green-600" },
+  { name: "blue", className: "bg-blue-600" },
+  { name: "purple", className: "bg-purple-600" },
+  { name: "orange", className: "bg-orange-600" },
+  { name: "pink", className: "bg-pink-600" },
+  { name: "cyan", className: "bg-cyan-600" },
+  { name: "amber", className: "bg-amber-600" },
+  { name: "rose", className: "bg-rose-600" },
+] as const
+
+function getEventIcon(icon: string) {
+  return eventIconOptions.find((option) => option.value === icon)?.icon ?? CalendarDays
+}
 
 function ListsTabComponent({
   lists,
+  allLists,
   recipes,
   savedRecipes,
+  events,
   mealPlanEntries,
   searchQuery,
   onSearchQueryChange,
@@ -120,6 +209,10 @@ function ListsTabComponent({
   onUnplanMealPlanEntry,
   onDeleteMealPlanEntry,
   onDeleteSavedRecipe,
+  onCreateEvent,
+  onUpdateEvent,
+  onDeleteEvent,
+  onCreateListForEvent,
 }: ListsTabProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
@@ -128,6 +221,27 @@ function ListsTabComponent({
   const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false)
   const [selectedSavedTab, setSelectedSavedTab] = useState("saved-recipes")
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null)
+  const [eventDialogOpen, setEventDialogOpen] = useState(false)
+  const [eventViewerOpen, setEventViewerOpen] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedEventForm, setSelectedEventForm] = useState<EventFormState>({
+    name: "",
+    description: "",
+    icon: eventIconOptions[0].value,
+    date: format(new Date(), "yyyy-MM-dd"),
+    listIds: [],
+  })
+  const [eventForm, setEventForm] = useState<EventFormState>({
+    name: "",
+    description: "",
+    icon: eventIconOptions[0].value,
+    date: format(new Date(), "yyyy-MM-dd"),
+    listIds: [],
+  })
+  const [eventInlineListForm, setEventInlineListForm] = useState<EventInlineListFormState>({
+    name: "",
+    color: inlineListColorOptions[0].name,
+  })
   const autoScrollDirectionRef = useRef<1 | -1 | 0>(0)
   const autoScrollFrameRef = useRef<number | null>(null)
   const savedTabsScrollRef = useRef<HTMLDivElement | null>(null)
@@ -144,11 +258,16 @@ function ListsTabComponent({
     () => savedRecipes.filter((recipe) => !mealPlannerRecipeIds.has(recipe.id)),
     [mealPlannerRecipeIds, savedRecipes]
   )
-  const sortedLists = useMemo(() => {
+  const sortedVisibleLists = useMemo(() => {
     const pinned = lists.filter((list) => pinnedListIds.includes(list.id))
     const unpinned = lists.filter((list) => !pinnedListIds.includes(list.id))
     return [...pinned, ...unpinned]
   }, [lists, pinnedListIds])
+  const sortedAllLists = useMemo(() => {
+    const pinned = allLists.filter((list) => pinnedListIds.includes(list.id))
+    const unpinned = allLists.filter((list) => !pinnedListIds.includes(list.id))
+    return [...pinned, ...unpinned]
+  }, [allLists, pinnedListIds])
   const recipeMap = useMemo(
     () => new Map(recipes.map((recipe) => [recipe.id, recipe])),
     [recipes]
@@ -157,7 +276,7 @@ function ListsTabComponent({
     const savedRecipeMap = new Map(mealPlannerRecipes.map((recipe) => [recipe.id, recipe]))
     const listRecipeIds = new Set<string>()
 
-    const listTabs = sortedLists.map((list) => {
+    const listTabs = sortedAllLists.map((list) => {
       const recipeLinks =
         list.listRecipes && list.listRecipes.length > 0
           ? list.listRecipes
@@ -189,7 +308,7 @@ function ListsTabComponent({
       },
       ...listTabs,
     ]
-  }, [mealPlannerRecipes, sortedLists])
+  }, [mealPlannerRecipes, sortedAllLists])
   const activeSavedTabId = savedRecipeTabs.some((tab) => tab.id === selectedSavedTab)
     ? selectedSavedTab
     : (savedRecipeTabs[0]?.id ?? "saved-recipes")
@@ -288,6 +407,24 @@ function ListsTabComponent({
       ) as Record<DayOfWeek, MealPlanEntry[]>,
     [mealPlanEntries]
   )
+  const listsByDate = useMemo(() => {
+    return allLists.reduce<Record<string, ShopList[]>>((acc, list) => {
+      if (!list.date) {
+        return acc
+      }
+
+      acc[list.date] = [...(acc[list.date] ?? []), list]
+      return acc
+    }, {})
+  }, [allLists])
+  const eventsByDate = useMemo(() => {
+    return events.reduce<Record<string, CalendarEvent[]>>((acc, event) => {
+      acc[event.date] = [...(acc[event.date] ?? []), event]
+      return acc
+    }, {})
+  }, [events])
+  const selectedDateKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
+  const selectedDayEvents = selectedDateKey ? eventsByDate[selectedDateKey] ?? [] : []
 
   async function persistDayEntries(day: DayOfWeek, entries: MealPlanEntry[]) {
     await Promise.all(
@@ -435,6 +572,112 @@ function ListsTabComponent({
     container.releasePointerCapture(event.pointerId)
   }
 
+  function openEventDialog(date?: Date) {
+    setEventForm({
+      name: "",
+      description: "",
+      icon: eventIconOptions[0].value,
+      date: format(date ?? selectedDate ?? new Date(), "yyyy-MM-dd"),
+      listIds: [],
+    })
+    setEventInlineListForm({
+      name: "",
+      color: inlineListColorOptions[0].name,
+    })
+    setEventDialogOpen(true)
+  }
+
+  function openEventViewer(date: Date) {
+    setSelectedDate(date)
+    setEventViewerOpen(true)
+  }
+
+  function openEventDetail(event: CalendarEvent) {
+    setSelectedEvent(event)
+    setSelectedEventForm({
+      name: event.name,
+      description: event.description,
+      icon: event.icon,
+      date: event.date,
+      listIds: event.listIds,
+    })
+  }
+
+  async function handleUpdateSelectedEvent() {
+    if (!selectedEvent || !selectedEventForm.name.trim()) {
+      return
+    }
+
+    const updatedEvent = await onUpdateEvent(selectedEvent.id, {
+      ...selectedEventForm,
+      name: selectedEventForm.name.trim(),
+      description: selectedEventForm.description.trim(),
+    })
+    setSelectedEvent(updatedEvent)
+    setSelectedEventForm({
+      name: updatedEvent.name,
+      description: updatedEvent.description,
+      icon: updatedEvent.icon,
+      date: updatedEvent.date,
+      listIds: updatedEvent.listIds,
+    })
+    setSelectedEvent(null)
+  }
+
+  function toggleSelectedEventList(listId: string, checked: boolean) {
+    setSelectedEventForm((current) => ({
+      ...current,
+      listIds: checked
+        ? [...current.listIds, listId]
+        : current.listIds.filter((currentListId) => currentListId !== listId),
+    }))
+  }
+
+  function toggleEventList(listId: string, checked: boolean) {
+    setEventForm((current) => ({
+      ...current,
+      listIds: checked
+        ? [...current.listIds, listId]
+        : current.listIds.filter((currentListId) => currentListId !== listId),
+    }))
+  }
+
+  async function handleCreateEvent() {
+    if (!eventForm.name.trim()) {
+      return
+    }
+
+    await onCreateEvent({
+      ...eventForm,
+      name: eventForm.name.trim(),
+      description: eventForm.description.trim(),
+    })
+    setEventDialogOpen(false)
+  }
+
+  async function handleCreateInlineListForEvent() {
+    if (!eventInlineListForm.name.trim()) {
+      return
+    }
+
+    const createdList = await onCreateListForEvent({
+      name: eventInlineListForm.name.trim(),
+      color: eventInlineListForm.color,
+      date: eventForm.date || null,
+    })
+
+    setEventForm((current) => ({
+      ...current,
+      listIds: current.listIds.includes(createdList.id)
+        ? current.listIds
+        : [...current.listIds, createdList.id],
+    }))
+    setEventInlineListForm({
+      name: "",
+      color: inlineListColorOptions[0].name,
+    })
+  }
+
   function renderRecipeCard(
     recipe: Recipe,
     options?: {
@@ -580,17 +823,17 @@ function ListsTabComponent({
                   />
                 </div>
                 <Button onClick={onCreateList} className="shrink-0">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New List
+                  <Plus className="mr-1 h-4" />
+                
                 </Button>
               </div>
             </CardAction>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[32rem]">
-              {sortedLists.length > 0 ? (
+              {sortedVisibleLists.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-                  {sortedLists.map((list) => (
+                  {sortedVisibleLists.map((list) => (
                     <ShopListBanner
                       key={list.id}
                       list={list}
@@ -631,9 +874,20 @@ function ListsTabComponent({
               <CalendarDays className="h-6 w-6 shrink-0 text-primary" />
               Calendar
             </CardTitle>
+            <CardAction className="static col-auto row-auto self-center justify-self-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => openEventDialog(selectedDate)}
+              >
+                <CalendarPlus className="h-4 w-4" />
+                New Event
+              </Button>
+            </CardAction>
           </CardHeader>
           <CardContent className="h-[32rem] p-4">
-            <div className="flex h-full flex-col rounded-xl border bg-background shadow-sm">
+            <div className="flex h-full min-h-0 flex-col rounded-xl border bg-background shadow-sm">
               <div className="flex items-center justify-between border-b px-4 py-3">
                 <Button
                   variant="ghost"
@@ -664,13 +918,16 @@ function ListsTabComponent({
                 {calendarDays.map((day) => {
                   const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
                   const inCurrentMonth = isSameMonth(day, calendarMonth)
+                  const dayKey = format(day, "yyyy-MM-dd")
+                  const dayLists = listsByDate[dayKey] ?? []
+                  const dayEvents = eventsByDate[dayKey] ?? []
+                  const visibleDayLists = dayLists.slice(0, 2)
+                  const visibleDayEvents = dayEvents.slice(0, 2)
 
                   return (
-                    <button
+                    <div
                       key={day.toISOString()}
-                      type="button"
-                      onClick={() => setSelectedDate(day)}
-                      className={`min-h-0 rounded-xl border text-sm transition-colors ${
+                      className={`min-h-[4rem] rounded-xl border text-sm transition-colors ${
                         isSelected
                           ? "border-primary bg-primary text-primary-foreground"
                           : inCurrentMonth
@@ -678,13 +935,82 @@ function ListsTabComponent({
                             : "border-border/60 bg-muted/20 text-muted-foreground"
                       }`}
                     >
-                      <div className="flex h-full min-h-[3.25rem] items-start justify-end p-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          dayEvents.length > 0 ? openEventViewer(day) : setSelectedDate(day)
+                        }
+                        className="flex w-full items-start justify-end px-2 pt-2 text-right"
+                      >
                         <span className="font-medium">{format(day, "d")}</span>
+                      </button>
+                      <div className="flex flex-wrap gap-1 px-2 pt-1">
+                        {visibleDayEvents.map((event) => {
+                          const EventIcon = getEventIcon(event.icon)
+
+                          return (
+                            <button
+                              key={event.id}
+                              type="button"
+                              onClick={(eventClick) => {
+                                eventClick.stopPropagation()
+                                openEventViewer(day)
+                              }}
+                              className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-[10px] shadow-sm transition-colors ${
+                                isSelected
+                                  ? "border-primary-foreground/20 bg-primary-foreground/15 text-primary-foreground"
+                                  : "border-border bg-muted text-foreground hover:bg-muted/80"
+                              }`}
+                              aria-label={event.name}
+                            >
+                              <EventIcon className="h-3.5 w-3.5" />
+                            </button>
+                          )
+                        })}
+                        {dayEvents.length > visibleDayEvents.length ? (
+                          <span
+                            className={`inline-flex h-6 items-center rounded-full px-1.5 text-[10px] ${
+                              isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                            }`}
+                          >
+                            +{dayEvents.length - visibleDayEvents.length}
+                          </span>
+                        ) : null}
                       </div>
-                    </button>
+                      <div className="space-y-1 px-2 pb-2">
+                        {visibleDayLists.map((list) => (
+                          <button
+                            key={list.id}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              setSelectedDate(day)
+                              onOpenList(list)
+                            }}
+                            className={`block w-full truncate rounded-md px-2 py-1 text-left text-[10px] font-medium transition-colors ${
+                              isSelected
+                                ? "bg-primary-foreground/15 text-primary-foreground hover:bg-primary-foreground/25"
+                                : "bg-muted text-foreground hover:bg-muted/80"
+                            }`}
+                          >
+                            {list.name}
+                          </button>
+                        ))}
+                        {dayLists.length > visibleDayLists.length ? (
+                          <p
+                            className={`truncate px-1 text-[10px] ${
+                              isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                            }`}
+                          >
+                            +{dayLists.length - visibleDayLists.length} more
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
                   )
                 })}
               </div>
+
             </div>
           </CardContent>
         </Card>
@@ -897,6 +1223,408 @@ function ListsTabComponent({
           </div>
         </CardContent>
       </Card>
+
+          <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Event</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="event-name">Name</Label>
+              <Input
+                id="event-name"
+                value={eventForm.name}
+                onChange={(event) =>
+                  setEventForm((current) => ({ ...current, name: event.target.value }))
+                }
+                placeholder="Birthday dinner"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="event-description">Description</Label>
+              <Textarea
+                id="event-description"
+                value={eventForm.description}
+                onChange={(event) =>
+                  setEventForm((current) => ({ ...current, description: event.target.value }))
+                }
+                placeholder="Short notes about the event"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Icon</Label>
+                <Select
+                  value={eventForm.icon}
+                  onValueChange={(value) =>
+                    setEventForm((current) => ({ ...current, icon: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose an icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventIconOptions.map((option) => {
+                      const Icon = option.icon
+
+                      return (
+                        <SelectItem key={option.value} value={option.value}>
+                          <Icon className="h-4 w-4" />
+                          {option.label}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="event-date">Date</Label>
+                <Input
+                  id="event-date"
+                  type="date"
+                  value={eventForm.date}
+                  onChange={(event) =>
+                    setEventForm((current) => ({ ...current, date: event.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <Label>Associated Lists</Label>
+                <span className="text-xs text-muted-foreground">Optional</span>
+              </div>
+              <ScrollArea className="max-h-48 rounded-xl border">
+                <div className="space-y-2 p-3">
+                  {allLists.length > 0 ? (
+                    allLists.map((list) => (
+                      <label
+                        key={list.id}
+                        className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border bg-background px-3 py-2 transition-colors hover:border-primary/30"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{list.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+                          </p>
+                        </div>
+                        <Checkbox
+                          checked={eventForm.listIds.includes(list.id)}
+                          onCheckedChange={(checked) => toggleEventList(list.id, checked === true)}
+                        />
+                      </label>
+                    ))
+                  ) : (
+                    <div className="px-1 py-2 text-sm text-muted-foreground">
+                      Create a list before associating it with an event.
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className="space-y-3 rounded-xl border bg-muted/10 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium">Create and attach a list</p>
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Use this if the event needs a fresh list.
+                  </p>
+                </div>
+                <Badge variant="secondary">Quick add</Badge>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
+                <Input
+                  value={eventInlineListForm.name}
+                  onChange={(event) =>
+                    setEventInlineListForm((current) => ({ ...current, name: event.target.value }))
+                  }
+                  placeholder="List name"
+                />
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {inlineListColorOptions.map((color) => (
+                      <button
+                        key={color.name}
+                        type="button"
+                        onClick={() =>
+                          setEventInlineListForm((current) => ({ ...current, color: color.name }))
+                        }
+                        className={`h-7 w-7 rounded-full transition-all ${color.className} ${
+                          eventInlineListForm.color === color.name
+                            ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                            : "hover:scale-110"
+                        }`}
+                        aria-label={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => void handleCreateInlineListForEvent()}
+                disabled={!eventInlineListForm.name.trim()}
+              >
+                Create list and attach
+              </Button>
+            </div>
+
+            <Button
+              onClick={() => void handleCreateEvent()}
+              className="w-full"
+              disabled={!eventForm.name.trim()}
+            >
+              Save Event
+            </Button>
+          </div>
+          </DialogContent>
+      </Dialog>
+
+      <Dialog open={eventViewerOpen} onOpenChange={setEventViewerOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDate ? format(selectedDate, "EEEE, MMM d") : "Events"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {selectedDayEvents.length > 0 ? (
+              selectedDayEvents.map((event) => {
+                const EventIcon = getEventIcon(event.icon)
+
+                return (
+                  <div
+                    key={event.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openEventDetail(event)}
+                    onKeyDown={(keyboardEvent) => {
+                      if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+                        keyboardEvent.preventDefault()
+                        openEventDetail(event)
+                      }
+                    }}
+                    className="w-full rounded-xl border bg-muted/10 p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/20"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 gap-3">
+                        <div className="rounded-full bg-muted p-2 text-muted-foreground">
+                          <EventIcon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{event.name}</p>
+                          {event.description ? (
+                            <p className="mt-1 text-sm text-muted-foreground">{event.description}</p>
+                          ) : null}
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {event.listIds.length > 0 ? (
+                              event.listIds
+                                .map((listId) => allLists.find((list) => list.id === listId))
+                                .filter((list): list is ShopList => list !== undefined)
+                                .map((list) => (
+                                  <button
+                                    key={list.id}
+                                    type="button"
+                                    onClick={(clickEvent) => {
+                                      clickEvent.stopPropagation()
+                                      onOpenList(list)
+                                    }}
+                                    className="rounded-md bg-background px-2 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                                  >
+                                    {list.name}
+                                  </button>
+                                ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No lists attached</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={(clickEvent) => {
+                          clickEvent.stopPropagation()
+                          void onDeleteEvent(event.id)
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="rounded-xl border border-dashed px-4 py-6 text-sm text-muted-foreground">
+                No events for this day.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedEvent !== null} onOpenChange={(open) => !open && setSelectedEvent(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+
+          {selectedEvent ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 rounded-xl border bg-muted/10 p-3">
+                <div className="rounded-full bg-muted p-2 text-muted-foreground">
+                  {(() => {
+                    const EventIcon = getEventIcon(selectedEventForm.icon)
+                    return <EventIcon className="h-5 w-5" />
+                  })()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{selectedEventForm.name || "Untitled event"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedEventForm.date
+                      ? format(new Date(selectedEventForm.date), "EEEE, MMM d, yyyy")
+                      : "No date selected"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="selected-event-name">Name</Label>
+                <Input
+                  id="selected-event-name"
+                  value={selectedEventForm.name}
+                  onChange={(event) =>
+                    setSelectedEventForm((current) => ({ ...current, name: event.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="selected-event-description">Description</Label>
+                <Textarea
+                  id="selected-event-description"
+                  value={selectedEventForm.description}
+                  onChange={(event) =>
+                    setSelectedEventForm((current) => ({
+                      ...current,
+                      description: event.target.value,
+                    }))
+                  }
+                  placeholder="Short notes about the event"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Icon</Label>
+                  <Select
+                    value={selectedEventForm.icon}
+                    onValueChange={(value) =>
+                      setSelectedEventForm((current) => ({ ...current, icon: value }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose an icon" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventIconOptions.map((option) => {
+                        const Icon = option.icon
+
+                        return (
+                          <SelectItem key={option.value} value={option.value}>
+                            <Icon className="h-4 w-4" />
+                            {option.label}
+                          </SelectItem>
+                        )
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="selected-event-date">Date</Label>
+                  <Input
+                    id="selected-event-date"
+                    type="date"
+                    value={selectedEventForm.date}
+                    onChange={(event) =>
+                      setSelectedEventForm((current) => ({ ...current, date: event.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Linked Lists</Label>
+                  <span className="text-xs text-muted-foreground">Optional</span>
+                </div>
+                <ScrollArea className="max-h-48 rounded-xl border">
+                  <div className="space-y-2 p-3">
+                    {allLists.length > 0 ? (
+                      allLists.map((list) => (
+                        <label
+                          key={list.id}
+                          className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border bg-background px-3 py-2 transition-colors hover:border-primary/30"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{list.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+                            </p>
+                          </div>
+                          <Checkbox
+                            checked={selectedEventForm.listIds.includes(list.id)}
+                            onCheckedChange={(checked) =>
+                              toggleSelectedEventList(list.id, checked === true)
+                            }
+                          />
+                        </label>
+                      ))
+                    ) : (
+                      <div className="px-1 py-2 text-sm text-muted-foreground">
+                        No lists available.
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button
+                  variant="outline"
+                  className="border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={() => {
+                    void onDeleteEvent(selectedEvent.id)
+                    setSelectedEvent(null)
+                    setEventViewerOpen(false)
+                  }}
+                >
+                  Delete event
+                </Button>
+                <Button
+                  className="hover:bg-green-700"
+                  onClick={() => void handleUpdateSelectedEvent()}
+                  disabled={!selectedEventForm.name.trim()}
+                >
+                  Save changes
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={pendingRemoval !== null} onOpenChange={(open) => {
         if (!open) {

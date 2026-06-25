@@ -50,3 +50,9 @@ class User(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    calendar_events = relationship(
+        "CalendarEvent",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
