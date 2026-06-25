@@ -47,6 +47,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ShopListBanner, type ShopList } from "@/components/shoplist-banner"
 import type { DayOfWeek, MealPlanEntry } from "@/features/meal-planner/types"
 import { weekDays } from "@/features/meal-planner/types"
@@ -93,6 +94,13 @@ interface PendingRemoval {
   entryId?: string
 }
 
+interface SavedRecipeTab {
+  id: string
+  label: string
+  recipes: Recipe[]
+  emptyMessage: string
+}
+
 const calendarWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 function ListsTabComponent({
@@ -118,9 +126,16 @@ function ListsTabComponent({
   const [pinnedListIds, setPinnedListIds] = useState<string[]>([])
   const [draggedRecipeId, setDraggedRecipeId] = useState<string | null>(null)
   const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false)
+  const [selectedSavedTab, setSelectedSavedTab] = useState("saved-recipes")
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null)
   const autoScrollDirectionRef = useRef<1 | -1 | 0>(0)
   const autoScrollFrameRef = useRef<number | null>(null)
+  const savedTabsScrollRef = useRef<HTMLDivElement | null>(null)
+  const savedTabsDragStateRef = useRef<{
+    pointerId: number
+    startX: number
+    startScrollLeft: number
+  } | null>(null)
   const mealPlannerRecipeIds = useMemo(
     () => new Set(mealPlanEntries.map((entry) => entry.recipeId)),
     [mealPlanEntries]
@@ -129,10 +144,55 @@ function ListsTabComponent({
     () => savedRecipes.filter((recipe) => !mealPlannerRecipeIds.has(recipe.id)),
     [mealPlannerRecipeIds, savedRecipes]
   )
+  const sortedLists = useMemo(() => {
+    const pinned = lists.filter((list) => pinnedListIds.includes(list.id))
+    const unpinned = lists.filter((list) => !pinnedListIds.includes(list.id))
+    return [...pinned, ...unpinned]
+  }, [lists, pinnedListIds])
   const recipeMap = useMemo(
     () => new Map(recipes.map((recipe) => [recipe.id, recipe])),
     [recipes]
   )
+  const savedRecipeTabs = useMemo<SavedRecipeTab[]>(() => {
+    const savedRecipeMap = new Map(mealPlannerRecipes.map((recipe) => [recipe.id, recipe]))
+    const listRecipeIds = new Set<string>()
+
+    const listTabs = sortedLists.map((list) => {
+      const recipeLinks =
+        list.listRecipes && list.listRecipes.length > 0
+          ? list.listRecipes
+          : (list.linkedRecipeIds ?? []).map((recipeId) => ({ recipeId, servings: null }))
+      const recipesForList = recipeLinks
+        .map((link) => {
+          listRecipeIds.add(link.recipeId)
+          const recipe = savedRecipeMap.get(link.recipeId)
+          return recipe ? withRecipeServingsOverride(recipe, link.servings) : null
+        })
+        .filter((recipe): recipe is Recipe => recipe !== null)
+
+      return {
+        id: `list-${list.id}`,
+        label: list.name,
+        recipes: recipesForList,
+        emptyMessage: `No saved recipes are linked to ${list.name} yet.`,
+      }
+    }).filter((tab) => tab.recipes.length > 0)
+
+    const ungroupedRecipes = mealPlannerRecipes.filter((recipe) => !listRecipeIds.has(recipe.id))
+
+    return [
+      {
+        id: "saved-recipes",
+        label: "Saved Recipes",
+        recipes: ungroupedRecipes,
+        emptyMessage: "Your saved recipes will appear here.",
+      },
+      ...listTabs,
+    ]
+  }, [mealPlannerRecipes, sortedLists])
+  const activeSavedTabId = savedRecipeTabs.some((tab) => tab.id === selectedSavedTab)
+    ? selectedSavedTab
+    : (savedRecipeTabs[0]?.id ?? "saved-recipes")
 
   useEffect(() => {
     if (!draggedRecipeId) {
@@ -204,12 +264,6 @@ function ListsTabComponent({
       stopAutoScroll()
     }
   }, [draggedRecipeId])
-
-  const sortedLists = useMemo(() => {
-    const pinned = lists.filter((list) => pinnedListIds.includes(list.id))
-    const unpinned = lists.filter((list) => !pinnedListIds.includes(list.id))
-    return [...pinned, ...unpinned]
-  }, [lists, pinnedListIds])
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(calendarMonth)
@@ -339,6 +393,48 @@ function ListsTabComponent({
     setPendingRemoval(null)
   }
 
+  function handleSavedTabsPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse") {
+      return
+    }
+
+    const container = savedTabsScrollRef.current
+    if (!container) {
+      return
+    }
+
+    savedTabsDragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: container.scrollLeft,
+    }
+    container.setPointerCapture(event.pointerId)
+  }
+
+  function handleSavedTabsPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const container = savedTabsScrollRef.current
+    const dragState = savedTabsDragStateRef.current
+
+    if (!container || !dragState || dragState.pointerId !== event.pointerId) {
+      return
+    }
+
+    const deltaX = event.clientX - dragState.startX
+    container.scrollLeft = dragState.startScrollLeft - deltaX
+  }
+
+  function handleSavedTabsPointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    const container = savedTabsScrollRef.current
+    const dragState = savedTabsDragStateRef.current
+
+    if (!container || !dragState || dragState.pointerId !== event.pointerId) {
+      return
+    }
+
+    savedTabsDragStateRef.current = null
+    container.releasePointerCapture(event.pointerId)
+  }
+
   function renderRecipeCard(
     recipe: Recipe,
     options?: {
@@ -462,10 +558,6 @@ function ListsTabComponent({
       </div>
     )
   }
-
-  const visibleSavedRecipes = savedRecipesExpanded
-    ? mealPlannerRecipes
-    : mealPlannerRecipes.slice(0, 4)
 
   return (
     <div className="space-y-6 overflow-x-hidden">
@@ -602,82 +694,118 @@ function ListsTabComponent({
         <CardHeader className="min-h-16 border-b py-3">
           <CardTitle className="flex items-center gap-2 text-xl">
             <Soup className="h-6 w-6 shrink-0 text-primary" />
-            Saved Recipes
+            Your Recipes
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-hidden p-6">
+          <Tabs
+            value={activeSavedTabId}
+            onValueChange={setSelectedSavedTab}
+            className="gap-4"
+          >
+            {savedRecipeTabs.length > 4 ? (
+              <p className="text-xs text-muted-foreground">
+                Drag and pull to see more tabs.
+              </p>
+            ) : null}
             <div
-              className={`rounded-2xl border bg-muted/10 p-4 transition-colors ${
-                draggedRecipeId ? "border-primary/40 bg-primary/5" : ""
-              }`}
-              onDragOver={(event) => {
-                if (!draggedRecipeId) {
-                  return
-                }
-                event.preventDefault()
-                event.dataTransfer.dropEffect = "move"
-              }}
-              onDrop={(event) => {
-                event.preventDefault()
-                const recipeId = event.dataTransfer.getData("text/recipe-id")
-                const fromDay = event.dataTransfer.getData("text/from-day")
-                const entryId = event.dataTransfer.getData("text/entry-id") || undefined
-                if (!recipeId || !fromDay || fromDay === "bank") {
-                  return
-                }
-                void moveRecipe(recipeId, fromDay as DayOfWeek, "bank", undefined, entryId)
-                setDraggedRecipeId(null)
-              }}
+              ref={savedTabsScrollRef}
+              className="cursor-grab overflow-x-auto pb-1 active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              onPointerDown={handleSavedTabsPointerDown}
+              onPointerMove={handleSavedTabsPointerMove}
+              onPointerUp={handleSavedTabsPointerEnd}
+              onPointerCancel={handleSavedTabsPointerEnd}
             >
-              <div className="mb-3 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold">Saved Recipes</p>
-                  <p className="text-sm text-muted-foreground">Drag any recipe into a day.</p>
-                </div>
-              {mealPlannerRecipes.length > 4 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSavedRecipesExpanded((current) => !current)}
-                  className="shrink-0"
-                >
-                  {savedRecipesExpanded ? "Retract" : "Expand"}
-                  <ChevronDown
-                    className={`ml-2 h-4 w-4 transition-transform ${
-                      savedRecipesExpanded ? "rotate-180" : ""
-                    }`}
-                  />
-                </Button>
-              )}
-            </div>
-            <div
-              className={`overflow-hidden transition-[max-height] duration-300 ${
-                savedRecipesExpanded ? "max-h-[80rem]" : "max-h-[20rem]"
-              }`}
-            >
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                {visibleSavedRecipes.map((recipe) => (
-                  <div key={`saved-${recipe.id}`}>
-                    {renderRecipeCard(recipe, {
-                      draggable: true,
-                      fromDay: "bank",
-                      onRemove: () =>
-                        setPendingRemoval({
-                          source: "saved",
-                          recipeId: recipe.id,
-                          recipeName: recipe.name,
-                        }),
-                    })}
-                  </div>
+              <TabsList className="inline-flex h-auto min-w-max justify-start rounded-2xl bg-muted/40 p-1">
+                {savedRecipeTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="min-w-fit px-4 py-2"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
                 ))}
-              </div>
+              </TabsList>
             </div>
-            {mealPlannerRecipes.length === 0 && (
-              <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                Save recipes from the recipe dialog to build your planner bank.
-              </div>
-            )}
-          </div>
+
+            {savedRecipeTabs.map((tab) => (
+              <TabsContent key={tab.id} value={tab.id}>
+                <div
+                  className={`rounded-2xl border bg-muted/10 p-4 transition-colors ${
+                    draggedRecipeId ? "border-primary/40 bg-primary/5" : ""
+                  }`}
+                  onDragOver={(event) => {
+                    if (!draggedRecipeId) {
+                      return
+                    }
+                    event.preventDefault()
+                    event.dataTransfer.dropEffect = "move"
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault()
+                    const recipeId = event.dataTransfer.getData("text/recipe-id")
+                    const fromDay = event.dataTransfer.getData("text/from-day")
+                    const entryId = event.dataTransfer.getData("text/entry-id") || undefined
+                    if (!recipeId || !fromDay || fromDay === "bank") {
+                      return
+                    }
+                    void moveRecipe(recipeId, fromDay as DayOfWeek, "bank", undefined, entryId)
+                    setDraggedRecipeId(null)
+                  }}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold">{tab.label}</p>
+                      <p className="text-sm text-muted-foreground">Drag any recipe into a day.</p>
+                    </div>
+                    {tab.recipes.length > 4 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSavedRecipesExpanded((current) => !current)}
+                        className="shrink-0"
+                      >
+                        {savedRecipesExpanded ? "Retract" : "Expand"}
+                        <ChevronDown
+                          className={`ml-2 h-4 w-4 transition-transform ${
+                            savedRecipesExpanded ? "rotate-180" : ""
+                          }`}
+                        />
+                      </Button>
+                    )}
+                  </div>
+                  <div
+                    className={`overflow-hidden transition-[max-height] duration-300 ${
+                      savedRecipesExpanded ? "max-h-[80rem]" : "max-h-[20rem]"
+                    }`}
+                  >
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      {(savedRecipesExpanded ? tab.recipes : tab.recipes.slice(0, 4)).map((recipe) => (
+                        <div key={`saved-${recipe.id}`}>
+                          {renderRecipeCard(recipe, {
+                            draggable: true,
+                            fromDay: "bank",
+                            onRemove: () =>
+                              setPendingRemoval({
+                                source: "saved",
+                                recipeId: recipe.id,
+                                recipeName: recipe.name,
+                              }),
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {tab.recipes.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                      {tab.emptyMessage}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
       </Card>
 
