@@ -40,6 +40,7 @@ export function useBackendRecipes({
 }: UseBackendRecipesParams) {
   const { getToken, isLoaded: isAuthLoaded, isSignedIn } = useAuth()
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([])
   const [tagGroups, setTagGroups] = useState<BackendTagGroups>({
     meal_type: [],
     cuisine: [],
@@ -76,6 +77,42 @@ export function useBackendRecipes({
     if (isAuthLoaded) {
       void loadTags()
     }
+
+    return () => {
+      isCancelled = true
+    }
+  }, [getToken, isAuthLoaded, isSignedIn])
+
+  useEffect(() => {
+    if (!isAuthLoaded || !isSignedIn) {
+      return
+    }
+
+    let isCancelled = false
+
+    async function loadAllRecipes() {
+      try {
+        const token = await getToken()
+        if (!token) {
+          throw new Error("Missing Clerk session token")
+        }
+
+        const response = await apiRequest<BackendRecipe[]>("/api/recipes", {
+          method: "GET",
+          token,
+        })
+
+        if (!isCancelled) {
+          setAllRecipes(response.map(mapBackendRecipe))
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          console.error("Failed to load complete recipe catalog", error)
+        }
+      }
+    }
+
+    void loadAllRecipes()
 
     return () => {
       isCancelled = true
@@ -178,6 +215,11 @@ export function useBackendRecipes({
         recipe.id === recipeId ? { ...recipe, is_favorite: response.is_favorite } : recipe
       )
     )
+    setAllRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId ? { ...recipe, is_favorite: response.is_favorite } : recipe
+      )
+    )
   }
 
   function updateSavedRecipeState(
@@ -187,6 +229,13 @@ export function useBackendRecipes({
     notes: string | null
   ) {
     setRecipes((prev) =>
+      prev.map((recipe) =>
+        recipe.id === recipeId
+          ? { ...recipe, is_saved: isSaved, saved_servings: servings, saved_notes: notes }
+          : recipe
+      )
+    )
+    setAllRecipes((prev) =>
       prev.map((recipe) =>
         recipe.id === recipeId
           ? { ...recipe, is_saved: isSaved, saved_servings: servings, saved_notes: notes }
@@ -205,6 +254,7 @@ export function useBackendRecipes({
     )
 
     setRecipes((prev) => prev.map((recipe) => updateRecipeRatingState(recipe, response)))
+    setAllRecipes((prev) => prev.map((recipe) => updateRecipeRatingState(recipe, response)))
   }
 
   async function removeRating(recipeId: string) {
@@ -216,6 +266,7 @@ export function useBackendRecipes({
     )
 
     setRecipes((prev) => prev.map((recipe) => updateRecipeRatingState(recipe, response)))
+    setAllRecipes((prev) => prev.map((recipe) => updateRecipeRatingState(recipe, response)))
   }
 
   async function addRecipeToList(listId: string, recipeId: string) {
@@ -241,6 +292,7 @@ export function useBackendRecipes({
   }
 
   return {
+    allRecipes,
     recipes,
     tagGroups,
     isLoadingRecipes,

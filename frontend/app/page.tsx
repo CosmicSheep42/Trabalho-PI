@@ -74,6 +74,7 @@ export default function MainPage() {
     isSavingUser,
     saveUserAllergies,
     user,
+    allRecipes,
     recipes,
     filteredRecipes,
     filteredLists,
@@ -242,7 +243,7 @@ export default function MainPage() {
             <ListsTab
               lists={filteredLists}
               allLists={lists}
-              recipes={recipes}
+              recipes={allRecipes}
               savedRecipes={savedRecipes}
               events={events}
               mealPlanEntries={mealPlanEntries}

@@ -5,6 +5,7 @@ from sqlalchemy import case
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_or_create_current_user
+from app.db.meal_planner_event_sync import sync_event_meal_planner_entries
 from app.models.meal_plan_entry import MealPlanEntry
 from app.models.recipe import Recipe
 from app.models.shopping_list import ShoppingList
@@ -70,6 +71,9 @@ def get_meal_planner_entries(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> list[MealPlanEntry]:
+    if sync_event_meal_planner_entries(db, current_user):
+        db.commit()
+
     return (
         db.query(MealPlanEntry)
         .filter(MealPlanEntry.user_id == current_user.id)
