@@ -38,11 +38,16 @@ interface UseMainPageActionsParams {
     }
   ) => Promise<MealPlanEntry>
   deleteMealPlanEntry: (entryId: string) => Promise<void>
-  saveRecipe: (recipeId: string, servings?: number | null) => Promise<void>
+  saveRecipe: (recipeId: string, servings?: number | null, notes?: string | null) => Promise<{ notes: string | null; servings: number | null }>
   removeSavedRecipe: (recipeId: string) => Promise<void>
-  syncSavedRecipe: (recipe: Recipe, servings?: number | null) => void
+  syncSavedRecipe: (recipe: Recipe, servings?: number | null, notes?: string | null) => void
   loadSavedRecipes: () => Promise<void>
-  updateSavedRecipeState: (recipeId: string, isSaved: boolean, servings: number | null) => void
+  updateSavedRecipeState: (
+    recipeId: string,
+    isSaved: boolean,
+    servings: number | null,
+    notes: string | null
+  ) => void
   toggleFavorite: (recipeId: string, isFavorite: boolean) => Promise<void>
   rateRecipe: (recipeId: string, rating: number) => Promise<void>
   removeRating: (recipeId: string) => Promise<void>
@@ -143,28 +148,34 @@ export function useMainPageActions({
   const handleAddRecipeToList = async (listId: string, recipe: Recipe, servings?: number | null) => {
     await addRecipeToList(listId, recipe.id, servings)
     await loadSavedRecipes()
-    syncSavedRecipe(recipe, servings)
-    updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+    syncSavedRecipe(recipe, servings, recipe.saved_notes)
+    updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings, recipe.saved_notes)
     setRecipeDialogOpen(false)
   }
 
-  const handleSaveRecipe = async (recipe: Recipe, servings?: number | null) => {
-    await saveRecipe(recipe.id, servings)
-    syncSavedRecipe(recipe, servings)
-    updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+  const handleSaveRecipe = async (recipe: Recipe, servings?: number | null, notes?: string | null) => {
+    const response = await saveRecipe(recipe.id, servings, notes)
+    syncSavedRecipe(recipe, response.servings, response.notes)
+    updateSavedRecipeState(recipe.id, true, response.servings, response.notes)
     setRecipeDialogOpen(false)
+  }
+
+  const handleSaveRecipeNotes = async (recipe: Recipe, notes: string | null) => {
+    const response = await saveRecipe(recipe.id, undefined, notes)
+    syncSavedRecipe(recipe, response.servings, response.notes)
+    updateSavedRecipeState(recipe.id, true, response.servings, response.notes)
   }
 
   const handleRemoveSavedRecipe = async (recipeId: string) => {
     await removeSavedRecipe(recipeId)
-    updateSavedRecipeState(recipeId, false, null)
+    updateSavedRecipeState(recipeId, false, null, null)
   }
 
   const handleRemoveSavedRecipeCompletely = async (recipeId: string) => {
     const linkedListIds = getRecipeLinkedListIds(recipeId)
     await Promise.all(linkedListIds.map((listId) => removeRecipeFromList(listId, recipeId)))
     await removeSavedRecipe(recipeId)
-    updateSavedRecipeState(recipeId, false, null)
+    updateSavedRecipeState(recipeId, false, null, null)
   }
 
   const handleRemoveMealPlanRecipeCompletely = async (entryId: string, recipeId: string) => {
@@ -174,7 +185,7 @@ export function useMainPageActions({
       deleteMealPlanEntry(entryId),
       removeSavedRecipe(recipeId),
     ])
-    updateSavedRecipeState(recipeId, false, null)
+    updateSavedRecipeState(recipeId, false, null, null)
   }
 
   const handleRemoveRecipeFromList = async (recipeId: string) => {
@@ -196,17 +207,17 @@ export function useMainPageActions({
     context: RecipeServingsContext
   ) => {
     if (context.type === "saved") {
-      await saveRecipe(recipe.id, servings)
-      syncSavedRecipe(recipe, servings)
-      updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+      const response = await saveRecipe(recipe.id, servings, recipe.saved_notes)
+      syncSavedRecipe(recipe, response.servings, response.notes)
+      updateSavedRecipeState(recipe.id, true, response.servings, response.notes)
       return
     }
 
     if (context.type === "list") {
       await addRecipeToList(context.listId, recipe.id, servings)
       await loadSavedRecipes()
-      syncSavedRecipe(recipe, servings)
-      updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings)
+      syncSavedRecipe(recipe, servings, recipe.saved_notes)
+      updateSavedRecipeState(recipe.id, true, servings ?? recipe.servings, recipe.saved_notes)
       return
     }
 
@@ -266,6 +277,7 @@ export function useMainPageActions({
     handleUpdateItem,
     handleAddRecipeToList,
     handleSaveRecipe,
+    handleSaveRecipeNotes,
     handleRemoveSavedRecipe,
     handleRemoveSavedRecipeCompletely,
     handleRemoveMealPlanRecipeCompletely,

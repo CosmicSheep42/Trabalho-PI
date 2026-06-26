@@ -64,6 +64,7 @@ export interface BackendRecipe {
   is_favorite: boolean
   is_saved: boolean
   saved_servings: number | null
+  saved_notes: string | null
 }
 
 export interface Recipe {
@@ -94,6 +95,7 @@ export interface Recipe {
   is_favorite: boolean
   is_saved: boolean
   saved_servings: number | null
+  saved_notes: string | null
 }
 
 export interface BackendTagGroups {
@@ -125,6 +127,7 @@ export interface SavedRecipeResponse {
   success: boolean
   recipe_id: number
   servings: number | null
+  notes: string | null
 }
 
 export type RecipeServingsContext =

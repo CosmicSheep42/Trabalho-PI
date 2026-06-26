@@ -68,16 +68,18 @@ export function useBackendSavedRecipes() {
     return callback(token)
   }
 
-  async function saveRecipe(recipeId: string, servings?: number | null) {
-    await withToken(async (token) => {
-      await apiRequest<SavedRecipeResponse>(`/api/recipes/${recipeId}/save`, {
+  async function saveRecipe(recipeId: string, servings?: number | null, notes?: string | null) {
+    return withToken(async (token) => {
+      const response = await apiRequest<SavedRecipeResponse>(`/api/recipes/${recipeId}/save`, {
         method: "POST",
         token,
         body: JSON.stringify({
-          servings: servings ?? null,
+          ...(servings !== undefined ? { servings } : {}),
+          ...(notes !== undefined ? { notes } : {}),
         }),
       })
       await loadSavedRecipes(token)
+      return response
     })
   }
 
@@ -91,12 +93,13 @@ export function useBackendSavedRecipes() {
     })
   }
 
-  function syncSavedRecipe(recipe: Recipe, servings?: number | null) {
+  function syncSavedRecipe(recipe: Recipe, servings?: number | null, notes?: string | null) {
     const nextRecipe = {
       ...recipe,
       servings: servings ?? recipe.servings,
       is_saved: true,
       saved_servings: servings ?? recipe.servings,
+      saved_notes: notes ?? recipe.saved_notes,
     }
     setSavedRecipes((prev) => {
       const exists = prev.some((currentRecipe) => currentRecipe.id === recipe.id)
