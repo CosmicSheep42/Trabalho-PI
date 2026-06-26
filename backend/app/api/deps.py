@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.db.user_home_seed import seed_home_content_for_user
 from app.db.session import get_db
 from app.models.user import User
 
@@ -53,11 +54,16 @@ def get_or_create_current_user(
 ) -> User:
     user = db.query(User).filter(User.clerk_user_id == clerk_user_id).first()
     if user:
+        if seed_home_content_for_user(db, user):
+            db.commit()
+            db.refresh(user)
         return user
 
     user = User(clerk_user_id=clerk_user_id)
     db.add(user)
     try:
+        db.flush()
+        seed_home_content_for_user(db, user)
         db.commit()
         db.refresh(user)
         return user
@@ -66,6 +72,9 @@ def get_or_create_current_user(
 
     user = db.query(User).filter(User.clerk_user_id == clerk_user_id).first()
     if user:
+        if seed_home_content_for_user(db, user):
+            db.commit()
+            db.refresh(user)
         return user
 
     raise HTTPException(

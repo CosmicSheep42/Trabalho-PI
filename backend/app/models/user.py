@@ -19,6 +19,11 @@ class User(Base):
     soy_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     sesame_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     sulfite_free: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
+    has_seeded_home_content: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        server_default=text("0"),
+    )
 
     lists = relationship(
         "ShoppingList",

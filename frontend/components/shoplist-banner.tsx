@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -41,13 +40,6 @@ interface ShopListBannerProps {
   onEdit?: () => void
   onDelete?: () => void
 }
-
-const placeholderCollaborators = [
-  { id: "a", initials: "AL" },
-  { id: "b", initials: "BM" },
-  { id: "c", initials: "CR" },
-  { id: "d", initials: "DT" },
-]
 
 export function ShopListBanner({
   list,
@@ -95,22 +87,6 @@ export function ShopListBanner({
               })}
             </span>
           )}
-        </div>
-        <div className="flex items-center">
-          <div className="flex -space-x-2">
-            {placeholderCollaborators.slice(0, 4).map((collaborator) => (
-              <Avatar key={collaborator.id} className="h-7 w-7 border-2 border-background">
-                <AvatarFallback className="bg-background/80 text-[10px] text-foreground">
-                  {collaborator.initials}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-            <Avatar className="h-7 w-7 border-2 border-background">
-              <AvatarFallback className="bg-muted text-[12px] font-semibold text-muted-foreground">
-                +
-              </AvatarFallback>
-            </Avatar>
-          </div>
         </div>
       </div>
 

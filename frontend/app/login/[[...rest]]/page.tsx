@@ -11,7 +11,7 @@ export default function LoginPage() {
         <div className="max-w-md">
           <div className="flex items-center gap-2 mb-8">
             <Leaf className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-semibold">Placeholder</span>
+            <span className="text-2xl font-semibold">Cookwise</span>
           </div>
 
           <h1 className="text-3xl font-bold mb-4 text-balance">
@@ -40,7 +40,7 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
         <div className="flex items-center justify-center gap-2 lg:hidden">
           <Leaf className="h-6 w-6 text-primary" />
-          <span className="text-xl font-semibold">Placeholder</span>
+          <span className="text-xl font-semibold">Cookwise</span>
         </div>
 
         <SignIn

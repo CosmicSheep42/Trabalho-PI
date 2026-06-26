@@ -1,5 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
+import { useAuth } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import { ArrowUpAZ, Leaf, ListOrdered, Search, Settings, ShoppingCart, Star, User, BookOpen, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +33,8 @@ const recipeSortLabels: Record<RecipeSortOrder, string> = {
 }
 
 export default function MainPage() {
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth()
+  const router = useRouter()
   const {
     activeTab,
     setActiveTab,
@@ -105,6 +110,16 @@ export default function MainPage() {
     handleLogout,
   } = useMainPage()
 
+  useEffect(() => {
+    if (isAuthLoaded && !isSignedIn) {
+      router.replace("/login")
+    }
+  }, [isAuthLoaded, isSignedIn, router])
+
+  if (!isAuthLoaded || !isSignedIn) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -112,7 +127,7 @@ export default function MainPage() {
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Leaf className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">Placeholder</span>
+            <span className="text-lg font-semibold">Cookwise</span>
           </div>
 
           <div className="flex items-center gap-2">
