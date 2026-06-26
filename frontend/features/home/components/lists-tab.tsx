@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import {
+  addDays,
   addMonths,
   eachDayOfInterval,
   endOfMonth,
@@ -162,6 +163,12 @@ interface EventFormState {
 interface EventInlineListFormState {
   name: string
   color: string
+}
+
+interface PlannerEventSuggestion {
+  key: string
+  recipe: Recipe
+  eventName: string
 }
 
 const calendarWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -407,6 +414,16 @@ function ListsTabComponent({
       ) as Record<DayOfWeek, MealPlanEntry[]>,
     [mealPlanEntries]
   )
+  const currentPlannerWeekDates = useMemo(
+    () =>
+      Object.fromEntries(
+        weekDays.map((day, index) => [
+          day,
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), index),
+        ])
+      ) as Record<DayOfWeek, Date>,
+    []
+  )
   const listsByDate = useMemo(() => {
     return allLists.reduce<Record<string, ShopList[]>>((acc, list) => {
       if (!list.date) {
@@ -423,6 +440,56 @@ function ListsTabComponent({
       return acc
     }, {})
   }, [events])
+  const plannerEventSuggestionsByDay = useMemo(
+    () =>
+      weekDays.reduce<Record<DayOfWeek, PlannerEventSuggestion[]>>((acc, day) => {
+        const currentDate = currentPlannerWeekDates[day]
+        const dateKey = format(currentDate, "yyyy-MM-dd")
+        const dayEvents = eventsByDate[dateKey] ?? []
+        const plannedRecipeIds = new Set(plannerEntriesByDay[day].map((entry) => entry.recipeId))
+        const seenRecipeIds = new Set<string>()
+        const daySuggestions: PlannerEventSuggestion[] = []
+
+        for (const event of dayEvents) {
+          for (const listId of event.listIds) {
+            const linkedList = allLists.find((list) => list.id === listId)
+            if (!linkedList) {
+              continue
+            }
+
+            const recipeLinks =
+              linkedList.listRecipes && linkedList.listRecipes.length > 0
+                ? linkedList.listRecipes
+                : (linkedList.linkedRecipeIds ?? []).map((recipeId) => ({
+                    recipeId,
+                    servings: null,
+                  }))
+
+            for (const link of recipeLinks) {
+              if (plannedRecipeIds.has(link.recipeId) || seenRecipeIds.has(link.recipeId)) {
+                continue
+              }
+
+              const recipe = recipeMap.get(link.recipeId)
+              if (!recipe) {
+                continue
+              }
+
+              daySuggestions.push({
+                key: `${event.id}-${link.recipeId}`,
+                recipe: withRecipeServingsOverride(recipe, link.servings),
+                eventName: event.name,
+              })
+              seenRecipeIds.add(link.recipeId)
+            }
+          }
+        }
+
+        acc[day] = daySuggestions
+        return acc
+      }, {} as Record<DayOfWeek, PlannerEventSuggestion[]>),
+    [allLists, currentPlannerWeekDates, eventsByDate, plannerEntriesByDay, recipeMap]
+  )
   const selectedDateKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
   const selectedDayEvents = selectedDateKey ? eventsByDate[selectedDateKey] ?? [] : []
 
@@ -1146,6 +1213,8 @@ function ListsTabComponent({
           <div className="space-y-3">
             {weekDays.map((day) => {
               const plannedEntries = plannerEntriesByDay[day]
+              const eventSuggestions = plannerEventSuggestionsByDay[day]
+              const plannerDate = currentPlannerWeekDates[day]
 
               return (
                 <div
@@ -1169,10 +1238,13 @@ function ListsTabComponent({
                   <div className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-start">
                     <div className="space-y-2">
                       <p className="text-base font-semibold">{day}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(plannerDate, "MMM d")}
+                      </p>
                     </div>
 
                     <div className="min-h-24 rounded-2xl border border-dashed bg-muted/15 p-3">
-                      {plannedEntries.length > 0 ? (
+                      {plannedEntries.length > 0 || eventSuggestions.length > 0 ? (
                         <div className="flex flex-wrap gap-3">
                           {plannedEntries.map((entry, index) => {
                             const recipe = recipeMap.get(entry.recipeId)
@@ -1209,6 +1281,15 @@ function ListsTabComponent({
                               </div>
                             )
                           })}
+                          {eventSuggestions.map((suggestion) => (
+                            <div key={suggestion.key} className="w-full sm:min-w-[320px] sm:max-w-[360px]">
+                              <div className="mb-2 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
+                                <PartyPopper className="h-3.5 w-3.5" />
+                                <span>Suggested from {suggestion.eventName}</span>
+                              </div>
+                              {renderRecipeCard(suggestion.recipe)}
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <div className="flex min-h-16 items-center justify-center rounded-xl bg-background/60 text-sm text-muted-foreground">

@@ -84,6 +84,7 @@ export function useMainPageState() {
 
       const canonicalRecipe =
         backendRecipes.recipes.find((recipe) => recipe.id === selectedRecipeState.id) ??
+        backendRecipes.allRecipes.find((recipe) => recipe.id === selectedRecipeState.id) ??
         backendSavedRecipes.savedRecipes.find((recipe) => recipe.id === selectedRecipeState.id) ??
         selectedRecipeState.fallbackRecipe ??
         null
@@ -93,7 +94,7 @@ export function useMainPageState() {
 
       return withRecipeServingsOverride(canonicalRecipe, selectedRecipeState.servingsOverride)
     },
-    [backendRecipes.recipes, backendSavedRecipes.savedRecipes, selectedRecipeState]
+    [backendRecipes.allRecipes, backendRecipes.recipes, backendSavedRecipes.savedRecipes, selectedRecipeState]
   )
 
   function handleTabChange(nextTab: string) {
@@ -145,6 +146,7 @@ export function useMainPageState() {
 
       const canonicalRecipe =
         backendRecipes.recipes.find((recipe) => recipe.id === nextValue.id) ??
+        backendRecipes.allRecipes.find((recipe) => recipe.id === nextValue.id) ??
         backendSavedRecipes.savedRecipes.find((recipe) => recipe.id === nextValue.id) ??
         null
       const servingsOverride =
