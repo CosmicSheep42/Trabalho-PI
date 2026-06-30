@@ -18,6 +18,8 @@ interface ClerkUserSnapshot {
 export interface BackendUser {
   id: number
   clerk_user_id: string
+  username: string | null
+  have_username: boolean
   vegan: boolean
   vegetarian: boolean
   lactose_free: boolean
@@ -33,6 +35,8 @@ export interface BackendUser {
 export interface ProfileUser {
   id: number | null
   clerkUserId: string
+  username: string | null
+  haveUsername: boolean
   name: string
   email: string
   avatar?: string
@@ -46,6 +50,8 @@ export function buildProfileUser(
   return {
     id: backendUser?.id ?? null,
     clerkUserId: backendUser?.clerk_user_id ?? clerkUser?.id ?? "",
+    username: backendUser?.username ?? null,
+    haveUsername: backendUser?.have_username ?? false,
     name: clerkUser?.fullName ?? clerkUser?.firstName ?? "User",
     email: clerkUser?.primaryEmailAddress?.emailAddress ?? "",
     avatar: clerkUser?.imageUrl,

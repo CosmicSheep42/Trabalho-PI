@@ -17,6 +17,19 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 
   if (!response.ok) {
     const message = await response.text()
+    if (message) {
+      try {
+        const parsed = JSON.parse(message) as { detail?: string }
+        if (parsed.detail) {
+          throw new Error(parsed.detail)
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message !== message) {
+          throw error
+        }
+      }
+    }
+
     throw new Error(message || `Request failed with status ${response.status}`)
   }
 
