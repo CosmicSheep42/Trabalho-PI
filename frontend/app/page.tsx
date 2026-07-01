@@ -332,20 +332,19 @@ export default function MainPage() {
       />
 
       <ProfileDialog
+        key={`profile:${profileOpen ? "open" : "closed"}:${user.username ?? "none"}:${user.usernameUpdatedAt ?? "never"}`}
         open={profileOpen}
         onOpenChange={setProfileOpen}
         user={user}
         onSave={saveUserAllergies}
+        onSaveUsername={saveUsername}
         isSavingUser={isSavingUser}
+        isSavingUsername={isSavingUsername}
       />
 
       <SettingsDialog
-        key={`settings:${settingsOpen ? "open" : "closed"}:${user.username ?? "none"}`}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
-        user={user}
-        onSaveUsername={saveUsername}
-        isSavingUsername={isSavingUsername}
       />
 
       <UsernamePromptDialog
