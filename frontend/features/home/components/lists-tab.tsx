@@ -168,10 +168,9 @@ interface EventInlineListFormState {
 interface PlannerEventSuggestion {
   key: string
   recipe: Recipe
-  eventName: string
 }
 
-const calendarWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const calendarWeekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 const eventIconOptions = [
   { value: "party", label: "Party", icon: PartyPopper },
@@ -394,8 +393,8 @@ function ListsTabComponent({
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(calendarMonth)
     const monthEnd = endOfMonth(calendarMonth)
-    const gridStart = startOfWeek(monthStart)
-    const gridEnd = endOfWeek(monthEnd)
+    const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 })
+    const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
 
     return eachDayOfInterval({
       start: gridStart,
@@ -478,7 +477,6 @@ function ListsTabComponent({
               daySuggestions.push({
                 key: `${event.id}-${link.recipeId}`,
                 recipe: withRecipeServingsOverride(recipe, link.servings),
-                eventName: event.name,
               })
               seenRecipeIds.add(link.recipeId)
             }
@@ -657,6 +655,19 @@ function ListsTabComponent({
   function openEventViewer(date: Date) {
     setSelectedDate(date)
     setEventViewerOpen(true)
+  }
+
+  function handleCalendarDayClick(day: Date, dayEvents: CalendarEvent[]) {
+    setSelectedDate(day)
+
+    if (dayEvents.length === 1) {
+      openEventDetail(dayEvents[0])
+      return
+    }
+
+    if (dayEvents.length > 1) {
+      openEventViewer(day)
+    }
   }
 
   function openEventDetail(event: CalendarEvent) {
@@ -981,20 +992,27 @@ function ListsTabComponent({
                 ))}
               </div>
 
-              <div className="grid flex-1 grid-cols-7 gap-2 p-4">
+              <div className="grid min-h-0 flex-1 grid-cols-7 gap-2 p-4">
                 {calendarDays.map((day) => {
                   const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
                   const inCurrentMonth = isSameMonth(day, calendarMonth)
                   const dayKey = format(day, "yyyy-MM-dd")
-                  const dayLists = listsByDate[dayKey] ?? []
                   const dayEvents = eventsByDate[dayKey] ?? []
-                  const visibleDayLists = dayLists.slice(0, 2)
                   const visibleDayEvents = dayEvents.slice(0, 2)
 
                   return (
                     <div
                       key={day.toISOString()}
-                      className={`min-h-[4rem] rounded-xl border text-sm transition-colors ${
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleCalendarDayClick(day, dayEvents)}
+                      onKeyDown={(keyboardEvent) => {
+                        if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+                          keyboardEvent.preventDefault()
+                          handleCalendarDayClick(day, dayEvents)
+                        }
+                      }}
+                      className={`flex h-full min-h-0 flex-col overflow-hidden rounded-xl border text-sm transition-colors ${
                         isSelected
                           ? "border-primary bg-primary text-primary-foreground"
                           : inCurrentMonth
@@ -1002,76 +1020,38 @@ function ListsTabComponent({
                             : "border-border/60 bg-muted/20 text-muted-foreground"
                       }`}
                     >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          dayEvents.length > 0 ? openEventViewer(day) : setSelectedDate(day)
-                        }
-                        className="flex w-full items-start justify-end px-2 pt-2 text-right"
-                      >
+                      <div className="flex w-full items-start justify-end px-2 pt-2 text-right">
                         <span className="font-medium">{format(day, "d")}</span>
-                      </button>
-                      <div className="flex flex-wrap gap-1 px-2 pt-1">
+                      </div>
+                      <div className="flex min-h-0 flex-1 items-center justify-center px-2 pb-2">
+                        <div className="flex h-6 items-center justify-center gap-1 overflow-hidden">
                         {visibleDayEvents.map((event) => {
                           const EventIcon = getEventIcon(event.icon)
 
                           return (
-                            <button
+                            <span
                               key={event.id}
-                              type="button"
-                              onClick={(eventClick) => {
-                                eventClick.stopPropagation()
-                                openEventViewer(day)
-                              }}
-                              className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-[10px] shadow-sm transition-colors ${
+                              className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors ${
                                 isSelected
                                   ? "border-primary-foreground/20 bg-primary-foreground/15 text-primary-foreground"
                                   : "border-border bg-muted text-foreground hover:bg-muted/80"
                               }`}
-                              aria-label={event.name}
+                              aria-hidden="true"
                             >
                               <EventIcon className="h-3.5 w-3.5" />
-                            </button>
+                            </span>
                           )
                         })}
                         {dayEvents.length > visibleDayEvents.length ? (
                           <span
-                            className={`inline-flex h-6 items-center rounded-full px-1.5 text-[10px] ${
+                            className={`inline-flex h-6 shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-medium ${
                               isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
                             }`}
                           >
                             +{dayEvents.length - visibleDayEvents.length}
                           </span>
                         ) : null}
-                      </div>
-                      <div className="space-y-1 px-2 pb-2">
-                        {visibleDayLists.map((list) => (
-                          <button
-                            key={list.id}
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setSelectedDate(day)
-                              onOpenList(list)
-                            }}
-                            className={`block w-full truncate rounded-md px-2 py-1 text-left text-[10px] font-medium transition-colors ${
-                              isSelected
-                                ? "bg-primary-foreground/15 text-primary-foreground hover:bg-primary-foreground/25"
-                                : "bg-muted text-foreground hover:bg-muted/80"
-                            }`}
-                          >
-                            {list.name}
-                          </button>
-                        ))}
-                        {dayLists.length > visibleDayLists.length ? (
-                          <p
-                            className={`truncate px-1 text-[10px] ${
-                              isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-                            }`}
-                          >
-                            +{dayLists.length - visibleDayLists.length} more
-                          </p>
-                        ) : null}
+                        </div>
                       </div>
                     </div>
                   )
@@ -1285,7 +1265,7 @@ function ListsTabComponent({
                             <div key={suggestion.key} className="w-full sm:min-w-[320px] sm:max-w-[360px]">
                               <div className="mb-2 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
                                 <PartyPopper className="h-3.5 w-3.5" />
-                                <span>Suggested from {suggestion.eventName}</span>
+                                <span>Suggested by calendar event</span>
                               </div>
                               {renderRecipeCard(suggestion.recipe)}
                             </div>
@@ -1414,9 +1394,6 @@ function ListsTabComponent({
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="text-sm font-medium">Create and attach a list</p>
-                  <p className="text-xs text-muted-foreground">
-                    Optional. Use this if the event needs a fresh list.
-                  </p>
                 </div>
                 <Badge variant="secondary">Quick add</Badge>
               </div>
@@ -1455,7 +1432,7 @@ function ListsTabComponent({
                 onClick={() => void handleCreateInlineListForEvent()}
                 disabled={!eventInlineListForm.name.trim()}
               >
-                Create list and attach
+                Create
               </Button>
             </div>
 
@@ -1503,11 +1480,10 @@ function ListsTabComponent({
                           <EventIcon className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">{event.name}</p>
                           {event.description ? (
-                            <p className="mt-1 text-sm text-muted-foreground">{event.description}</p>
+                            <p className="text-sm text-muted-foreground">{event.description}</p>
                           ) : null}
-                          <div className="mt-3 flex flex-wrap gap-2">
+                          <div className={`${event.description ? "mt-3" : ""} flex flex-wrap gap-2`}>
                             {event.listIds.length > 0 ? (
                               event.listIds
                                 .map((listId) => allLists.find((list) => list.id === listId))
