@@ -363,8 +363,12 @@ export default function MainPage() {
       />
 
       <SettingsDialog
+        key={`settings:${settingsOpen ? "open" : "closed"}:${user.username ?? "none"}`}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
+        user={user}
+        onSaveUsername={saveUsername}
+        isSavingUsername={isSavingUsername}
       />
 
       <UsernamePromptDialog
