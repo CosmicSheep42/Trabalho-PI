@@ -79,7 +79,7 @@ export function SettingsDialog({
                     setUsernameError(null)
                   }
                 }}
-                placeholder="your_name"
+                placeholder="YourName"
                 autoComplete="off"
                 disabled={isSavingUsername}
               />

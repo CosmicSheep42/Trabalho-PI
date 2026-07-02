@@ -290,7 +290,7 @@ function ListsTabComponent({
       const recipesForList = recipeLinks
         .map((link) => {
           listRecipeIds.add(link.recipeId)
-          const recipe = savedRecipeMap.get(link.recipeId)
+          const recipe = recipeMap.get(link.recipeId)
           return recipe ? withRecipeServingsOverride(recipe, link.servings) : null
         })
         .filter((recipe): recipe is Recipe => recipe !== null)
@@ -299,7 +299,7 @@ function ListsTabComponent({
         id: `list-${list.id}`,
         label: list.name,
         recipes: recipesForList,
-        emptyMessage: `No saved recipes are linked to ${list.name} yet.`,
+        emptyMessage: `No recipes are linked to ${list.name} yet.`,
       }
     }).filter((tab) => tab.recipes.length > 0)
 
@@ -314,7 +314,7 @@ function ListsTabComponent({
       },
       ...listTabs,
     ]
-  }, [mealPlannerRecipes, sortedAllLists])
+  }, [mealPlannerRecipes, recipeMap, sortedAllLists])
   const activeSavedTabId = savedRecipeTabs.some((tab) => tab.id === selectedSavedTab)
     ? selectedSavedTab
     : (savedRecipeTabs[0]?.id ?? "saved-recipes")
