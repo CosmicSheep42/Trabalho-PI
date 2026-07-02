@@ -66,3 +66,15 @@ class User(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    sent_friendship_requests = relationship(
+        "FriendshipRequest",
+        foreign_keys="FriendshipRequest.requester_id",
+        back_populates="requester",
+        passive_deletes=True,
+    )
+    received_friendship_requests = relationship(
+        "FriendshipRequest",
+        foreign_keys="FriendshipRequest.addressee_id",
+        back_populates="addressee",
+        passive_deletes=True,
+    )
