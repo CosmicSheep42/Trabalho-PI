@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
+
+from app.core.username import normalize_username
 
 
 class UserAllergyPayload(BaseModel):
@@ -14,8 +16,19 @@ class UserAllergyPayload(BaseModel):
     sulfite_free: bool = False
 
 
+class UserUsernamePayload(BaseModel):
+    username: str
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        return normalize_username(value)
+
+
 class UserResponse(UserAllergyPayload):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     clerk_user_id: str
+    username: str | None
+    have_username: bool

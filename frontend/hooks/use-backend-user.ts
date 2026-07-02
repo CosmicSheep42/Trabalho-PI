@@ -13,6 +13,7 @@ export function useBackendUser() {
   const [backendUser, setBackendUser] = useState<BackendUser | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(false)
   const [isSavingUser, setIsSavingUser] = useState(false)
+  const [isSavingUsername, setIsSavingUsername] = useState(false)
   const [resolvedClerkUserId, setResolvedClerkUserId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -79,6 +80,28 @@ export function useBackendUser() {
     }
   }
 
+  async function saveUsername(username: string) {
+    setIsSavingUsername(true)
+
+    try {
+      const token = await getToken()
+      if (!token) {
+        throw new Error("Missing Clerk session token")
+      }
+
+      const nextUser = await apiRequest<BackendUser>("/api/auth/me/username", {
+        method: "PUT",
+        token,
+        body: JSON.stringify({ username }),
+      })
+
+      setBackendUser(nextUser)
+      return nextUser
+    } finally {
+      setIsSavingUsername(false)
+    }
+  }
+
   const profileUser = useMemo(
     () => buildProfileUser(isSignedIn ? clerkUser : null, isSignedIn ? backendUser : null),
     [backendUser, clerkUser, isSignedIn]
@@ -90,6 +113,8 @@ export function useBackendUser() {
     hasResolvedUser:
       isAuthLoaded && isUserLoaded && (!isSignedIn || resolvedClerkUserId === (clerkUser?.id ?? null)),
     isSavingUser,
+    isSavingUsername,
     saveUserAllergies,
+    saveUsername,
   }
 }
