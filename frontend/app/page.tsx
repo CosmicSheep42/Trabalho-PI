@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { ArrowUpAZ, Leaf, ListOrdered, Search, Settings, ShoppingCart, Star, User, BookOpen, LogOut } from "lucide-react"
@@ -19,6 +19,7 @@ import { RecipeDialog } from "@/features/recipes/recipe-dialog"
 import { ListDialog } from "@/features/lists/list-dialog"
 import { ProfileDialog } from "@/features/profile/profile-dialog"
 import { SettingsDialog } from "@/features/settings/settings-dialog"
+import { UsernamePromptDialog } from "@/features/settings/username-prompt-dialog"
 import { CreateListDialog } from "@/features/lists/create-list-dialog"
 import { RecipeFilter, ActiveFilters } from "@/components/recipe-filter"
 import { ListsTab } from "@/features/home/components/lists-tab"
@@ -35,6 +36,7 @@ const recipeSortLabels: Record<RecipeSortOrder, string> = {
 export default function MainPage() {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth()
   const router = useRouter()
+  const [dismissedUsernamePromptForUserId, setDismissedUsernamePromptForUserId] = useState<string | null>(null)
   const {
     activeTab,
     setActiveTab,
@@ -72,8 +74,11 @@ export default function MainPage() {
     editingList,
     setEditingList,
     isSavingUser,
+    isSavingUsername,
     saveUserAllergies,
+    saveUsername,
     user,
+    hasResolvedUser,
     allRecipes,
     recipes,
     filteredRecipes,
@@ -120,6 +125,9 @@ export default function MainPage() {
   if (!isAuthLoaded || !isSignedIn) {
     return null
   }
+
+  const shouldShowUsernamePrompt =
+    hasResolvedUser && !user.haveUsername && dismissedUsernamePromptForUserId !== user.clerkUserId
 
   return (
     <div className="min-h-screen bg-background">
@@ -331,7 +339,22 @@ export default function MainPage() {
         isSavingUser={isSavingUser}
       />
 
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <SettingsDialog
+        key={`settings:${settingsOpen ? "open" : "closed"}:${user.username ?? "none"}`}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        user={user}
+        onSaveUsername={saveUsername}
+        isSavingUsername={isSavingUsername}
+      />
+
+      <UsernamePromptDialog
+        key={`username-prompt:${shouldShowUsernamePrompt ? user.clerkUserId : "closed"}`}
+        open={shouldShowUsernamePrompt}
+        onSkip={() => setDismissedUsernamePromptForUserId(user.clerkUserId)}
+        onSave={saveUsername}
+        isSaving={isSavingUsername}
+      />
 
       <CreateListDialog
         open={createListOpen}
