@@ -367,24 +367,6 @@ export default function MainPage() {
         onOpenChange={setSettingsOpen}
       />
 
-      <FriendsDialog
-        open={friendsOpen}
-        onOpenChange={setFriendsOpen}
-        friends={friends}
-        incomingRequests={incomingFriendRequests}
-        outgoingRequests={outgoingFriendRequests}
-        searchResults={searchResults}
-        isLoading={isLoadingFriends}
-        isSearching={isSearchingFriends}
-        isSaving={isSavingFriendAction}
-        onSearch={searchFriends}
-        onSendRequest={sendFriendRequest}
-        onAcceptRequest={acceptFriendRequest}
-        onDeclineRequest={declineFriendRequest}
-        onCancelRequest={cancelFriendRequest}
-        onRemoveFriend={removeFriend}
-      />
-
       <UsernamePromptDialog
         key={`username-prompt:${shouldShowUsernamePrompt ? user.clerkUserId : "closed"}`}
         open={shouldShowUsernamePrompt}
