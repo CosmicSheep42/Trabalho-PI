@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { User, Mail, Lock, Camera } from "lucide-react"
+import { useState } from "react"
+import { addDays, format } from "date-fns"
+import { User, Mail, Lock, Camera, AtSign } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -16,13 +17,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { dietaryOptions, DietaryBadge } from "@/components/dietary-badge"
 import type { ProfileUser } from "@/features/profile/types"
 import type { DietaryOption } from "@/lib/dietary-options"
+import { normalizeUsername, validateUsername } from "@/lib/username"
 
 interface ProfileDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user: ProfileUser
   onSave: (allergies: DietaryOption[]) => Promise<void> | void
+  onSaveUsername: (username: string) => Promise<void> | void
   isSavingUser?: boolean
+  isSavingUsername?: boolean
 }
 
 export function ProfileDialog({
@@ -30,15 +34,13 @@ export function ProfileDialog({
   onOpenChange,
   user,
   onSave,
+  onSaveUsername,
   isSavingUser = false,
+  isSavingUsername = false,
 }: ProfileDialogProps) {
   const [selectedAllergies, setSelectedAllergies] = useState<DietaryOption[]>(user.allergies)
-
-  useEffect(() => {
-    if (open) {
-      setSelectedAllergies(user.allergies)
-    }
-  }, [open, user.allergies])
+  const [username, setUsername] = useState(user.username ?? "")
+  const [usernameError, setUsernameError] = useState<string | null>(null)
 
   const toggleAllergy = (allergy: DietaryOption) => {
     setSelectedAllergies((prev) =>
@@ -52,6 +54,38 @@ export function ProfileDialog({
     await onSave(selectedAllergies)
     onOpenChange(false)
   }
+
+  async function handleSaveUsername() {
+    const normalized = normalizeUsername(username)
+    const validationError = validateUsername(normalized)
+
+    if (validationError) {
+      setUsernameError(validationError)
+      return
+    }
+
+    try {
+      setUsernameError(null)
+      await onSaveUsername(normalized)
+    } catch (error) {
+      setUsernameError(error instanceof Error ? error.message : "Unable to save username.")
+    }
+  }
+
+  const normalizedCurrentUsername = normalizeUsername(user.username ?? "")
+  const normalizedDraftUsername = normalizeUsername(username)
+  const isUsernameUnchanged =
+    user.haveUsername && normalizedCurrentUsername.toLowerCase() === normalizedDraftUsername.toLowerCase()
+  const usernameUpdatedAt = user.usernameUpdatedAt ? new Date(user.usernameUpdatedAt) : null
+  const canChangeUsername =
+    !user.haveUsername ||
+    !usernameUpdatedAt ||
+    Number.isNaN(usernameUpdatedAt.getTime()) ||
+    new Date() >= addDays(usernameUpdatedAt, 30)
+  const nextUsernameChangeDate =
+    user.haveUsername && usernameUpdatedAt && !Number.isNaN(usernameUpdatedAt.getTime())
+      ? addDays(usernameUpdatedAt, 30)
+      : null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,6 +124,41 @@ export function ProfileDialog({
                 Email
               </Label>
               <Input value={user.email} disabled className="bg-secondary/50" />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <AtSign className="h-4 w-4" />
+                Username
+              </Label>
+              <Input
+                value={username}
+                onChange={(event) => {
+                  setUsername(event.target.value)
+                  if (usernameError) {
+                    setUsernameError(null)
+                  }
+                }}
+                disabled={!canChangeUsername || isSavingUsername}
+                autoComplete="off"
+                placeholder="YourName"
+              />
+              <p className="text-sm text-muted-foreground">
+                {!user.haveUsername
+                  ? "Create your username here. The login prompt will keep appearing until you save one."
+                  : canChangeUsername
+                    ? "You can change your username once every 30 days."
+                    : `You can change your username again on ${format(nextUsernameChangeDate!, "MMMM d, yyyy")}.`}
+              </p>
+              {usernameError ? <p className="text-sm text-destructive">{usernameError}</p> : null}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => void handleSaveUsername()}
+                disabled={isSavingUsername || isUsernameUnchanged || !canChangeUsername}
+              >
+                {isSavingUsername ? "Saving..." : user.haveUsername ? "Update Username" : "Create Username"}
+              </Button>
             </div>
 
             <div className="space-y-2">
