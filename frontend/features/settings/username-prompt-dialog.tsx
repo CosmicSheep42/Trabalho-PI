@@ -60,7 +60,7 @@ export function UsernamePromptDialog({
         <DialogHeader>
           <DialogTitle>Choose your username</DialogTitle>
           <DialogDescription>
-            You can keep using Google login, but this app still needs a unique username for your profile.
+            Create a unique username to connect to your friends.
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +76,7 @@ export function UsernamePromptDialog({
                   setError(null)
                 }
               }}
-              placeholder="your_name"
+              placeholder="YourName"
               autoComplete="off"
               disabled={skipForNow || isSaving}
             />

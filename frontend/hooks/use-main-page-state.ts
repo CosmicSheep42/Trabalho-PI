@@ -7,6 +7,7 @@ import type { ActiveRecipeFilters } from "@/components/recipe-filter"
 import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
 import { withRecipeServingsOverride } from "@/features/recipes/types"
 import { useBackendEvents } from "@/hooks/use-backend-events"
+import { useBackendFriends } from "@/hooks/use-backend-friends"
 import { useBackendLists } from "@/hooks/use-backend-lists"
 import { useBackendMealPlanner } from "@/hooks/use-backend-meal-planner"
 import { useBackendSavedRecipes } from "@/hooks/use-backend-saved-recipes"
@@ -19,6 +20,7 @@ export type RecipeSortOrder = "default" | "alphabetical" | "ratings"
 export function useMainPageState() {
   const backendLists = useBackendLists()
   const backendEvents = useBackendEvents()
+  const backendFriends = useBackendFriends()
   const backendMealPlanner = useBackendMealPlanner()
   const backendSavedRecipes = useBackendSavedRecipes()
   const backendUser = useBackendUser()
@@ -43,6 +45,7 @@ export function useMainPageState() {
   const [selectedListId, setSelectedListId] = useState<string | null>(null)
   const [listDialogOpen, setListDialogOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [friendsOpen, setFriendsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [createListOpen, setCreateListOpen] = useState(false)
   const [editingList, setEditingList] = useState<ShopList | null>(null)
@@ -206,6 +209,8 @@ export function useMainPageState() {
     setRecipeDialogOpen,
     profileOpen,
     setProfileOpen,
+    friendsOpen,
+    setFriendsOpen,
     settingsOpen,
     setSettingsOpen,
     createListOpen,
@@ -214,6 +219,7 @@ export function useMainPageState() {
     setEditingList,
     ...backendRecipes,
     ...backendEvents,
+    ...backendFriends,
     ...backendLists,
     ...backendMealPlanner,
     ...backendSavedRecipes,

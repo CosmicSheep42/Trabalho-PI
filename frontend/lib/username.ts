@@ -1,7 +1,7 @@
 const USERNAME_PATTERN = /^[A-Za-z0-9_-]{5,50}$/
 
 export const USERNAME_VALIDATION_MESSAGE =
-  "Use 5 to 50 characters with only letters, numbers, hyphens, or underscores."
+  "Please enter a valid username."
 
 export function normalizeUsername(value: string) {
   return value.trim()

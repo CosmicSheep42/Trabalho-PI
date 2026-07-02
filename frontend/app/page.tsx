@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { ArrowUpAZ, Leaf, ListOrdered, Search, Settings, ShoppingCart, Star, User, BookOpen, LogOut } from "lucide-react"
+import { ArrowUpAZ, Leaf, ListOrdered, Search, Settings, ShoppingCart, Star, User, BookOpen, LogOut, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RecipeDialog } from "@/features/recipes/recipe-dialog"
 import { ListDialog } from "@/features/lists/list-dialog"
 import { ProfileDialog } from "@/features/profile/profile-dialog"
+import { FriendsDialog } from "@/features/friends/friends-dialog"
 import { SettingsDialog } from "@/features/settings/settings-dialog"
 import { UsernamePromptDialog } from "@/features/settings/username-prompt-dialog"
 import { CreateListDialog } from "@/features/lists/create-list-dialog"
@@ -67,6 +68,8 @@ export default function MainPage() {
     setListDialogOpen,
     profileOpen,
     setProfileOpen,
+    friendsOpen,
+    setFriendsOpen,
     settingsOpen,
     setSettingsOpen,
     createListOpen,
@@ -75,8 +78,21 @@ export default function MainPage() {
     setEditingList,
     isSavingUser,
     isSavingUsername,
+    friends,
+    incomingFriendRequests,
+    outgoingFriendRequests,
+    searchResults,
+    isLoadingFriends,
+    isSearchingFriends,
+    isSavingFriendAction,
     saveUserAllergies,
     saveUsername,
+    searchFriends,
+    sendFriendRequest,
+    acceptFriendRequest,
+    declineFriendRequest,
+    cancelFriendRequest,
+    removeFriend,
     user,
     hasResolvedUser,
     allRecipes,
@@ -155,6 +171,10 @@ export default function MainPage() {
                 <DropdownMenuItem onClick={() => setProfileOpen(true)}>
                   <User className="h-4 w-4 mr-2" />
                   Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFriendsOpen(true)}>
+                  <Users className="h-4 w-4 mr-2" />
+                  Friends
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                   <Settings className="h-4 w-4 mr-2" />
@@ -332,11 +352,14 @@ export default function MainPage() {
       />
 
       <ProfileDialog
+        key={`profile:${profileOpen ? "open" : "closed"}:${user.username ?? "none"}:${user.usernameUpdatedAt ?? "never"}`}
         open={profileOpen}
         onOpenChange={setProfileOpen}
         user={user}
         onSave={saveUserAllergies}
+        onSaveUsername={saveUsername}
         isSavingUser={isSavingUser}
+        isSavingUsername={isSavingUsername}
       />
 
       <SettingsDialog

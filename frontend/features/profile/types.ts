@@ -19,6 +19,7 @@ export interface BackendUser {
   id: number
   clerk_user_id: string
   username: string | null
+  username_updated_at: string | null
   have_username: boolean
   vegan: boolean
   vegetarian: boolean
@@ -36,6 +37,7 @@ export interface ProfileUser {
   id: number | null
   clerkUserId: string
   username: string | null
+  usernameUpdatedAt: string | null
   haveUsername: boolean
   name: string
   email: string
@@ -51,6 +53,7 @@ export function buildProfileUser(
     id: backendUser?.id ?? null,
     clerkUserId: backendUser?.clerk_user_id ?? clerkUser?.id ?? "",
     username: backendUser?.username ?? null,
+    usernameUpdatedAt: backendUser?.username_updated_at ?? null,
     haveUsername: backendUser?.have_username ?? false,
     name: clerkUser?.fullName ?? clerkUser?.firstName ?? "User",
     email: clerkUser?.primaryEmailAddress?.emailAddress ?? "",
