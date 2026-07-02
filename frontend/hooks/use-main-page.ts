@@ -92,3 +92,5 @@ export function useMainPage() {
     ...actions,
   }
 }
+
+export type MainPageViewModel = ReturnType<typeof useMainPage>

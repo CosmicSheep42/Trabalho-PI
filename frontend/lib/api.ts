@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
+const API_URL = (rawApiUrl || "http://localhost:8000").replace(/\/$/, "")
 
 interface ApiRequestOptions extends RequestInit {
   token?: string | null
