@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.core.username import normalize_username
@@ -31,4 +33,5 @@ class UserResponse(UserAllergyPayload):
     id: int
     clerk_user_id: str
     username: str | None
+    username_updated_at: datetime | None
     have_username: bool

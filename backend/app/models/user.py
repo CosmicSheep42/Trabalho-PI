@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, String, text
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -10,6 +12,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     clerk_user_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     username: Mapped[str | None] = mapped_column(String(50), unique=True, index=True, nullable=True)
+    username_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     have_username: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     vegan: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))
     vegetarian: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("0"))

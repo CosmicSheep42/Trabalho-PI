@@ -1,83 +1,11 @@
 "use client"
 
-import Image from "next/image"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
-import {
-  addDays,
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-} from "date-fns"
-import {
-  CalendarPlus,
-  CalendarDays,
-  CakeSlice,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Gift,
-  GripVertical,
-  Heart,
-  PartyPopper,
-  Pin,
-  Plus,
-  Search,
-  ShoppingCart,
-  Sparkles,
-  Soup,
-  Trash2,
-  UtensilsCrossed,
-} from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import {
-  CardAction,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { ShopListBanner, type ShopList } from "@/components/shoplist-banner"
+import { addDays, eachDayOfInterval, endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-fns"
 import type { CalendarEvent } from "@/features/events/types"
 import type { DayOfWeek, MealPlanEntry } from "@/features/meal-planner/types"
 import { weekDays } from "@/features/meal-planner/types"
-import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
+import type { Recipe } from "@/features/recipes/types"
 import { withRecipeServingsOverride } from "@/features/recipes/types"
 
 interface ListsTabProps {
@@ -256,6 +184,7 @@ function ListsTabComponent({
     startX: number
     startScrollLeft: number
   } | null>(null)
+
   const mealPlannerRecipeIds = useMemo(
     () => new Set(mealPlanEntries.map((entry) => entry.recipeId)),
     [mealPlanEntries]
@@ -274,34 +203,33 @@ function ListsTabComponent({
     const unpinned = allLists.filter((list) => !pinnedListIds.includes(list.id))
     return [...pinned, ...unpinned]
   }, [allLists, pinnedListIds])
-  const recipeMap = useMemo(
-    () => new Map(recipes.map((recipe) => [recipe.id, recipe])),
-    [recipes]
-  )
+  const recipeMap = useMemo(() => new Map(recipes.map((recipe) => [recipe.id, recipe])), [recipes])
+
   const savedRecipeTabs = useMemo<SavedRecipeTab[]>(() => {
-    const savedRecipeMap = new Map(mealPlannerRecipes.map((recipe) => [recipe.id, recipe]))
     const listRecipeIds = new Set<string>()
 
-    const listTabs = sortedAllLists.map((list) => {
-      const recipeLinks =
-        list.listRecipes && list.listRecipes.length > 0
-          ? list.listRecipes
-          : (list.linkedRecipeIds ?? []).map((recipeId) => ({ recipeId, servings: null }))
-      const recipesForList = recipeLinks
-        .map((link) => {
-          listRecipeIds.add(link.recipeId)
-          const recipe = savedRecipeMap.get(link.recipeId)
-          return recipe ? withRecipeServingsOverride(recipe, link.servings) : null
-        })
-        .filter((recipe): recipe is Recipe => recipe !== null)
+    const listTabs = sortedAllLists
+      .map((list) => {
+        const recipeLinks =
+          list.listRecipes && list.listRecipes.length > 0
+            ? list.listRecipes
+            : (list.linkedRecipeIds ?? []).map((recipeId) => ({ recipeId, servings: null }))
+        const recipesForList = recipeLinks
+          .map((link) => {
+            listRecipeIds.add(link.recipeId)
+            const recipe = recipeMap.get(link.recipeId)
+            return recipe ? withRecipeServingsOverride(recipe, link.servings) : null
+          })
+          .filter((recipe): recipe is Recipe => recipe !== null)
 
-      return {
-        id: `list-${list.id}`,
-        label: list.name,
-        recipes: recipesForList,
-        emptyMessage: `No saved recipes are linked to ${list.name} yet.`,
-      }
-    }).filter((tab) => tab.recipes.length > 0)
+        return {
+          id: `list-${list.id}`,
+          label: list.name,
+          recipes: recipesForList,
+          emptyMessage: `No recipes are linked to ${list.name} yet.`,
+        }
+      })
+      .filter((tab) => tab.recipes.length > 0)
 
     const ungroupedRecipes = mealPlannerRecipes.filter((recipe) => !listRecipeIds.has(recipe.id))
 
@@ -314,7 +242,8 @@ function ListsTabComponent({
       },
       ...listTabs,
     ]
-  }, [mealPlannerRecipes, sortedAllLists])
+  }, [mealPlannerRecipes, recipeMap, sortedAllLists])
+
   const activeSavedTabId = savedRecipeTabs.some((tab) => tab.id === selectedSavedTab)
     ? selectedSavedTab
     : (savedRecipeTabs[0]?.id ?? "saved-recipes")
@@ -334,10 +263,7 @@ function ListsTabComponent({
 
     function tick() {
       if (autoScrollDirectionRef.current !== 0) {
-        window.scrollBy({
-          top: scrollStep * autoScrollDirectionRef.current,
-          behavior: "auto",
-        })
+        window.scrollBy({ top: scrollStep * autoScrollDirectionRef.current, behavior: "auto" })
         autoScrollFrameRef.current = window.requestAnimationFrame(tick)
         return
       }
@@ -396,11 +322,9 @@ function ListsTabComponent({
     const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 })
     const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
 
-    return eachDayOfInterval({
-      start: gridStart,
-      end: gridEnd,
-    })
+    return eachDayOfInterval({ start: gridStart, end: gridEnd })
   }, [calendarMonth])
+
   const plannerEntriesByDay = useMemo(
     () =>
       Object.fromEntries(
@@ -413,32 +337,24 @@ function ListsTabComponent({
       ) as Record<DayOfWeek, MealPlanEntry[]>,
     [mealPlanEntries]
   )
+
   const currentPlannerWeekDates = useMemo(
     () =>
       Object.fromEntries(
-        weekDays.map((day, index) => [
-          day,
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), index),
-        ])
+        weekDays.map((day, index) => [day, addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), index)])
       ) as Record<DayOfWeek, Date>,
     []
   )
-  const listsByDate = useMemo(() => {
-    return allLists.reduce<Record<string, ShopList[]>>((acc, list) => {
-      if (!list.date) {
-        return acc
-      }
 
-      acc[list.date] = [...(acc[list.date] ?? []), list]
-      return acc
-    }, {})
-  }, [allLists])
-  const eventsByDate = useMemo(() => {
-    return events.reduce<Record<string, CalendarEvent[]>>((acc, event) => {
-      acc[event.date] = [...(acc[event.date] ?? []), event]
-      return acc
-    }, {})
-  }, [events])
+  const eventsByDate = useMemo(
+    () =>
+      events.reduce<Record<string, CalendarEvent[]>>((acc, event) => {
+        acc[event.date] = [...(acc[event.date] ?? []), event]
+        return acc
+      }, {}),
+    [events]
+  )
+
   const plannerEventSuggestionsByDay = useMemo(
     () =>
       weekDays.reduce<Record<DayOfWeek, PlannerEventSuggestion[]>>((acc, day) => {
@@ -459,10 +375,7 @@ function ListsTabComponent({
             const recipeLinks =
               linkedList.listRecipes && linkedList.listRecipes.length > 0
                 ? linkedList.listRecipes
-                : (linkedList.linkedRecipeIds ?? []).map((recipeId) => ({
-                    recipeId,
-                    servings: null,
-                  }))
+                : (linkedList.linkedRecipeIds ?? []).map((recipeId) => ({ recipeId, servings: null }))
 
             for (const link of recipeLinks) {
               if (plannedRecipeIds.has(link.recipeId) || seenRecipeIds.has(link.recipeId)) {
@@ -488,6 +401,7 @@ function ListsTabComponent({
       }, {} as Record<DayOfWeek, PlannerEventSuggestion[]>),
     [allLists, currentPlannerWeekDates, eventsByDate, plannerEntriesByDay, recipeMap]
   )
+
   const selectedDateKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
   const selectedDayEvents = selectedDateKey ? eventsByDate[selectedDateKey] ?? [] : []
 
@@ -495,11 +409,7 @@ function ListsTabComponent({
     await Promise.all(
       entries.map((entry, index) => {
         const persistedEntry = mealPlanEntries.find((currentEntry) => currentEntry.id === entry.id)
-        if (
-          persistedEntry &&
-          persistedEntry.dayOfWeek === day &&
-          persistedEntry.position === index
-        ) {
+        if (persistedEntry && persistedEntry.dayOfWeek === day && persistedEntry.position === index) {
           return Promise.resolve(entry)
         }
 
@@ -561,10 +471,7 @@ function ListsTabComponent({
     }
 
     const nextSourceEntries = plannerEntriesByDay[fromDay].filter((entry) => entry.id !== entryId)
-    const nextTargetEntries =
-      fromDay === toDay
-        ? nextSourceEntries
-        : [...plannerEntriesByDay[toDay]]
+    const nextTargetEntries = fromDay === toDay ? nextSourceEntries : [...plannerEntriesByDay[toDay]]
 
     nextTargetEntries.splice(insertionIndex, 0, {
       ...movingEntry,
@@ -681,6 +588,37 @@ function ListsTabComponent({
     })
   }
 
+  function handleCalendarDayClick(day: Date, dayEvents: CalendarEvent[]) {
+    setSelectedDate(day)
+
+    if (dayEvents.length === 1) {
+      openEventDetail(dayEvents[0])
+      return
+    }
+
+    if (dayEvents.length > 1) {
+      openEventViewer(day)
+    }
+  }
+
+  function toggleSelectedEventList(listId: string, checked: boolean) {
+    setSelectedEventForm((current) => ({
+      ...current,
+      listIds: checked
+        ? [...current.listIds, listId]
+        : current.listIds.filter((currentListId) => currentListId !== listId),
+    }))
+  }
+
+  function toggleEventList(listId: string, checked: boolean) {
+    setEventForm((current) => ({
+      ...current,
+      listIds: checked
+        ? [...current.listIds, listId]
+        : current.listIds.filter((currentListId) => currentListId !== listId),
+    }))
+  }
+
   async function handleUpdateSelectedEvent() {
     if (!selectedEvent || !selectedEventForm.name.trim()) {
       return
@@ -700,24 +638,6 @@ function ListsTabComponent({
       listIds: updatedEvent.listIds,
     })
     setSelectedEvent(null)
-  }
-
-  function toggleSelectedEventList(listId: string, checked: boolean) {
-    setSelectedEventForm((current) => ({
-      ...current,
-      listIds: checked
-        ? [...current.listIds, listId]
-        : current.listIds.filter((currentListId) => currentListId !== listId),
-    }))
-  }
-
-  function toggleEventList(listId: string, checked: boolean) {
-    setEventForm((current) => ({
-      ...current,
-      listIds: checked
-        ? [...current.listIds, listId]
-        : current.listIds.filter((currentListId) => currentListId !== listId),
-    }))
   }
 
   async function handleCreateEvent() {
@@ -746,14 +666,36 @@ function ListsTabComponent({
 
     setEventForm((current) => ({
       ...current,
-      listIds: current.listIds.includes(createdList.id)
-        ? current.listIds
-        : [...current.listIds, createdList.id],
+      listIds: current.listIds.includes(createdList.id) ? current.listIds : [...current.listIds, createdList.id],
     }))
     setEventInlineListForm({
       name: "",
       color: inlineListColorOptions[0].name,
     })
+  }
+
+  function handlePlannerDayDrop(day: DayOfWeek, event: React.DragEvent<HTMLDivElement>, targetIndex?: number) {
+    event.preventDefault()
+    const recipeId = event.dataTransfer.getData("text/recipe-id")
+    const fromDay = event.dataTransfer.getData("text/from-day")
+    const entryId = event.dataTransfer.getData("text/entry-id") || undefined
+    if (!recipeId || !fromDay) {
+      return
+    }
+    void moveRecipe(recipeId, fromDay as DayOfWeek | "bank", day, targetIndex, entryId)
+    setDraggedRecipeId(null)
+  }
+
+  function handleSavedBankDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    const recipeId = event.dataTransfer.getData("text/recipe-id")
+    const fromDay = event.dataTransfer.getData("text/from-day")
+    const entryId = event.dataTransfer.getData("text/entry-id") || undefined
+    if (!recipeId || !fromDay || fromDay === "bank") {
+      return
+    }
+    void moveRecipe(recipeId, fromDay as DayOfWeek, "bank", undefined, entryId)
+    setDraggedRecipeId(null)
   }
 
   function renderRecipeCard(
@@ -768,115 +710,22 @@ function ListsTabComponent({
       onRemove?: () => void
     }
   ) {
-    const { day, entry, draggable = false, fromDay = "bank", onDropAtCard, onRemove } = options ?? {}
-    const mealTypeTag = recipe.tags.find((tag) => tag.category === "meal_type")
-    const effectiveServings = entry?.servings ?? recipe.servings
-    const recipeForDialog = withRecipeServingsOverride(recipe, effectiveServings)
-    const recipeContext: RecipeServingsContext | undefined = entry
-      ? { type: "meal-planner", entryId: entry.id }
-      : fromDay === "bank"
-        ? { type: "saved" }
-        : undefined
-
     return (
-      <div
-        key={`${day ?? "bank"}-${recipe.id}`}
-        draggable={draggable}
-        role="button"
-        tabIndex={0}
-        onClick={() => onOpenRecipe(recipeForDialog, recipeContext)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            onOpenRecipe(recipeForDialog, recipeContext)
-          }
-        }}
-        onDragStart={(event) => {
-          if (!draggable) {
-            return
-          }
-          event.dataTransfer.setData("text/recipe-id", recipe.id)
-          event.dataTransfer.setData("text/from-day", fromDay)
-          if (entry) {
-            event.dataTransfer.setData("text/entry-id", entry.id)
-          }
-          setDraggedRecipeId(recipe.id)
-        }}
-        onDragEnd={() => setDraggedRecipeId(null)}
-        onDragOver={(event) => {
-          if (!onDropAtCard) {
-            return
-          }
-          event.preventDefault()
-        }}
-        onDrop={onDropAtCard}
-        className={`cursor-pointer overflow-hidden rounded-2xl border bg-background shadow-sm transition ${
-          draggedRecipeId === recipe.id ? "opacity-50" : "hover:border-primary/40"
-        } ${draggable ? "cursor-grab" : ""}`}
-      >
-        <div className="relative h-32 overflow-hidden rounded-t-2xl">
-          <Image
-            src={recipe.image}
-            alt={recipe.name}
-            fill
-            draggable={false}
-            className="object-cover"
-          />
-          {entry && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon"
-              className="absolute top-2 right-2 h-8 w-8 bg-background/85 backdrop-blur-sm"
-              onClick={(event) => {
-                event.stopPropagation()
-                setPendingRemoval({
-                  source: "planner",
-                  recipeId: recipe.id,
-                  recipeName: recipe.name,
-                  entryId: entry.id,
-                })
-              }}
-            >
-              <span className="text-base leading-none">×</span>
-            </Button>
-          )}
-          {!entry && onRemove ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon"
-              className="absolute top-2 right-2 h-8 w-8 bg-background/85 backdrop-blur-sm"
-              onClick={(event) => {
-                event.stopPropagation()
-                onRemove()
-              }}
-            >
-              <span className="text-base leading-none">×</span>
-            </Button>
-          ) : null}
-        </div>
-        <div className="flex items-start gap-3 p-4">
-          <div className="rounded-full bg-muted p-2 text-muted-foreground">
-            <GripVertical className="h-4 w-4" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{recipe.name}</p>
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-              {recipe.description}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Badge variant="secondary">{recipe.prep_time_minutes} min</Badge>
-              {effectiveServings ? (
-                <Badge variant="secondary">{effectiveServings} servings</Badge>
-              ) : null}
-              {mealTypeTag ? (
-                <Badge variant="outline">{mealTypeTag.name}</Badge>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ListsTabRecipeCard
+        draggedRecipeId={draggedRecipeId}
+        onOpenRecipe={onOpenRecipe}
+        onPendingRemoval={(recipeId, recipeName, entryId) =>
+          setPendingRemoval({
+            source: entryId ? "planner" : "saved",
+            recipeId,
+            recipeName,
+            entryId,
+          })
+        }
+        onDragStateChange={setDraggedRecipeId}
+        recipe={recipe}
+        options={options}
+      />
     )
   }
 
@@ -1687,29 +1536,48 @@ function ListsTabComponent({
         if (!open) {
           setPendingRemoval(null)
         }
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove recipe?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingRemoval
-                ? `Removing "${pendingRemoval.recipeName}" will also remove it from linked lists. Please confirm to continue.`
-                : ""}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                void confirmRemoval()
-              }}
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onSavedTabChange={setSelectedSavedTab}
+        onSavedRecipesExpandedChange={setSavedRecipesExpanded}
+        renderRecipeCard={renderRecipeCard}
+      />
+
+      <WeeklyMealPlannerSection
+        currentPlannerWeekDates={currentPlannerWeekDates}
+        plannerEntriesByDay={plannerEntriesByDay}
+        plannerEventSuggestionsByDay={plannerEventSuggestionsByDay}
+        recipeMap={recipeMap}
+        onDayDrop={handlePlannerDayDrop}
+        renderRecipeCard={renderRecipeCard}
+      />
+
+      <EventDialogs
+        allLists={allLists}
+        eventDialogOpen={eventDialogOpen}
+        eventForm={eventForm}
+        eventInlineListForm={eventInlineListForm}
+        eventViewerOpen={eventViewerOpen}
+        pendingRemoval={pendingRemoval}
+        selectedDate={selectedDate}
+        selectedDayEvents={selectedDayEvents}
+        selectedEvent={selectedEvent}
+        selectedEventForm={selectedEventForm}
+        onCloseSelectedEvent={() => setSelectedEvent(null)}
+        onConfirmRemoval={confirmRemoval}
+        onCreateEvent={handleCreateEvent}
+        onCreateInlineListForEvent={handleCreateInlineListForEvent}
+        onDeleteEvent={onDeleteEvent}
+        onEventDialogOpenChange={setEventDialogOpen}
+        onEventFormChange={(updater) => setEventForm(updater)}
+        onEventInlineListFormChange={(updater) => setEventInlineListForm(updater)}
+        onEventViewerOpenChange={setEventViewerOpen}
+        onOpenEventDetail={openEventDetail}
+        onOpenList={onOpenList}
+        onPendingRemovalChange={setPendingRemoval}
+        onSelectedEventFormChange={(updater) => setSelectedEventForm(updater)}
+        onToggleEventList={toggleEventList}
+        onToggleSelectedEventList={toggleSelectedEventList}
+        onUpdateSelectedEvent={handleUpdateSelectedEvent}
+      />
     </div>
   )
 }
