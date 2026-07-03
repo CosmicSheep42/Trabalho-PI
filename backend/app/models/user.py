@@ -43,6 +43,13 @@ class User(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    shared_event_memberships = relationship(
+        "EventMember",
+        foreign_keys="EventMember.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     friend_groups = relationship(
         "FriendGroup",
         cascade="all, delete-orphan",

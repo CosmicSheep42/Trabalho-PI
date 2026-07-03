@@ -27,7 +27,7 @@ interface MainPageContentProps {
 }
 
 export function MainPageContent({ screen }: MainPageContentProps) {
-  const { lists, recipes, shell } = screen
+  const { lists, profile, recipes, shell, social } = screen
   return (
     <main className="container mx-auto px-4 py-6">
       <Tabs value={shell.activeTab} onValueChange={shell.setActiveTab} className="gap-6">
@@ -110,6 +110,9 @@ export function MainPageContent({ screen }: MainPageContentProps) {
             recipes={recipes.allRecipes}
             savedRecipes={lists.savedRecipes}
             events={lists.events}
+            currentUserId={profile.user.id}
+            availableFriends={social.friends}
+            availableGroups={social.friendGroups}
             mealPlanEntries={lists.mealPlanEntries}
             searchQuery={lists.searchQuery}
             onSearchQueryChange={lists.setSearchQuery}
@@ -128,6 +131,9 @@ export function MainPageContent({ screen }: MainPageContentProps) {
             onCreateEvent={lists.createEvent}
             onUpdateEvent={lists.updateEvent}
             onDeleteEvent={lists.deleteEvent}
+            onShareEventWithFriend={lists.shareEventWithFriend}
+            onShareEventWithGroup={lists.shareEventWithGroup}
+            onRemoveEventCollaborator={lists.removeEventCollaborator}
             onCreateListForEvent={lists.createList}
           />
         </TabsContent>

@@ -23,6 +23,12 @@ class CalendarEvent(Base):
     date: Mapped[dt_date] = mapped_column(Date, nullable=False, index=True)
 
     user = relationship("User", back_populates="calendar_events")
+    shared_memberships = relationship(
+        "EventMember",
+        back_populates="event",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     list_links = relationship(
         "EventList",
         back_populates="event",
@@ -33,3 +39,11 @@ class CalendarEvent(Base):
     @property
     def list_ids(self) -> list[int]:
         return [link.list_id for link in self.list_links]
+
+    @property
+    def owner(self):
+        return self.user
+
+    @property
+    def collaborators(self):
+        return [membership.user for membership in self.shared_memberships if membership.user is not None]

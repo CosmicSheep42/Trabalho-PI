@@ -1,5 +1,6 @@
 from app.models.calendar_event import CalendarEvent
 from app.models.event_list import EventList
+from app.models.event_member import EventMember
 from app.models.favorite_recipe import FavoriteRecipe
 from app.models.friend_group import FriendGroup
 from app.models.friend_group_member import FriendGroupMember
@@ -24,6 +25,7 @@ __all__ = [
     "FavoriteRecipe",
     "CalendarEvent",
     "EventList",
+    "EventMember",
     "FriendGroup",
     "FriendGroupMember",
     "Friendship",

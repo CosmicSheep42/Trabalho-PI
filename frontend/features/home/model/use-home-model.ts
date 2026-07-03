@@ -159,6 +159,11 @@ export function useHomeModel(): HomeScreenModel {
       createEvent: data.events.createEvent,
       updateEvent: data.events.updateEvent,
       deleteEvent: data.events.deleteEvent,
+      shareEventWithFriend: async (eventId: string, friendUserId: number) =>
+        await data.events.shareEvent(eventId, { friend_user_id: friendUserId }),
+      shareEventWithGroup: async (eventId: string, groupId: number) =>
+        await data.events.shareEvent(eventId, { group_ids: [groupId] }),
+      removeEventCollaborator: data.events.removeEventCollaborator,
       shareList: data.lists.shareList,
       searchQuery: ui.listSearchQuery,
       setSearchQuery: ui.setListSearchQuery,

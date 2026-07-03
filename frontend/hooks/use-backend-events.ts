@@ -10,6 +10,16 @@ import type {
 } from "@/features/events/types"
 import { mapBackendCalendarEvent } from "@/features/events/types"
 
+interface ShareEventPayload {
+  friend_user_id?: number | null
+  friend_user_ids?: number[]
+  group_ids?: number[]
+}
+
+interface FriendAvatarsResponse {
+  avatars: Record<string, string>
+}
+
 function sortEvents(events: CalendarEvent[]) {
   return [...events].sort((left, right) =>
     left.date === right.date ? left.name.localeCompare(right.name) : left.date.localeCompare(right.date)
@@ -19,6 +29,56 @@ function sortEvents(events: CalendarEvent[]) {
 export function useBackendEvents() {
   const { getToken, isLoaded: isAuthLoaded, isSignedIn } = useAuth()
   const [events, setEvents] = useState<CalendarEvent[]>([])
+
+  const loadAvatars = useCallback(async (clerkUserIds: string[]) => {
+    try {
+      const response = await fetch("/api/friend-avatars", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ clerkUserIds }),
+      })
+
+      if (!response.ok) {
+        return {}
+      }
+
+      const { avatars } = await response.json() as FriendAvatarsResponse
+      return avatars
+    } catch (error) {
+      console.error("Failed to load event member avatars", error)
+      return {}
+    }
+  }, [])
+
+  const attachAvatarsToEvents = useCallback(async (backendEvents: BackendCalendarEvent[]) => {
+    const clerkUserIds = Array.from(
+      new Set(
+        backendEvents.flatMap((event) => [
+          event.owner.clerk_user_id,
+          ...event.collaborators.map((member) => member.clerk_user_id),
+        ]).filter(Boolean)
+      )
+    )
+
+    if (clerkUserIds.length === 0) {
+      return backendEvents
+    }
+
+    const avatars = await loadAvatars(clerkUserIds)
+    return backendEvents.map((event) => ({
+      ...event,
+      owner: {
+        ...event.owner,
+        avatar: avatars[event.owner.clerk_user_id] ?? event.owner.avatar ?? null,
+      },
+      collaborators: event.collaborators.map((member) => ({
+        ...member,
+        avatar: avatars[member.clerk_user_id] ?? member.avatar ?? null,
+      })),
+    }))
+  }, [loadAvatars])
 
   const loadEvents = useCallback(async (tokenOverride?: string) => {
     const token = tokenOverride ?? await getToken()
@@ -31,8 +91,9 @@ export function useBackendEvents() {
       token,
     })
 
-    setEvents(response.map(mapBackendCalendarEvent))
-  }, [getToken])
+    const enrichedResponse = await attachAvatarsToEvents(response)
+    setEvents(enrichedResponse.map(mapBackendCalendarEvent))
+  }, [attachAvatarsToEvents, getToken])
 
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
@@ -80,7 +141,8 @@ export function useBackendEvents() {
           list_ids: payload.listIds.map(Number),
         }),
       })
-      const nextEvent = mapBackendCalendarEvent(response)
+      const [enrichedResponse] = await attachAvatarsToEvents([response])
+      const nextEvent = mapBackendCalendarEvent(enrichedResponse)
       setEvents((prev) => sortEvents([...prev, nextEvent]))
       return nextEvent
     })
@@ -96,7 +158,39 @@ export function useBackendEvents() {
           list_ids: payload.listIds.map(Number),
         }),
       })
-      const nextEvent = mapBackendCalendarEvent(response)
+      const [enrichedResponse] = await attachAvatarsToEvents([response])
+      const nextEvent = mapBackendCalendarEvent(enrichedResponse)
+      setEvents((prev) =>
+        sortEvents(prev.map((event) => (event.id === nextEvent.id ? nextEvent : event)))
+      )
+      return nextEvent
+    })
+  }
+
+  async function shareEvent(eventId: string, payload: ShareEventPayload): Promise<CalendarEvent> {
+    return withToken(async (token) => {
+      const response = await apiRequest<BackendCalendarEvent>(`/api/events/${eventId}/share`, {
+        method: "POST",
+        token,
+        body: JSON.stringify(payload),
+      })
+      const [enrichedResponse] = await attachAvatarsToEvents([response])
+      const nextEvent = mapBackendCalendarEvent(enrichedResponse)
+      setEvents((prev) =>
+        sortEvents(prev.map((event) => (event.id === nextEvent.id ? nextEvent : event)))
+      )
+      return nextEvent
+    })
+  }
+
+  async function removeEventCollaborator(eventId: string, memberUserId: string): Promise<CalendarEvent> {
+    return withToken(async (token) => {
+      const response = await apiRequest<BackendCalendarEvent>(`/api/events/${eventId}/members/${memberUserId}`, {
+        method: "DELETE",
+        token,
+      })
+      const [enrichedResponse] = await attachAvatarsToEvents([response])
+      const nextEvent = mapBackendCalendarEvent(enrichedResponse)
       setEvents((prev) =>
         sortEvents(prev.map((event) => (event.id === nextEvent.id ? nextEvent : event)))
       )
@@ -119,6 +213,8 @@ export function useBackendEvents() {
     loadEvents,
     createEvent,
     updateEvent,
+    shareEvent,
+    removeEventCollaborator,
     deleteEvent,
   }
 }
