@@ -76,6 +76,9 @@ export function useListsTabActions(
     | "onDeleteMealPlanEntry"
     | "onDeleteSavedRecipe"
     | "onUnplanMealPlanEntry"
+    | "onShareEventWithFriend"
+    | "onShareEventWithGroup"
+    | "onRemoveEventCollaborator"
     | "onUpdateEvent"
     | "onUpdateMealPlanEntry"
   >,
@@ -381,6 +384,33 @@ export function useListsTabActions(
     state.setSelectedEvent(null)
   }
 
+  async function handleShareSelectedEventWithFriend(friendUserId: number) {
+    if (!state.selectedEvent) {
+      return
+    }
+
+    const updatedEvent = await props.onShareEventWithFriend(state.selectedEvent.id, friendUserId)
+    state.setSelectedEvent(updatedEvent)
+  }
+
+  async function handleShareSelectedEventWithGroup(groupId: number) {
+    if (!state.selectedEvent) {
+      return
+    }
+
+    const updatedEvent = await props.onShareEventWithGroup(state.selectedEvent.id, groupId)
+    state.setSelectedEvent(updatedEvent)
+  }
+
+  async function handleRemoveSelectedEventCollaborator(memberUserId: string) {
+    if (!state.selectedEvent) {
+      return
+    }
+
+    const updatedEvent = await props.onRemoveEventCollaborator(state.selectedEvent.id, memberUserId)
+    state.setSelectedEvent(updatedEvent)
+  }
+
   async function handleCreateEvent() {
     if (!state.eventForm.name.trim()) {
       return
@@ -444,11 +474,14 @@ export function useListsTabActions(
     handleCalendarDayClick,
     handleCreateEvent,
     handleCreateInlineListForEvent,
+    handleRemoveSelectedEventCollaborator,
     handlePlannerDayDrop,
     handleSavedBankDrop,
     handleSavedTabsPointerDown,
     handleSavedTabsPointerEnd,
     handleSavedTabsPointerMove,
+    handleShareSelectedEventWithFriend,
+    handleShareSelectedEventWithGroup,
     handleUpdateSelectedEvent,
     openEventDetail,
     openEventDialog,

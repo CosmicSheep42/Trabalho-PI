@@ -4,10 +4,14 @@ import { EditEventDialog } from "@/features/home/components/event-dialogs/edit-e
 import { RecipeRemovalAlert } from "@/features/home/components/event-dialogs/recipe-removal-alert"
 import type { ShopList } from "@/components/shoplist-banner"
 import type { CalendarEvent } from "@/features/events/types"
+import type { FriendGroup, FriendUser } from "@/features/friends/types"
 import type { EventFormState, EventInlineListFormState, PendingRemoval } from "./types"
 
 interface EventDialogsProps {
   allLists: ShopList[]
+  currentUserId: number | null
+  availableFriends: FriendUser[]
+  availableGroups: FriendGroup[]
   eventDialogOpen: boolean
   eventForm: EventFormState
   eventInlineListForm: EventInlineListFormState
@@ -22,6 +26,9 @@ interface EventDialogsProps {
   onCreateEvent: () => Promise<void>
   onCreateInlineListForEvent: () => Promise<void>
   onDeleteEvent: (eventId: string) => Promise<void>
+  onShareEventWithFriend: (friendUserId: number) => Promise<void>
+  onShareEventWithGroup: (groupId: number) => Promise<void>
+  onRemoveEventCollaborator: (memberUserId: string) => Promise<void>
   onEventDialogOpenChange: (open: boolean) => void
   onEventFormChange: (updater: (current: EventFormState) => EventFormState) => void
   onEventInlineListFormChange: (updater: (current: EventInlineListFormState) => EventInlineListFormState) => void
@@ -37,6 +44,9 @@ interface EventDialogsProps {
 
 export function EventDialogs({
   allLists,
+  currentUserId,
+  availableFriends,
+  availableGroups,
   eventDialogOpen,
   eventForm,
   eventInlineListForm,
@@ -51,6 +61,9 @@ export function EventDialogs({
   onCreateEvent,
   onCreateInlineListForEvent,
   onDeleteEvent,
+  onShareEventWithFriend,
+  onShareEventWithGroup,
+  onRemoveEventCollaborator,
   onEventDialogOpenChange,
   onEventFormChange,
   onEventInlineListFormChange,
@@ -91,11 +104,17 @@ export function EventDialogs({
 
       <EditEventDialog
         allLists={allLists}
+        currentUserId={currentUserId}
+        availableFriends={availableFriends}
+        availableGroups={availableGroups}
         selectedEvent={selectedEvent}
         selectedEventForm={selectedEventForm}
         onCloseSelectedEvent={onCloseSelectedEvent}
         onDeleteEvent={onDeleteEvent}
         onEventViewerOpenChange={onEventViewerOpenChange}
+        onShareWithFriend={onShareEventWithFriend}
+        onShareWithGroup={onShareEventWithGroup}
+        onRemoveCollaborator={onRemoveEventCollaborator}
         onSelectedEventFormChange={onSelectedEventFormChange}
         onToggleSelectedEventList={onToggleSelectedEventList}
         onUpdateSelectedEvent={onUpdateSelectedEvent}

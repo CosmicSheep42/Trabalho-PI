@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date as dt_date
 
 from pydantic import BaseModel, ConfigDict, Field
+from app.schemas.friend import FriendUserSummary
 
 
 class CalendarEventBase(BaseModel):
@@ -34,3 +35,11 @@ class CalendarEventResponse(BaseModel):
     icon: str
     date: dt_date
     list_ids: list[int]
+    owner: FriendUserSummary
+    collaborators: list[FriendUserSummary]
+
+
+class ShareEventPayload(BaseModel):
+    friend_user_id: int | None = None
+    friend_user_ids: list[int] = Field(default_factory=list)
+    group_ids: list[int] = Field(default_factory=list)

@@ -112,6 +112,9 @@ function ListsTabComponent(props: ListsTabProps) {
 
       <EventDialogs
         allLists={props.allLists}
+        currentUserId={props.currentUserId}
+        availableFriends={props.availableFriends}
+        availableGroups={props.availableGroups}
         eventDialogOpen={state.eventDialogOpen}
         eventForm={state.eventForm}
         eventInlineListForm={state.eventInlineListForm}
@@ -126,6 +129,9 @@ function ListsTabComponent(props: ListsTabProps) {
         onCreateEvent={actions.handleCreateEvent}
         onCreateInlineListForEvent={actions.handleCreateInlineListForEvent}
         onDeleteEvent={props.onDeleteEvent}
+        onShareEventWithFriend={actions.handleShareSelectedEventWithFriend}
+        onShareEventWithGroup={actions.handleShareSelectedEventWithGroup}
+        onRemoveEventCollaborator={actions.handleRemoveSelectedEventCollaborator}
         onEventDialogOpenChange={state.setEventDialogOpen}
         onEventFormChange={(updater) => state.setEventForm(updater)}
         onEventInlineListFormChange={(updater) => state.setEventInlineListForm(updater)}

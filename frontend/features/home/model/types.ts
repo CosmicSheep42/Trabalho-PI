@@ -110,6 +110,9 @@ export interface HomeListsModel {
   createEvent: HomeDataSources["events"]["createEvent"]
   updateEvent: HomeDataSources["events"]["updateEvent"]
   deleteEvent: HomeDataSources["events"]["deleteEvent"]
+  shareEventWithFriend: (eventId: string, friendUserId: number) => Promise<CalendarEvent>
+  shareEventWithGroup: (eventId: string, groupId: number) => Promise<CalendarEvent>
+  removeEventCollaborator: (eventId: string, memberUserId: string) => Promise<CalendarEvent>
   shareList: HomeDataSources["lists"]["shareList"]
   searchQuery: string
   setSearchQuery: (value: string) => void

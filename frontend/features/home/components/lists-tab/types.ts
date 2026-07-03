@@ -3,6 +3,7 @@
 import type * as React from "react"
 import type { ShopList } from "@/components/shoplist-banner"
 import type { CalendarEvent } from "@/features/events/types"
+import type { FriendGroup, FriendUser } from "@/features/friends/types"
 import type { DayOfWeek, MealPlanEntry } from "@/features/meal-planner/types"
 import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
 
@@ -12,6 +13,9 @@ export interface ListsTabProps {
   recipes: Recipe[]
   savedRecipes: Recipe[]
   events: CalendarEvent[]
+  currentUserId: number | null
+  availableFriends: FriendUser[]
+  availableGroups: FriendGroup[]
   mealPlanEntries: MealPlanEntry[]
   searchQuery: string
   onSearchQueryChange: (value: string) => void
@@ -57,6 +61,9 @@ export interface ListsTabProps {
     }
   ) => Promise<CalendarEvent>
   onDeleteEvent: (eventId: string) => Promise<void>
+  onShareEventWithFriend: (eventId: string, friendUserId: number) => Promise<CalendarEvent>
+  onShareEventWithGroup: (eventId: string, groupId: number) => Promise<CalendarEvent>
+  onRemoveEventCollaborator: (eventId: string, memberUserId: string) => Promise<CalendarEvent>
   onCreateListForEvent: (payload: {
     name: string
     color: string
