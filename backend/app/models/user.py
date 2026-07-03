@@ -36,6 +36,13 @@ class User(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    shared_list_memberships = relationship(
+        "ListMember",
+        foreign_keys="ListMember.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     favorite_recipe_links = relationship(
         "FavoriteRecipe",
         back_populates="user",

@@ -27,12 +27,12 @@ interface FriendsDialogProps {
   isLoading?: boolean
   isSearching?: boolean
   isSaving?: boolean
-  onSearch: (query: string) => Promise<void> | void
-  onSendRequest: (username: string) => Promise<void> | void
-  onAcceptRequest: (requestId: number) => Promise<void> | void
-  onDeclineRequest: (requestId: number) => Promise<void> | void
-  onCancelRequest: (requestId: number) => Promise<void> | void
-  onRemoveFriend: (friendUserId: number) => Promise<void> | void
+  onSearch: (query: string) => Promise<unknown> | void
+  onSendRequest: (username: string) => Promise<unknown> | void
+  onAcceptRequest: (requestId: number) => Promise<unknown> | void
+  onDeclineRequest: (requestId: number) => Promise<unknown> | void
+  onCancelRequest: (requestId: number) => Promise<unknown> | void
+  onRemoveFriend: (friendUserId: number) => Promise<unknown> | void
 }
 
 export function FriendsDialog({

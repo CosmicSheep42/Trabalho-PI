@@ -106,6 +106,7 @@ export interface HomeListsModel {
   createEvent: HomeDataSources["events"]["createEvent"]
   updateEvent: HomeDataSources["events"]["updateEvent"]
   deleteEvent: HomeDataSources["events"]["deleteEvent"]
+  shareList: HomeDataSources["lists"]["shareList"]
   searchQuery: string
   setSearchQuery: (value: string) => void
   openList: (list: ShopList) => void
@@ -126,6 +127,7 @@ export interface HomeListsModel {
     removeMealPlanRecipeCompletely: (entryId: string, recipeId: string) => Promise<void>
     changeListColor: (color: string) => Promise<void>
     changeListDate: (date: string | undefined) => Promise<void>
+    shareListWithFriend: (friendUserId: number) => Promise<void>
   }
 }
 

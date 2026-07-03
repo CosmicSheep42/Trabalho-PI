@@ -35,7 +35,7 @@ export function MyListsSection({
       <CardHeader className="min-h-16 border-b py-3">
         <CardTitle className="flex items-center gap-2 text-xl leading-none">
           <Pin className="h-6 w-6 shrink-0 text-primary" />
-          My Lists
+          Lists
         </CardTitle>
         <CardAction className="static col-auto row-auto self-center justify-self-stretch sm:justify-self-end">
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -75,7 +75,7 @@ export function MyListsSection({
               <ShoppingCart className="mb-4 h-12 w-12 text-muted-foreground/50" />
               <h3 className="mb-2 text-lg font-medium">No lists yet</h3>
               <p className="mb-4 text-muted-foreground">
-                Create a shopping list, or start planning meals directly below.
+                Create a shopping list or wait for a friend to share one with you.
               </p>
               <Button onClick={onCreateList}>
                 <Plus className="mr-2 h-4 w-4" />

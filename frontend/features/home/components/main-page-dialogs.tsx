@@ -42,6 +42,7 @@ export function MainPageDialogs({
         list={lists.selectedList}
         items={lists.selectedList ? lists.listItems[lists.selectedList.id] || [] : []}
         linkedRecipes={lists.selectedList ? lists.linkedRecipes(lists.selectedList) : []}
+        availableFriends={social.friends}
         open={shell.listDialogOpen}
         onOpenChange={shell.setListDialogOpen}
         onToggleItem={lists.actions.toggleItem}
@@ -53,6 +54,7 @@ export function MainPageDialogs({
         onRemoveRecipe={lists.actions.removeRecipeFromList}
         onChangeColor={lists.actions.changeListColor}
         onChangeDate={lists.actions.changeListDate}
+        onShareWithFriend={lists.actions.shareListWithFriend}
       />
 
       <ProfileDialog

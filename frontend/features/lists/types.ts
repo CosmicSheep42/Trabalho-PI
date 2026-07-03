@@ -19,9 +19,18 @@ export interface BackendList {
   name: string
   color: string
   date: string | null
+  owner: BackendListUser
+  collaborators: BackendListUser[]
   items: BackendListItem[]
   recipe_ids: number[]
   list_recipes: BackendListRecipe[]
+}
+
+export interface BackendListUser {
+  id: number
+  username: string
+  clerk_user_id: string
+  avatar?: string | null
 }
 
 export interface BackendListRecipe {
@@ -32,4 +41,11 @@ export interface BackendListRecipe {
 export interface ListRecipeLink {
   recipeId: string
   servings: number | null
+}
+
+export interface ListMemberUser {
+  id: string
+  username: string
+  clerkUserId: string
+  avatar?: string | null
 }

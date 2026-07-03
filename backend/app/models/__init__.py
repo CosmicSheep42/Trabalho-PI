@@ -5,6 +5,7 @@ from app.models.friendship import Friendship
 from app.models.friendship_request import FriendshipRequest
 from app.models.holiday import Holiday
 from app.models.list_item import ListItem
+from app.models.list_member import ListMember
 from app.models.list_recipe import ListRecipe
 from app.models.meal_plan_entry import MealPlanEntry
 from app.models.recipe import Recipe
@@ -25,6 +26,7 @@ __all__ = [
     "FriendshipRequest",
     "Holiday",
     "ListItem",
+    "ListMember",
     "ListRecipe",
     "MealPlanEntry",
     "Recipe",

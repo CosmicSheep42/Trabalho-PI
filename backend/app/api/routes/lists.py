@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from sqlalchemy import or_
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_db, get_or_create_current_user
 from app.core.normalization import normalize_item_name
+from app.core.time import utc_now_naive
+from app.models.friendship import Friendship
 from app.models.list_item import ListItem
+from app.models.list_member import ListMember
 from app.models.list_recipe import ListRecipe
 from app.models.recipe import Recipe
 from app.models.saved_recipe import SavedRecipe
@@ -17,6 +21,7 @@ from app.schemas.list import (
     ListRecipeCreate,
     ListItemResponse,
     ListItemUpdate,
+    ShareListPayload,
     ShoppingListCreate,
     ShoppingListResponse,
     ShoppingListUpdate,
@@ -26,29 +31,56 @@ from app.schemas.list import (
 router = APIRouter(prefix="/lists", tags=["lists"])
 
 
-def _get_owned_list_query(db: Session, user_id: int):
+def _pair_ids(left_user_id: int, right_user_id: int) -> tuple[int, int]:
+    return (left_user_id, right_user_id) if left_user_id < right_user_id else (right_user_id, left_user_id)
+
+
+def _are_friends(db: Session, left_user_id: int, right_user_id: int) -> bool:
+    user_one_id, user_two_id = _pair_ids(left_user_id, right_user_id)
+    friendship = (
+        db.query(Friendship)
+        .filter(Friendship.user_one_id == user_one_id, Friendship.user_two_id == user_two_id)
+        .first()
+    )
+    return friendship is not None
+
+
+def _get_accessible_list_query(db: Session, user_id: int):
     return (
         db.query(ShoppingList)
         .options(
+            selectinload(ShoppingList.user),
             selectinload(ShoppingList.items),
             selectinload(ShoppingList.recipe_links),
+            selectinload(ShoppingList.shared_memberships).selectinload(ListMember.user),
         )
-        .filter(ShoppingList.user_id == user_id)
+        .filter(
+            or_(
+                ShoppingList.user_id == user_id,
+                ShoppingList.shared_memberships.any(ListMember.user_id == user_id),
+            )
+        )
     )
 
 
-def _get_owned_list(db: Session, user_id: int, list_id: int) -> ShoppingList:
-    shopping_list = _get_owned_list_query(db, user_id).filter(ShoppingList.id == list_id).first()
+def _get_accessible_list(db: Session, user_id: int, list_id: int) -> ShoppingList:
+    shopping_list = _get_accessible_list_query(db, user_id).filter(ShoppingList.id == list_id).first()
     if not shopping_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
     return shopping_list
 
 
-def _get_owned_item(db: Session, user_id: int, item_id: int) -> ListItem:
+def _get_accessible_item(db: Session, user_id: int, item_id: int) -> ListItem:
     item = (
         db.query(ListItem)
         .join(ShoppingList, ListItem.list_id == ShoppingList.id)
-        .filter(ListItem.id == item_id, ShoppingList.user_id == user_id)
+        .filter(
+            ListItem.id == item_id,
+            or_(
+                ShoppingList.user_id == user_id,
+                ShoppingList.shared_memberships.any(ListMember.user_id == user_id),
+            ),
+        )
         .first()
     )
     if not item:
@@ -195,7 +227,7 @@ def get_lists(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> list[ShoppingList]:
-    return _get_owned_list_query(db, current_user.id).order_by(ShoppingList.id.desc()).all()
+    return _get_accessible_list_query(db, current_user.id).order_by(ShoppingList.id.desc()).all()
 
 
 @router.post("", response_model=ShoppingListResponse, status_code=status.HTTP_201_CREATED)
@@ -207,7 +239,7 @@ def create_list(
     shopping_list = ShoppingList(user_id=current_user.id, **payload.model_dump())
     db.add(shopping_list)
     db.commit()
-    return _get_owned_list(db, current_user.id, shopping_list.id)
+    return _get_accessible_list(db, current_user.id, shopping_list.id)
 
 
 @router.patch("/{list_id}", response_model=ShoppingListResponse)
@@ -217,14 +249,14 @@ def update_list(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> ShoppingList:
-    shopping_list = _get_owned_list(db, current_user.id, list_id)
+    shopping_list = _get_accessible_list(db, current_user.id, list_id)
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(shopping_list, field, value)
 
     db.add(shopping_list)
     db.commit()
-    return _get_owned_list(db, current_user.id, list_id)
+    return _get_accessible_list(db, current_user.id, list_id)
 
 
 @router.delete("/{list_id}")
@@ -233,10 +265,51 @@ def delete_list(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, bool]:
-    shopping_list = _get_owned_list(db, current_user.id, list_id)
+    shopping_list = _get_accessible_list(db, current_user.id, list_id)
     db.delete(shopping_list)
     db.commit()
     return {"success": True}
+
+
+@router.post("/{list_id}/share", response_model=ShoppingListResponse)
+def share_list_with_friend(
+    list_id: int,
+    payload: ShareListPayload,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> ShoppingList:
+    shopping_list = _get_accessible_list(db, current_user.id, list_id)
+
+    if payload.friend_user_id == current_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You already have access to this list")
+    if payload.friend_user_id == shopping_list.user_id:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This user already has access to this list")
+
+    friend_user = db.query(User).filter(User.id == payload.friend_user_id).first()
+    if not friend_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Friend not found")
+
+    if not _are_friends(db, current_user.id, friend_user.id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only share lists with friends")
+
+    existing_membership = (
+        db.query(ListMember)
+        .filter(ListMember.list_id == list_id, ListMember.user_id == friend_user.id)
+        .first()
+    )
+    if existing_membership is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This friend already has access to the list")
+
+    db.add(
+        ListMember(
+            list_id=shopping_list.id,
+            user_id=friend_user.id,
+            invited_by_user_id=current_user.id,
+            created_at=utc_now_naive(),
+        )
+    )
+    db.commit()
+    return _get_accessible_list(db, current_user.id, shopping_list.id)
 
 
 @router.post("/{list_id}/items", response_model=ListItemResponse, status_code=status.HTTP_201_CREATED)
@@ -246,7 +319,7 @@ def create_list_item(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> ListItem:
-    _get_owned_list(db, current_user.id, list_id)
+    _get_accessible_list(db, current_user.id, list_id)
 
     item = ListItem(list_id=list_id, **payload.model_dump())
     db.add(item)
@@ -263,7 +336,7 @@ def add_recipe_to_list(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> ShoppingList:
-    shopping_list = _get_owned_list(db, current_user.id, list_id)
+    shopping_list = _get_accessible_list(db, current_user.id, list_id)
 
     recipe = _get_recipe_with_ingredients_or_404(db, recipe_id)
     resolved_servings = _resolve_list_recipe_servings(
@@ -284,14 +357,14 @@ def add_recipe_to_list(
             _merge_recipe_ingredients_into_list(db, shopping_list, recipe, existing_link.servings)
             db.add(existing_link)
         db.commit()
-        return _get_owned_list(db, current_user.id, shopping_list.id)
+        return _get_accessible_list(db, current_user.id, shopping_list.id)
 
     db.add(ListRecipe(list_id=list_id, recipe_id=recipe_id, servings=resolved_servings))
     _merge_recipe_ingredients_into_list(db, shopping_list, recipe, resolved_servings)
     _upsert_saved_recipe(db, current_user.id, recipe_id, resolved_servings)
     db.commit()
 
-    return _get_owned_list(db, current_user.id, shopping_list.id)
+    return _get_accessible_list(db, current_user.id, shopping_list.id)
 
 
 @router.delete("/{list_id}/recipes/{recipe_id}", response_model=ShoppingListResponse)
@@ -301,7 +374,7 @@ def remove_recipe_from_list(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> ShoppingList:
-    shopping_list = _get_owned_list(db, current_user.id, list_id)
+    shopping_list = _get_accessible_list(db, current_user.id, list_id)
     recipe = _get_recipe_with_ingredients_or_404(db, recipe_id)
 
     link = (
@@ -314,7 +387,7 @@ def remove_recipe_from_list(
         _subtract_recipe_ingredients_from_list(db, shopping_list, recipe, link.servings)
         db.commit()
 
-    return _get_owned_list(db, current_user.id, shopping_list.id)
+    return _get_accessible_list(db, current_user.id, shopping_list.id)
 
 
 @router.post("/{list_id}/items/bulk-delete")
@@ -324,7 +397,7 @@ def bulk_delete_list_items(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, bool]:
-    _get_owned_list(db, current_user.id, list_id)
+    _get_accessible_list(db, current_user.id, list_id)
 
     if payload.item_ids:
         (
@@ -344,7 +417,7 @@ def update_list_item(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> ListItem:
-    item = _get_owned_item(db, current_user.id, item_id)
+    item = _get_accessible_item(db, current_user.id, item_id)
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(item, field, value)
@@ -361,7 +434,7 @@ def delete_list_item(
     current_user: User = Depends(get_or_create_current_user),
     db: Session = Depends(get_db),
 ) -> dict[str, bool]:
-    item = _get_owned_item(db, current_user.id, item_id)
+    item = _get_accessible_item(db, current_user.id, item_id)
     db.delete(item)
     db.commit()
     return {"success": True}

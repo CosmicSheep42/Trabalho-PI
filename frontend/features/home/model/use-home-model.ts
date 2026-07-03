@@ -155,6 +155,7 @@ export function useHomeModel(): HomeScreenModel {
       createEvent: data.events.createEvent,
       updateEvent: data.events.updateEvent,
       deleteEvent: data.events.deleteEvent,
+      shareList: data.lists.shareList,
       searchQuery: ui.listSearchQuery,
       setSearchQuery: ui.setListSearchQuery,
       openList: actions.openList,

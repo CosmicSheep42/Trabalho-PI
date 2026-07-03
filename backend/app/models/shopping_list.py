@@ -22,6 +22,12 @@ class ShoppingList(Base):
     date: Mapped[dt_date | None] = mapped_column(Date, nullable=True)
 
     user = relationship("User", back_populates="lists")
+    shared_memberships = relationship(
+        "ListMember",
+        back_populates="shopping_list",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     items = relationship(
         "ListItem",
         back_populates="shopping_list",
@@ -49,6 +55,14 @@ class ShoppingList(Base):
     @property
     def recipe_ids(self) -> list[int]:
         return [link.recipe_id for link in self.recipe_links]
+
+    @property
+    def owner(self):
+        return self.user
+
+    @property
+    def collaborators(self):
+        return [membership.user for membership in self.shared_memberships if membership.user is not None]
 
     @property
     def list_recipes(self):
