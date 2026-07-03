@@ -25,14 +25,14 @@ export interface ShopList {
 }
 
 const colorClasses: Record<string, string> = {
-  green: "bg-green-800/30 border-green-700/50",
-  blue: "bg-blue-800/30 border-blue-700/50",
-  purple: "bg-purple-800/30 border-purple-700/50",
-  orange: "bg-orange-800/30 border-orange-700/50",
-  pink: "bg-pink-800/30 border-pink-700/50",
-  cyan: "bg-cyan-800/30 border-cyan-700/50",
-  amber: "bg-amber-800/30 border-amber-700/50",
-  rose: "bg-rose-800/30 border-rose-700/50",
+  green: "bg-emerald-100/90 border-emerald-300/70 dark:bg-emerald-950/55 dark:border-emerald-800/70",
+  blue: "bg-sky-100/90 border-sky-300/70 dark:bg-sky-950/55 dark:border-sky-800/70",
+  purple: "bg-violet-100/90 border-violet-300/70 dark:bg-violet-950/55 dark:border-violet-800/70",
+  orange: "bg-orange-100/90 border-orange-300/70 dark:bg-orange-950/55 dark:border-orange-800/70",
+  pink: "bg-pink-100/90 border-pink-300/70 dark:bg-pink-950/55 dark:border-pink-800/70",
+  cyan: "bg-teal-100/90 border-teal-300/70 dark:bg-teal-950/55 dark:border-teal-800/70",
+  amber: "bg-amber-100/90 border-amber-300/70 dark:bg-amber-950/55 dark:border-amber-800/70",
+  rose: "bg-rose-100/90 border-rose-300/70 dark:bg-rose-950/55 dark:border-rose-800/70",
 }
 
 interface ShopListBannerProps {
