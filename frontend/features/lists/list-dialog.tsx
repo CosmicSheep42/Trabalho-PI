@@ -1,7 +1,19 @@
 "use client"
 
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { useMemo, useState } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ShopList } from "@/components/shoplist-banner"
+import type { FriendGroup, FriendUser } from "@/features/friends/types"
 import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
 import type { ListItem } from "@/features/lists/types"
 import { DeleteItemsDialog } from "@/features/lists/list-dialog/delete-items-dialog"
@@ -25,6 +37,10 @@ interface ListDialogProps {
   onRemoveRecipe: (recipeId: string) => void
   onChangeColor: (color: string) => void
   onChangeDate?: (date: string | undefined) => void
+  availableFriends: FriendUser[]
+  availableGroups: FriendGroup[]
+  onShareWithFriend: (friendUserId: number) => Promise<void>
+  onShareWithGroup: (groupId: number) => Promise<void>
 }
 
 export function ListDialog({
@@ -42,8 +58,29 @@ export function ListDialog({
   onRemoveRecipe,
   onChangeColor,
   onChangeDate,
+  availableFriends,
+  availableGroups,
+  onShareWithFriend,
+  onShareWithGroup,
 }: ListDialogProps) {
   const state = useListDialogState()
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [selectedFriendId, setSelectedFriendId] = useState("")
+  const [selectedGroupId, setSelectedGroupId] = useState("")
+  const [shareError, setShareError] = useState<string | null>(null)
+  const [isSharing, setIsSharing] = useState(false)
+
+  const shareableFriends = useMemo(() => {
+    if (!list) {
+      return []
+    }
+    const memberIds = new Set([list.owner.id, ...list.collaborators.map((member) => member.id)])
+    return availableFriends.filter((friend) => !memberIds.has(String(friend.id)))
+  }, [availableFriends, list])
+  const shareableGroups = useMemo(
+    () => availableGroups.filter((group) => group.members.length > 0),
+    [availableGroups]
+  )
 
   if (!list) return null
 
@@ -85,6 +122,44 @@ export function ListDialog({
   const checkedCount = items.filter((item) => item.checked).length
   const isSelectionMode = state.selectedItems.size > 0
 
+  async function handleShareList() {
+    if (!selectedFriendId) {
+      setShareError("Select a friend to invite.")
+      return
+    }
+
+    setIsSharing(true)
+    try {
+      setShareError(null)
+      await onShareWithFriend(Number(selectedFriendId))
+      setSelectedFriendId("")
+      setShareDialogOpen(false)
+    } catch (error) {
+      setShareError(error instanceof Error ? error.message : "Unable to share the list.")
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  async function handleShareGroup() {
+    if (!selectedGroupId) {
+      setShareError("Select a group to invite.")
+      return
+    }
+
+    setIsSharing(true)
+    try {
+      setShareError(null)
+      await onShareWithGroup(Number(selectedGroupId))
+      setSelectedGroupId("")
+      setShareDialogOpen(false)
+    } catch (error) {
+      setShareError(error instanceof Error ? error.message : "Unable to share the list.")
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,6 +170,7 @@ export function ListDialog({
             list={list}
             onChangeColor={onChangeColor}
             onChangeDate={onChangeDate}
+            onShareClick={() => setShareDialogOpen(true)}
             onColorPickerOpenChange={state.setColorPickerOpen}
             onDatePickerOpenChange={state.setDatePickerOpen}
           />
@@ -134,6 +210,110 @@ export function ListDialog({
             onToggleSelectItem={state.toggleSelectItem}
             onCancelEdit={state.cancelEdit}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={shareDialogOpen}
+        onOpenChange={(nextOpen) => {
+          setShareDialogOpen(nextOpen)
+          if (!nextOpen) {
+            setSelectedFriendId("")
+            setSelectedGroupId("")
+            setShareError(null)
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share list</DialogTitle>
+            <DialogDescription>
+              Invite one of your friends to collaborate on this list.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-sm font-medium">People with access</p>
+              <div className="mt-3 space-y-2">
+                {[list.owner, ...list.collaborators].map((member) => (
+                  <div key={member.id} className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={member.avatar ?? undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {member.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">@{member.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {shareableFriends.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Invite a friend</p>
+                <Select value={selectedFriendId} onValueChange={(value) => {
+                  setSelectedFriendId(value)
+                  setSelectedGroupId("")
+                }}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a friend" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shareableFriends.map((friend) => (
+                      <SelectItem key={friend.id} value={String(friend.id)}>
+                        @{friend.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
+            {shareableGroups.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Invite a group</p>
+                <Select value={selectedGroupId} onValueChange={(value) => {
+                  setSelectedGroupId(value)
+                  setSelectedFriendId("")
+                }}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shareableGroups.map((group) => (
+                      <SelectItem key={group.id} value={String(group.id)}>
+                        {group.name} ({group.members.length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
+            {shareableFriends.length === 0 && shareableGroups.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                You do not have friends or groups available to invite.
+              </p>
+            ) : null}
+
+            {shareError ? <p className="text-sm text-destructive">{shareError}</p> : null}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void (selectedGroupId ? handleShareGroup() : handleShareList())}
+              disabled={isSharing || (shareableFriends.length === 0 && shareableGroups.length === 0)}
+            >
+              {isSharing ? "Inviting..." : "Invite"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

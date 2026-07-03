@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date as dt_date
 from pydantic import BaseModel, ConfigDict, Field
+from app.schemas.friend import FriendUserSummary
 
 
 class ListItemBase(BaseModel):
@@ -60,6 +61,8 @@ class ShoppingListResponse(ShoppingListBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    owner: FriendUserSummary
+    collaborators: list[FriendUserSummary]
     items: list[ListItemResponse]
     recipe_ids: list[int]
     list_recipes: list[ListRecipeResponse]
@@ -67,3 +70,9 @@ class ShoppingListResponse(ShoppingListBase):
 
 class BulkDeleteListItemsPayload(BaseModel):
     item_ids: list[int]
+
+
+class ShareListPayload(BaseModel):
+    friend_user_id: int | None = None
+    friend_user_ids: list[int] = Field(default_factory=list)
+    group_ids: list[int] = Field(default_factory=list)

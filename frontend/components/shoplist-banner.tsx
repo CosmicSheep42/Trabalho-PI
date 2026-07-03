@@ -10,12 +10,15 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import type { ListMemberUser } from "@/features/lists/types"
 
 export interface ShopList {
   id: string
   name: string
   color: string
   itemCount: number
+  owner: ListMemberUser
+  collaborators: ListMemberUser[]
   linkedRecipeIds?: string[]
   listRecipes?: { recipeId: string; servings: number | null }[]
   date?: string // ISO date string, optional
@@ -68,9 +71,17 @@ export function ShopListBanner({
               Pinned
             </Badge>
           )}
+          {list.collaborators.length > 0 && (
+            <Badge variant="secondary" className="bg-background/70">
+              Shared
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
           <span>{list.itemCount} {list.itemCount === 1 ? "item" : "items"}</span>
+          {list.collaborators.length > 0 && (
+            <span className="truncate">Owner: @{list.owner.username}</span>
+          )}
           {list.linkedRecipeIds && list.linkedRecipeIds.length > 0 && (
             <span className="flex items-center gap-1">
               <BookOpen className="h-3.5 w-3.5" />

@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.api.deps import get_or_create_current_user
 from app.core.time import utc_now_naive
 from app.db.session import get_db
+from app.models.friend_group import FriendGroup
+from app.models.friend_group_member import FriendGroupMember
 from app.models.friendship import Friendship
 from app.models.friendship_request import FriendshipRequest
 from app.models.user import User
 from app.schemas.friend import (
+    FriendGroupPayload,
+    FriendGroupSummary,
     FriendSearchResult,
     FriendsOverviewResponse,
     FriendshipRequestPayload,
@@ -63,6 +67,16 @@ def _build_request_summary(request: FriendshipRequest, other_user: User) -> Frie
         created_at=request.created_at,
         user=_build_user_summary(other_user),
     )
+
+
+def _build_group_summary(group: FriendGroup) -> FriendGroupSummary:
+    members = [
+        _build_user_summary(member.friend_user)
+        for member in group.members
+        if member.friend_user is not None
+    ]
+    members.sort(key=lambda user: (user.username.lower(), user.id))
+    return FriendGroupSummary(id=group.id, name=group.name, members=members)
 
 
 @router.get("", response_model=FriendsOverviewResponse)
@@ -134,11 +148,19 @@ def get_friends_overview(
         for request in outgoing_rows
         if request.addressee_id in request_users_by_id
     ]
+    groups = (
+        db.query(FriendGroup)
+        .options(selectinload(FriendGroup.members).selectinload(FriendGroupMember.friend_user))
+        .filter(FriendGroup.user_id == current_user.id)
+        .order_by(func.lower(FriendGroup.name).asc(), FriendGroup.id.asc())
+        .all()
+    )
 
     return FriendsOverviewResponse(
         friends=friends,
         incoming_requests=incoming_requests,
         outgoing_requests=outgoing_requests,
+        groups=[_build_group_summary(group) for group in groups],
     )
 
 
@@ -359,5 +381,109 @@ def remove_friendship(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Friendship not found")
 
     db.delete(friendship)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/groups", response_model=FriendGroupSummary, status_code=status.HTTP_201_CREATED)
+def create_friend_group(
+    payload: FriendGroupPayload,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> FriendGroupSummary:
+    group_name = payload.name.strip()
+    if not group_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Group name is required")
+
+    friend_ids = sorted(set(payload.friend_user_ids))
+    for friend_user_id in friend_ids:
+        if not _find_friendship(db, current_user.id, friend_user_id):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Groups can only include your friends")
+
+    now = utc_now_naive()
+    group = FriendGroup(
+        user_id=current_user.id,
+        name=group_name,
+        created_at=now,
+        updated_at=now,
+    )
+    db.add(group)
+    db.flush()
+
+    for friend_user_id in friend_ids:
+        db.add(FriendGroupMember(group_id=group.id, friend_user_id=friend_user_id))
+
+    db.commit()
+    group = (
+        db.query(FriendGroup)
+        .options(selectinload(FriendGroup.members).selectinload(FriendGroupMember.friend_user))
+        .filter(FriendGroup.id == group.id, FriendGroup.user_id == current_user.id)
+        .first()
+    )
+    if not group:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to load created group")
+    return _build_group_summary(group)
+
+
+@router.patch("/groups/{group_id}", response_model=FriendGroupSummary)
+def update_friend_group(
+    group_id: int,
+    payload: FriendGroupPayload,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> FriendGroupSummary:
+    group = (
+        db.query(FriendGroup)
+        .options(selectinload(FriendGroup.members))
+        .filter(FriendGroup.id == group_id, FriendGroup.user_id == current_user.id)
+        .first()
+    )
+    if not group:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")
+
+    group_name = payload.name.strip()
+    if not group_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Group name is required")
+
+    friend_ids = sorted(set(payload.friend_user_ids))
+    for friend_user_id in friend_ids:
+        if not _find_friendship(db, current_user.id, friend_user_id):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Groups can only include your friends")
+
+    group.name = group_name
+    group.updated_at = utc_now_naive()
+    db.add(group)
+
+    (
+        db.query(FriendGroupMember)
+        .filter(FriendGroupMember.group_id == group.id)
+        .delete(synchronize_session=False)
+    )
+    for friend_user_id in friend_ids:
+        db.add(FriendGroupMember(group_id=group.id, friend_user_id=friend_user_id))
+
+    db.commit()
+    group = (
+        db.query(FriendGroup)
+        .options(selectinload(FriendGroup.members).selectinload(FriendGroupMember.friend_user))
+        .filter(FriendGroup.id == group.id, FriendGroup.user_id == current_user.id)
+        .first()
+    )
+    if not group:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to load updated group")
+    return _build_group_summary(group)
+
+
+@router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def delete_friend_group(
+    group_id: int,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> Response:
+    group = db.query(FriendGroup).filter(FriendGroup.id == group_id, FriendGroup.user_id == current_user.id).first()
+    if not group:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")
+
+    db.delete(group)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

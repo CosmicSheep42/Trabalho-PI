@@ -126,6 +126,7 @@ export function useHomeModel(): HomeScreenModel {
     },
     social: {
       friends: data.friends.friends,
+      friendGroups: data.friends.friendGroups,
       incomingFriendRequests: data.friends.incomingFriendRequests,
       outgoingFriendRequests: data.friends.outgoingFriendRequests,
       searchResults: data.friends.searchResults,
@@ -138,6 +139,9 @@ export function useHomeModel(): HomeScreenModel {
       declineFriendRequest: data.friends.declineFriendRequest,
       cancelFriendRequest: data.friends.cancelFriendRequest,
       removeFriend: data.friends.removeFriend,
+      createFriendGroup: data.friends.createFriendGroup,
+      updateFriendGroup: data.friends.updateFriendGroup,
+      deleteFriendGroup: data.friends.deleteFriendGroup,
     },
     lists: {
       lists: data.lists.lists,
@@ -155,6 +159,7 @@ export function useHomeModel(): HomeScreenModel {
       createEvent: data.events.createEvent,
       updateEvent: data.events.updateEvent,
       deleteEvent: data.events.deleteEvent,
+      shareList: data.lists.shareList,
       searchQuery: ui.listSearchQuery,
       setSearchQuery: ui.setListSearchQuery,
       openList: actions.openList,

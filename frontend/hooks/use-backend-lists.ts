@@ -1,19 +1,31 @@
 "use client"
 
 import { useAuth } from "@clerk/nextjs"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import type { ShopList } from "@/components/shoplist-banner"
 import { apiRequest } from "@/lib/api"
 import type {
   BackendList,
   BackendListItem,
+  BackendListUser,
   ListItem,
+  ListMemberUser,
 } from "@/features/lists/types"
 
 interface ListPayload {
   name: string
   color: string
   date?: string | null
+}
+
+interface ShareListPayload {
+  friend_user_id?: number | null
+  friend_user_ids?: number[]
+  group_ids?: number[]
+}
+
+interface FriendAvatarsResponse {
+  avatars: Record<string, string>
 }
 
 interface ListItemPayload {
@@ -66,12 +78,30 @@ function mapBackendItem(item: BackendListItem): ListItem {
   }
 }
 
+function attachAvatarToBackendListUser(user: BackendListUser, avatars: Record<string, string>): BackendListUser {
+  return {
+    ...user,
+    avatar: avatars[user.clerk_user_id] ?? user.avatar ?? null,
+  }
+}
+
+function mapBackendListUser(user: BackendListUser): ListMemberUser {
+  return {
+    id: String(user.id),
+    username: user.username,
+    clerkUserId: user.clerk_user_id,
+    avatar: user.avatar ?? null,
+  }
+}
+
 function mapBackendList(list: BackendList): ShopList {
   return {
     id: String(list.id),
     name: list.name,
     color: list.color,
     itemCount: list.items.length,
+    owner: mapBackendListUser(list.owner),
+    collaborators: list.collaborators.map(mapBackendListUser),
     linkedRecipeIds: list.recipe_ids.map(String),
     listRecipes: list.list_recipes.map((link) => ({
       recipeId: String(link.recipe_id),
@@ -96,6 +126,50 @@ export function useBackendLists() {
   const [listItems, setListItems] = useState<Record<string, ListItem[]>>({})
   const [isLoadingLists, setIsLoadingLists] = useState(false)
 
+  const loadAvatars = useCallback(async (clerkUserIds: string[]) => {
+    try {
+      const response = await fetch("/api/friend-avatars", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ clerkUserIds }),
+      })
+
+      if (!response.ok) {
+        return {}
+      }
+
+      const { avatars } = await response.json() as FriendAvatarsResponse
+      return avatars
+    } catch (error) {
+      console.error("Failed to load list member avatars", error)
+      return {}
+    }
+  }, [])
+
+  const attachAvatarsToLists = useCallback(async (lists: BackendList[]) => {
+    const clerkUserIds = Array.from(
+      new Set(
+        lists.flatMap((list) => [
+          list.owner.clerk_user_id,
+          ...list.collaborators.map((member) => member.clerk_user_id),
+        ]).filter(Boolean)
+      )
+    )
+
+    if (clerkUserIds.length === 0) {
+      return lists
+    }
+
+    const avatars = await loadAvatars(clerkUserIds)
+    return lists.map((list) => ({
+      ...list,
+      owner: attachAvatarToBackendListUser(list.owner, avatars),
+      collaborators: list.collaborators.map((member) => attachAvatarToBackendListUser(member, avatars)),
+    }))
+  }, [loadAvatars])
+
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
       return
@@ -118,7 +192,8 @@ export function useBackendLists() {
         })
 
         if (!isCancelled) {
-          const nextState = buildListState(response)
+          const enrichedLists = await attachAvatarsToLists(response)
+          const nextState = buildListState(enrichedLists)
           setLists(nextState.lists)
           setListItems(nextState.listItems)
         }
@@ -138,7 +213,7 @@ export function useBackendLists() {
     return () => {
       isCancelled = true
     }
-  }, [getToken, isAuthLoaded, isSignedIn])
+  }, [attachAvatarsToLists, getToken, isAuthLoaded, isSignedIn])
 
   async function withToken<T>(callback: (token: string) => Promise<T>) {
     const token = await getToken()
@@ -149,8 +224,9 @@ export function useBackendLists() {
     return callback(token)
   }
 
-  function syncListResponse(response: BackendList): ShopList {
-    const nextList = mapBackendList(response)
+  async function syncListResponse(response: BackendList): Promise<ShopList> {
+    const [enrichedResponse] = await attachAvatarsToLists([response])
+    const nextList = mapBackendList(enrichedResponse)
     setLists((prev) => {
       const exists = prev.some((list) => list.id === nextList.id)
       if (!exists) {
@@ -160,7 +236,7 @@ export function useBackendLists() {
     })
     setListItems((prev) => ({
       ...prev,
-      [nextList.id]: response.items.map(mapBackendItem),
+      [nextList.id]: enrichedResponse.items.map(mapBackendItem),
     }))
     return nextList
   }
@@ -174,7 +250,7 @@ export function useBackendLists() {
       })
     )
 
-    return syncListResponse(response)
+    return await syncListResponse(response)
   }
 
   async function updateList(listId: string, payload: Partial<ListPayload>): Promise<ShopList> {
@@ -186,7 +262,19 @@ export function useBackendLists() {
       })
     )
 
-    return syncListResponse(response)
+    return await syncListResponse(response)
+  }
+
+  async function shareList(listId: string, payload: ShareListPayload): Promise<ShopList> {
+    const response = await withToken((token) =>
+      apiRequest<BackendList>(`/api/lists/${listId}/share`, {
+        method: "POST",
+        token,
+        body: JSON.stringify(payload),
+      })
+    )
+
+    return await syncListResponse(response)
   }
 
   async function deleteList(listId: string): Promise<void> {
@@ -318,7 +406,7 @@ export function useBackendLists() {
       })
     )
 
-    syncListResponse(response)
+    await syncListResponse(response)
   }
 
   async function removeRecipeFromList(listId: string, recipeId: string): Promise<void> {
@@ -329,7 +417,7 @@ export function useBackendLists() {
       })
     )
 
-    syncListResponse(response)
+    await syncListResponse(response)
   }
 
   return {
@@ -339,6 +427,7 @@ export function useBackendLists() {
     syncListResponse,
     createList,
     updateList,
+    shareList,
     deleteList,
     addItem,
     updateItem,

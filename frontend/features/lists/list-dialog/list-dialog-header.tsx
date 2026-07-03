@@ -1,6 +1,7 @@
 "use client"
 
-import { Calendar, Palette } from "lucide-react"
+import { Calendar, Palette, UserPlus, Users } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -25,6 +26,7 @@ interface ListDialogHeaderProps {
   list: ShopList
   onChangeColor: (color: string) => void
   onChangeDate?: (date: string | undefined) => void
+  onShareClick: () => void
   onColorPickerOpenChange: (open: boolean) => void
   onDatePickerOpenChange: (open: boolean) => void
 }
@@ -35,6 +37,7 @@ export function ListDialogHeader({
   list,
   onChangeColor,
   onChangeDate,
+  onShareClick,
   onColorPickerOpenChange,
   onDatePickerOpenChange,
 }: ListDialogHeaderProps) {
@@ -43,8 +46,23 @@ export function ListDialogHeader({
   return (
     <DialogHeader>
       <div className="flex items-center justify-between">
-        <DialogTitle className="text-xl">{list.name}</DialogTitle>
+        <div className="min-w-0">
+          <DialogTitle className="truncate text-xl">{list.name}</DialogTitle>
+          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="truncate">Owner: @{list.owner.username}</span>
+            {list.collaborators.length > 0 ? (
+              <Badge variant="secondary" className="gap-1 bg-secondary/70 text-xs">
+                <Users className="h-3 w-3" />
+                {list.collaborators.length + 1} members
+              </Badge>
+            ) : null}
+          </div>
+        </div>
         <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={onShareClick}>
+            <UserPlus className="h-4 w-4" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
           <Popover open={datePickerOpen} onOpenChange={onDatePickerOpenChange}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">
