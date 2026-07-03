@@ -9,14 +9,14 @@ import { cn } from "@/lib/utils"
 import type { ShopList } from "@/components/shoplist-banner"
 
 export const colorOptions = [
-  { value: "green", bg: "bg-green-600", label: "Green" },
-  { value: "blue", bg: "bg-blue-600", label: "Blue" },
-  { value: "purple", bg: "bg-purple-600", label: "Purple" },
-  { value: "orange", bg: "bg-orange-600", label: "Orange" },
-  { value: "red", bg: "bg-red-600", label: "Red" },
-  { value: "pink", bg: "bg-pink-600", label: "Pink" },
-  { value: "teal", bg: "bg-teal-600", label: "Teal" },
-  { value: "yellow", bg: "bg-yellow-600", label: "Yellow" },
+  { value: "green", bg: "bg-emerald-500", label: "Green" },
+  { value: "blue", bg: "bg-sky-500", label: "Blue" },
+  { value: "purple", bg: "bg-violet-500", label: "Purple" },
+  { value: "orange", bg: "bg-orange-500", label: "Orange" },
+  { value: "pink", bg: "bg-pink-400", label: "Pink" },
+  { value: "cyan", bg: "bg-teal-500", label: "Teal" },
+  { value: "amber", bg: "bg-amber-500", label: "Amber" },
+  { value: "rose", bg: "bg-rose-400", label: "Rose" },
 ]
 
 interface ListDialogHeaderProps {

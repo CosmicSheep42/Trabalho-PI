@@ -14,14 +14,14 @@ import { cn } from "@/lib/utils"
 import { Calendar, X } from "lucide-react"
 
 const colors = [
-  { name: "green", className: "bg-green-600" },
-  { name: "blue", className: "bg-blue-600" },
-  { name: "purple", className: "bg-purple-600" },
-  { name: "orange", className: "bg-orange-600" },
-  { name: "pink", className: "bg-pink-600" },
-  { name: "cyan", className: "bg-cyan-600" },
-  { name: "amber", className: "bg-amber-600" },
-  { name: "rose", className: "bg-rose-600" },
+  { name: "green", className: "bg-emerald-500" },
+  { name: "blue", className: "bg-sky-500" },
+  { name: "purple", className: "bg-violet-500" },
+  { name: "orange", className: "bg-orange-500" },
+  { name: "pink", className: "bg-pink-400" },
+  { name: "cyan", className: "bg-teal-500" },
+  { name: "amber", className: "bg-amber-500" },
+  { name: "rose", className: "bg-rose-400" },
 ]
 
 interface CreateListDialogProps {
