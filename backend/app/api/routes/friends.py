@@ -49,7 +49,11 @@ def _find_friendship_request(db: Session, left_user_id: int, right_user_id: int)
 
 
 def _build_user_summary(user: User) -> FriendUserSummary:
-    return FriendUserSummary(id=user.id, username=user.username or "")
+    return FriendUserSummary(
+        id=user.id,
+        username=user.username or "",
+        clerk_user_id=user.clerk_user_id,
+    )
 
 
 def _build_request_summary(request: FriendshipRequest, other_user: User) -> FriendshipRequestSummary:

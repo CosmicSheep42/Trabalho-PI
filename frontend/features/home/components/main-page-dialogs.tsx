@@ -76,12 +76,12 @@ export function MainPageDialogs({
         isLoading={social.isLoadingFriends}
         isSearching={social.isSearchingFriends}
         isSaving={social.isSavingFriendAction}
-        onSearch={async (query) => { await social.searchFriends(query) }}
-        onSendRequest={async (username) => { await social.sendFriendRequest(username) }}
-        onAcceptRequest={async (requestId) => { await social.acceptFriendRequest(requestId) }}
-        onDeclineRequest={async (requestId) => { await social.declineFriendRequest(requestId) }}
-        onCancelRequest={async (requestId) => { await social.cancelFriendRequest(requestId) }}
-        onRemoveFriend={async (friendUserId) => { await social.removeFriend(friendUserId) }}
+        onSearch={social.searchFriends}
+        onSendRequest={social.sendFriendRequest}
+        onAcceptRequest={social.acceptFriendRequest}
+        onDeclineRequest={social.declineFriendRequest}
+        onCancelRequest={social.cancelFriendRequest}
+        onRemoveFriend={social.removeFriend}
       />
 
       <SettingsDialog
