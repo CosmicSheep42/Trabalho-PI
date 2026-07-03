@@ -10,6 +10,7 @@ class FriendUserSummary(BaseModel):
 
     id: int
     username: str
+    clerk_user_id: str
 
 
 class FriendshipRequestPayload(BaseModel):

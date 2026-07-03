@@ -56,9 +56,17 @@ export function MainPageHeader({ screen }: MainPageHeaderProps) {
                 social.incomingFriendRequests.map((request) => (
                   <div key={request.id} className="px-3 py-3">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">@{request.user.username}</p>
-                        <p className="text-xs text-muted-foreground">sent you a friend request</p>
+                      <div className="flex min-w-0 items-start gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={request.user.avatar ?? undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {request.user.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">@{request.user.username}</p>
+                          <p className="text-xs text-muted-foreground">sent you a friend request</p>
+                        </div>
                       </div>
                       <Badge variant="secondary">New</Badge>
                     </div>

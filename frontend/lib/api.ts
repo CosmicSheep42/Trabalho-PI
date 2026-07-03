@@ -34,5 +34,14 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     throw new Error(message || `Request failed with status ${response.status}`)
   }
 
+  if (response.status === 204 || response.status === 205) {
+    return undefined as T
+  }
+
+  const contentLength = response.headers.get("content-length")
+  if (contentLength === "0") {
+    return undefined as T
+  }
+
   return response.json() as Promise<T>
 }

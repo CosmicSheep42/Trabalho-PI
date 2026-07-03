@@ -5,6 +5,17 @@ import { useCallback, useEffect, useState } from "react"
 import { apiRequest } from "@/lib/api"
 import type { FriendSearchResult, FriendsOverview, FriendUser } from "@/features/friends/types"
 
+interface FriendAvatarsResponse {
+  avatars: Record<string, string>
+}
+
+function attachAvatarToUser(user: FriendUser, avatars: Record<string, string>): FriendUser {
+  return {
+    ...user,
+    avatar: avatars[user.clerk_user_id] ?? user.avatar ?? null,
+  }
+}
+
 export function useBackendFriends() {
   const { getToken, isLoaded: isAuthLoaded, isSignedIn } = useAuth()
   const [overview, setOverview] = useState<FriendsOverview>({
@@ -17,6 +28,72 @@ export function useBackendFriends() {
   const [isSearchingFriends, setIsSearchingFriends] = useState(false)
   const [isSavingFriendAction, setIsSavingFriendAction] = useState(false)
 
+  const loadAvatars = useCallback(async (clerkUserIds: string[]) => {
+    try {
+      const response = await fetch("/api/friend-avatars", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ clerkUserIds }),
+      })
+
+      if (!response.ok) {
+        return {}
+      }
+
+      const { avatars } = await response.json() as FriendAvatarsResponse
+      return avatars
+    } catch (error) {
+      console.error("Failed to load friend avatars", error)
+      return {}
+    }
+  }, [])
+
+  const attachAvatarsToSearchResults = useCallback(async (results: FriendSearchResult[]) => {
+    const clerkUserIds = Array.from(
+      new Set(results.map((result) => result.user.clerk_user_id).filter(Boolean))
+    )
+
+    if (clerkUserIds.length === 0) {
+      return results
+    }
+
+    const avatars = await loadAvatars(clerkUserIds)
+    return results.map((result) => ({
+      ...result,
+      user: attachAvatarToUser(result.user, avatars),
+    }))
+  }, [loadAvatars])
+
+  const attachAvatarsToOverview = useCallback(async (nextOverview: FriendsOverview) => {
+    const clerkUserIds = Array.from(
+      new Set([
+        ...nextOverview.friends.map((friend) => friend.clerk_user_id),
+        ...nextOverview.incoming_requests.map((request) => request.user.clerk_user_id),
+        ...nextOverview.outgoing_requests.map((request) => request.user.clerk_user_id),
+      ].filter(Boolean))
+    )
+
+    if (clerkUserIds.length === 0) {
+      return nextOverview
+    }
+
+    const avatars = await loadAvatars(clerkUserIds)
+    return {
+      ...nextOverview,
+      friends: nextOverview.friends.map((friend) => attachAvatarToUser(friend, avatars)),
+      incoming_requests: nextOverview.incoming_requests.map((request) => ({
+        ...request,
+        user: attachAvatarToUser(request.user, avatars),
+      })),
+      outgoing_requests: nextOverview.outgoing_requests.map((request) => ({
+        ...request,
+        user: attachAvatarToUser(request.user, avatars),
+      })),
+    }
+  }, [loadAvatars])
+
   const loadFriends = useCallback(async (tokenOverride?: string) => {
     const token = tokenOverride ?? await getToken()
     if (!token) {
@@ -27,10 +104,11 @@ export function useBackendFriends() {
       method: "GET",
       token,
     })
+    const enrichedOverview = await attachAvatarsToOverview(response)
 
-    setOverview(response)
-    return response
-  }, [getToken])
+    setOverview(enrichedOverview)
+    return enrichedOverview
+  }, [attachAvatarsToOverview, getToken])
 
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
@@ -64,7 +142,7 @@ export function useBackendFriends() {
     }
   }, [getToken, isAuthLoaded, isSignedIn, loadFriends])
 
-  async function searchFriends(query: string) {
+  const searchFriends = useCallback(async (query: string) => {
     const normalizedQuery = query.trim()
     if (!normalizedQuery) {
       setSearchResults([])
@@ -85,12 +163,13 @@ export function useBackendFriends() {
           token,
         }
       )
-      setSearchResults(response)
-      return response
+      const enrichedResults = await attachAvatarsToSearchResults(response)
+      setSearchResults(enrichedResults)
+      return enrichedResults
     } finally {
       setIsSearchingFriends(false)
     }
-  }
+  }, [attachAvatarsToSearchResults, getToken])
 
   async function withAction<T>(callback: (token: string) => Promise<T>) {
     setIsSavingFriendAction(true)

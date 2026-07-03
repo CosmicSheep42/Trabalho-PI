@@ -3,6 +3,8 @@
 export interface FriendUser {
   id: number
   username: string
+  clerk_user_id: string
+  avatar?: string | null
 }
 
 export interface FriendshipRequestSummary {
