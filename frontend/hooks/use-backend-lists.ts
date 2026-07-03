@@ -277,6 +277,17 @@ export function useBackendLists() {
     return await syncListResponse(response)
   }
 
+  async function removeListCollaborator(listId: string, memberUserId: string): Promise<ShopList> {
+    const response = await withToken((token) =>
+      apiRequest<BackendList>(`/api/lists/${listId}/members/${memberUserId}`, {
+        method: "DELETE",
+        token,
+      })
+    )
+
+    return await syncListResponse(response)
+  }
+
   async function deleteList(listId: string): Promise<void> {
     await withToken((token) =>
       apiRequest<{ success: boolean }>(`/api/lists/${listId}`, {
@@ -428,6 +439,7 @@ export function useBackendLists() {
     createList,
     updateList,
     shareList,
+    removeListCollaborator,
     deleteList,
     addItem,
     updateItem,

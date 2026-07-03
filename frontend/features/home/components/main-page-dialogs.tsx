@@ -42,6 +42,7 @@ export function MainPageDialogs({
         list={lists.selectedList}
         items={lists.selectedList ? lists.listItems[lists.selectedList.id] || [] : []}
         linkedRecipes={lists.selectedList ? lists.linkedRecipes(lists.selectedList) : []}
+        currentUserId={profile.user.id}
         availableFriends={social.friends}
         availableGroups={social.friendGroups}
         open={shell.listDialogOpen}
@@ -57,6 +58,7 @@ export function MainPageDialogs({
         onChangeDate={lists.actions.changeListDate}
         onShareWithFriend={lists.actions.shareListWithFriend}
         onShareWithGroup={lists.actions.shareListWithGroup}
+        onRemoveCollaborator={lists.actions.removeListCollaborator}
       />
 
       <ProfileDialog

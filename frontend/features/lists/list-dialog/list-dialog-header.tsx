@@ -1,7 +1,6 @@
 "use client"
 
-import { Calendar, Palette, UserPlus, Users } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Calendar, Palette, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -50,12 +49,6 @@ export function ListDialogHeader({
           <DialogTitle className="truncate text-xl">{list.name}</DialogTitle>
           <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
             <span className="truncate">Owner: @{list.owner.username}</span>
-            {list.collaborators.length > 0 ? (
-              <Badge variant="secondary" className="gap-1 bg-secondary/70 text-xs">
-                <Users className="h-3 w-3" />
-                {list.collaborators.length + 1} members
-              </Badge>
-            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-1">

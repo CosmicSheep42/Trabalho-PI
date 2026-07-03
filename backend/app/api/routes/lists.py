@@ -342,6 +342,34 @@ def share_list_with_friend(
     return _get_accessible_list(db, current_user.id, shopping_list.id)
 
 
+@router.delete("/{list_id}/members/{member_user_id}", response_model=ShoppingListResponse)
+def remove_list_member(
+    list_id: int,
+    member_user_id: int,
+    current_user: User = Depends(get_or_create_current_user),
+    db: Session = Depends(get_db),
+) -> ShoppingList:
+    shopping_list = _get_accessible_list(db, current_user.id, list_id)
+
+    if shopping_list.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the list owner can remove collaborators")
+
+    if member_user_id == shopping_list.user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The list owner cannot be removed")
+
+    membership = (
+        db.query(ListMember)
+        .filter(ListMember.list_id == shopping_list.id, ListMember.user_id == member_user_id)
+        .first()
+    )
+    if membership is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Collaborator not found")
+
+    db.delete(membership)
+    db.commit()
+    return _get_accessible_list(db, current_user.id, shopping_list.id)
+
+
 @router.post("/{list_id}/items", response_model=ListItemResponse, status_code=status.HTTP_201_CREATED)
 def create_list_item(
     list_id: int,

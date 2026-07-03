@@ -133,6 +133,7 @@ export interface HomeListsModel {
     changeListDate: (date: string | undefined) => Promise<void>
     shareListWithFriend: (friendUserId: number) => Promise<void>
     shareListWithGroup: (groupId: number) => Promise<void>
+    removeListCollaborator: (memberUserId: string) => Promise<void>
   }
 }
 
