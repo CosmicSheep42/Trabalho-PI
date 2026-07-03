@@ -43,6 +43,11 @@ class User(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    friend_groups = relationship(
+        "FriendGroup",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     favorite_recipe_links = relationship(
         "FavoriteRecipe",
         back_populates="user",

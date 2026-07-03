@@ -19,7 +19,9 @@ interface ListPayload {
 }
 
 interface ShareListPayload {
-  friend_user_id: number
+  friend_user_id?: number | null
+  friend_user_ids?: number[]
+  group_ids?: number[]
 }
 
 interface FriendAvatarsResponse {

@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ShopList } from "@/components/shoplist-banner"
-import type { FriendUser } from "@/features/friends/types"
+import type { FriendGroup, FriendUser } from "@/features/friends/types"
 import type { Recipe, RecipeServingsContext } from "@/features/recipes/types"
 import type { ListItem } from "@/features/lists/types"
 import { DeleteItemsDialog } from "@/features/lists/list-dialog/delete-items-dialog"
@@ -38,7 +38,9 @@ interface ListDialogProps {
   onChangeColor: (color: string) => void
   onChangeDate?: (date: string | undefined) => void
   availableFriends: FriendUser[]
+  availableGroups: FriendGroup[]
   onShareWithFriend: (friendUserId: number) => Promise<void>
+  onShareWithGroup: (groupId: number) => Promise<void>
 }
 
 export function ListDialog({
@@ -57,11 +59,14 @@ export function ListDialog({
   onChangeColor,
   onChangeDate,
   availableFriends,
+  availableGroups,
   onShareWithFriend,
+  onShareWithGroup,
 }: ListDialogProps) {
   const state = useListDialogState()
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [selectedFriendId, setSelectedFriendId] = useState("")
+  const [selectedGroupId, setSelectedGroupId] = useState("")
   const [shareError, setShareError] = useState<string | null>(null)
   const [isSharing, setIsSharing] = useState(false)
 
@@ -72,6 +77,10 @@ export function ListDialog({
     const memberIds = new Set([list.owner.id, ...list.collaborators.map((member) => member.id)])
     return availableFriends.filter((friend) => !memberIds.has(String(friend.id)))
   }, [availableFriends, list])
+  const shareableGroups = useMemo(
+    () => availableGroups.filter((group) => group.members.length > 0),
+    [availableGroups]
+  )
 
   if (!list) return null
 
@@ -124,6 +133,25 @@ export function ListDialog({
       setShareError(null)
       await onShareWithFriend(Number(selectedFriendId))
       setSelectedFriendId("")
+      setShareDialogOpen(false)
+    } catch (error) {
+      setShareError(error instanceof Error ? error.message : "Unable to share the list.")
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  async function handleShareGroup() {
+    if (!selectedGroupId) {
+      setShareError("Select a group to invite.")
+      return
+    }
+
+    setIsSharing(true)
+    try {
+      setShareError(null)
+      await onShareWithGroup(Number(selectedGroupId))
+      setSelectedGroupId("")
       setShareDialogOpen(false)
     } catch (error) {
       setShareError(error instanceof Error ? error.message : "Unable to share the list.")
@@ -191,6 +219,7 @@ export function ListDialog({
           setShareDialogOpen(nextOpen)
           if (!nextOpen) {
             setSelectedFriendId("")
+            setSelectedGroupId("")
             setShareError(null)
           }
         }}
@@ -226,7 +255,10 @@ export function ListDialog({
             {shareableFriends.length > 0 ? (
               <div className="space-y-2">
                 <p className="text-sm font-medium">Invite a friend</p>
-                <Select value={selectedFriendId} onValueChange={setSelectedFriendId}>
+                <Select value={selectedFriendId} onValueChange={(value) => {
+                  setSelectedFriendId(value)
+                  setSelectedGroupId("")
+                }}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose a friend" />
                   </SelectTrigger>
@@ -239,11 +271,34 @@ export function ListDialog({
                   </SelectContent>
                 </Select>
               </div>
-            ) : (
+            ) : null}
+
+            {shareableGroups.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Invite a group</p>
+                <Select value={selectedGroupId} onValueChange={(value) => {
+                  setSelectedGroupId(value)
+                  setSelectedFriendId("")
+                }}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shareableGroups.map((group) => (
+                      <SelectItem key={group.id} value={String(group.id)}>
+                        {group.name} ({group.members.length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
+            {shareableFriends.length === 0 && shareableGroups.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                All of your friends who can be invited already have access to this list.
+                You do not have friends or groups available to invite.
               </p>
-            )}
+            ) : null}
 
             {shareError ? <p className="text-sm text-destructive">{shareError}</p> : null}
           </div>
@@ -252,7 +307,10 @@ export function ListDialog({
             <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => void handleShareList()} disabled={isSharing || shareableFriends.length === 0}>
+            <Button
+              onClick={() => void (selectedGroupId ? handleShareGroup() : handleShareList())}
+              disabled={isSharing || (shareableFriends.length === 0 && shareableGroups.length === 0)}
+            >
               {isSharing ? "Inviting..." : "Invite"}
             </Button>
           </DialogFooter>

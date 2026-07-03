@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session, selectinload
 from app.api.deps import get_db, get_or_create_current_user
 from app.core.normalization import normalize_item_name
 from app.core.time import utc_now_naive
+from app.models.friend_group import FriendGroup
+from app.models.friend_group_member import FriendGroupMember
 from app.models.friendship import Friendship
 from app.models.list_item import ListItem
 from app.models.list_member import ListMember
@@ -280,34 +282,62 @@ def share_list_with_friend(
 ) -> ShoppingList:
     shopping_list = _get_accessible_list(db, current_user.id, list_id)
 
-    if payload.friend_user_id == current_user.id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You already have access to this list")
-    if payload.friend_user_id == shopping_list.user_id:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This user already has access to this list")
-
-    friend_user = db.query(User).filter(User.id == payload.friend_user_id).first()
-    if not friend_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Friend not found")
-
-    if not _are_friends(db, current_user.id, friend_user.id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only share lists with friends")
-
-    existing_membership = (
-        db.query(ListMember)
-        .filter(ListMember.list_id == list_id, ListMember.user_id == friend_user.id)
-        .first()
-    )
-    if existing_membership is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This friend already has access to the list")
-
-    db.add(
-        ListMember(
-            list_id=shopping_list.id,
-            user_id=friend_user.id,
-            invited_by_user_id=current_user.id,
-            created_at=utc_now_naive(),
+    group_ids = sorted(set(payload.group_ids))
+    grouped_friend_ids: set[int] = set()
+    if group_ids:
+        groups = (
+            db.query(FriendGroup)
+            .options(selectinload(FriendGroup.members))
+            .filter(FriendGroup.user_id == current_user.id, FriendGroup.id.in_(group_ids))
+            .all()
         )
-    )
+        if len(groups) != len(group_ids):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="One or more groups were not found")
+        for group in groups:
+            grouped_friend_ids.update(member.friend_user_id for member in group.members)
+
+    explicit_friend_ids = set(payload.friend_user_ids)
+    if payload.friend_user_id is not None:
+        explicit_friend_ids.add(payload.friend_user_id)
+
+    candidate_friend_ids = sorted(explicit_friend_ids | grouped_friend_ids)
+    if not candidate_friend_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Select at least one friend or group")
+
+    existing_member_ids = {shopping_list.user_id} | {
+        membership.user_id for membership in shopping_list.shared_memberships
+    }
+    friend_users = {
+        user.id: user
+        for user in db.query(User).filter(User.id.in_(candidate_friend_ids)).all()
+    }
+    if len(friend_users) != len(candidate_friend_ids):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="One or more friends were not found")
+
+    ids_to_add: list[int] = []
+    for friend_user_id in candidate_friend_ids:
+        if friend_user_id == current_user.id:
+            continue
+        if friend_user_id in existing_member_ids:
+            continue
+        friend_user = friend_users[friend_user_id]
+        if not _are_friends(db, current_user.id, friend_user.id):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only share lists with friends")
+        ids_to_add.append(friend_user_id)
+
+    if not ids_to_add:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="All selected friends already have access to the list")
+
+    now = utc_now_naive()
+    for friend_user_id in ids_to_add:
+        db.add(
+            ListMember(
+                list_id=shopping_list.id,
+                user_id=friend_user_id,
+                invited_by_user_id=current_user.id,
+                created_at=now,
+            )
+        )
     db.commit()
     return _get_accessible_list(db, current_user.id, shopping_list.id)
 

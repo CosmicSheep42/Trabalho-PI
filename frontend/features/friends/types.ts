@@ -18,9 +18,16 @@ export interface FriendsOverview {
   friends: FriendUser[]
   incoming_requests: FriendshipRequestSummary[]
   outgoing_requests: FriendshipRequestSummary[]
+  groups: FriendGroup[]
 }
 
 export interface FriendSearchResult {
   user: FriendUser
   relation_status: "none" | "friends" | "incoming_request" | "outgoing_request"
+}
+
+export interface FriendGroup {
+  id: number
+  name: string
+  members: FriendUser[]
 }

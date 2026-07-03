@@ -43,6 +43,7 @@ export function MainPageDialogs({
         items={lists.selectedList ? lists.listItems[lists.selectedList.id] || [] : []}
         linkedRecipes={lists.selectedList ? lists.linkedRecipes(lists.selectedList) : []}
         availableFriends={social.friends}
+        availableGroups={social.friendGroups}
         open={shell.listDialogOpen}
         onOpenChange={shell.setListDialogOpen}
         onToggleItem={lists.actions.toggleItem}
@@ -55,6 +56,7 @@ export function MainPageDialogs({
         onChangeColor={lists.actions.changeListColor}
         onChangeDate={lists.actions.changeListDate}
         onShareWithFriend={lists.actions.shareListWithFriend}
+        onShareWithGroup={lists.actions.shareListWithGroup}
       />
 
       <ProfileDialog
@@ -72,6 +74,7 @@ export function MainPageDialogs({
         open={shell.friendsOpen}
         onOpenChange={shell.setFriendsOpen}
         friends={social.friends}
+        groups={social.friendGroups}
         incomingRequests={social.incomingFriendRequests}
         outgoingRequests={social.outgoingFriendRequests}
         searchResults={social.searchResults}
@@ -84,6 +87,9 @@ export function MainPageDialogs({
         onDeclineRequest={social.declineFriendRequest}
         onCancelRequest={social.cancelFriendRequest}
         onRemoveFriend={social.removeFriend}
+        onCreateGroup={social.createFriendGroup}
+        onUpdateGroup={social.updateFriendGroup}
+        onDeleteGroup={social.deleteFriendGroup}
       />
 
       <SettingsDialog

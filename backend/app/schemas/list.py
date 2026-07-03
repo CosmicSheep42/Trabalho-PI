@@ -73,4 +73,6 @@ class BulkDeleteListItemsPayload(BaseModel):
 
 
 class ShareListPayload(BaseModel):
-    friend_user_id: int
+    friend_user_id: int | None = None
+    friend_user_ids: list[int] = Field(default_factory=list)
+    group_ids: list[int] = Field(default_factory=list)

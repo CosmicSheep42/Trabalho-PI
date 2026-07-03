@@ -29,7 +29,19 @@ class FriendSearchResult(BaseModel):
     relation_status: str
 
 
+class FriendGroupPayload(BaseModel):
+    name: str
+    friend_user_ids: list[int]
+
+
+class FriendGroupSummary(BaseModel):
+    id: int
+    name: str
+    members: list[FriendUserSummary]
+
+
 class FriendsOverviewResponse(BaseModel):
     friends: list[FriendUserSummary]
     incoming_requests: list[FriendshipRequestSummary]
     outgoing_requests: list[FriendshipRequestSummary]
+    groups: list[FriendGroupSummary]

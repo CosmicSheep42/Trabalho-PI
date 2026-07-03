@@ -70,6 +70,7 @@ export interface HomeProfileModel {
 
 export interface HomeSocialModel {
   friends: HomeDataSources["friends"]["friends"]
+  friendGroups: HomeDataSources["friends"]["friendGroups"]
   incomingFriendRequests: HomeDataSources["friends"]["incomingFriendRequests"]
   outgoingFriendRequests: HomeDataSources["friends"]["outgoingFriendRequests"]
   searchResults: HomeDataSources["friends"]["searchResults"]
@@ -82,6 +83,9 @@ export interface HomeSocialModel {
   declineFriendRequest: HomeDataSources["friends"]["declineFriendRequest"]
   cancelFriendRequest: HomeDataSources["friends"]["cancelFriendRequest"]
   removeFriend: HomeDataSources["friends"]["removeFriend"]
+  createFriendGroup: HomeDataSources["friends"]["createFriendGroup"]
+  updateFriendGroup: HomeDataSources["friends"]["updateFriendGroup"]
+  deleteFriendGroup: HomeDataSources["friends"]["deleteFriendGroup"]
 }
 
 export interface HomeListsModel {
@@ -128,6 +132,7 @@ export interface HomeListsModel {
     changeListColor: (color: string) => Promise<void>
     changeListDate: (date: string | undefined) => Promise<void>
     shareListWithFriend: (friendUserId: number) => Promise<void>
+    shareListWithGroup: (groupId: number) => Promise<void>
   }
 }
 

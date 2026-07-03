@@ -110,6 +110,11 @@ export function useHomeActions({
       const updatedList = await data.lists.shareList(listsState.selectedList.id, { friend_user_id: friendUserId })
       listsState.setSelectedList(updatedList)
     },
+    shareListWithGroup: async (groupId: number) => {
+      if (!listsState.selectedList) return
+      const updatedList = await data.lists.shareList(listsState.selectedList.id, { group_ids: [groupId] })
+      listsState.setSelectedList(updatedList)
+    },
   }), [data, editingList, getRecipeLinkedListIds, listsState, recipesState, shell])
 
   const recipeActions = useMemo(() => ({

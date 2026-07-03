@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs"
 import { useCallback, useEffect, useState } from "react"
 import { apiRequest } from "@/lib/api"
-import type { FriendSearchResult, FriendsOverview, FriendUser } from "@/features/friends/types"
+import type { FriendGroup, FriendSearchResult, FriendsOverview, FriendUser } from "@/features/friends/types"
 
 interface FriendAvatarsResponse {
   avatars: Record<string, string>
@@ -22,6 +22,7 @@ export function useBackendFriends() {
     friends: [],
     incoming_requests: [],
     outgoing_requests: [],
+    groups: [],
   })
   const [searchResults, setSearchResults] = useState<FriendSearchResult[]>([])
   const [isLoadingFriends, setIsLoadingFriends] = useState(false)
@@ -90,6 +91,10 @@ export function useBackendFriends() {
       outgoing_requests: nextOverview.outgoing_requests.map((request) => ({
         ...request,
         user: attachAvatarToUser(request.user, avatars),
+      })),
+      groups: nextOverview.groups.map((group) => ({
+        ...group,
+        members: group.members.map((member) => attachAvatarToUser(member, avatars)),
       })),
     }
   }, [loadAvatars])
@@ -237,10 +242,45 @@ export function useBackendFriends() {
     })
   }
 
+  async function createFriendGroup(name: string, friendUserIds: number[]): Promise<FriendGroup> {
+    return withAction(async (token) => {
+      const response = await apiRequest<FriendGroup>("/api/friends/groups", {
+        method: "POST",
+        token,
+        body: JSON.stringify({ name, friend_user_ids: friendUserIds }),
+      })
+      await loadFriends(token)
+      return response
+    })
+  }
+
+  async function updateFriendGroup(groupId: number, name: string, friendUserIds: number[]): Promise<FriendGroup> {
+    return withAction(async (token) => {
+      const response = await apiRequest<FriendGroup>(`/api/friends/groups/${groupId}`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ name, friend_user_ids: friendUserIds }),
+      })
+      await loadFriends(token)
+      return response
+    })
+  }
+
+  async function deleteFriendGroup(groupId: number) {
+    return withAction(async (token) => {
+      await apiRequest(`/api/friends/groups/${groupId}`, {
+        method: "DELETE",
+        token,
+      })
+      await loadFriends(token)
+    })
+  }
+
   return {
     friends: overview.friends,
     incomingFriendRequests: overview.incoming_requests,
     outgoingFriendRequests: overview.outgoing_requests,
+    friendGroups: overview.groups,
     searchResults,
     isLoadingFriends,
     isSearchingFriends,
@@ -252,5 +292,8 @@ export function useBackendFriends() {
     declineFriendRequest,
     cancelFriendRequest,
     removeFriend,
+    createFriendGroup,
+    updateFriendGroup,
+    deleteFriendGroup,
   }
 }
