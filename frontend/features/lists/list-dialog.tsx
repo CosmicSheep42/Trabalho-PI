@@ -26,6 +26,7 @@ interface ListDialogProps {
   list: ShopList | null
   items: ListItem[]
   linkedRecipes: Recipe[]
+  currentUserId: number | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onToggleItem: (itemId: string) => void
@@ -41,12 +42,14 @@ interface ListDialogProps {
   availableGroups: FriendGroup[]
   onShareWithFriend: (friendUserId: number) => Promise<void>
   onShareWithGroup: (groupId: number) => Promise<void>
+  onRemoveCollaborator: (memberUserId: string) => Promise<void>
 }
 
 export function ListDialog({
   list,
   items,
   linkedRecipes,
+  currentUserId,
   open,
   onOpenChange,
   onToggleItem,
@@ -62,6 +65,7 @@ export function ListDialog({
   availableGroups,
   onShareWithFriend,
   onShareWithGroup,
+  onRemoveCollaborator,
 }: ListDialogProps) {
   const state = useListDialogState()
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
@@ -121,6 +125,7 @@ export function ListDialog({
 
   const checkedCount = items.filter((item) => item.checked).length
   const isSelectionMode = state.selectedItems.size > 0
+  const isListOwner = list.owner.id === String(currentUserId)
 
   async function handleShareList() {
     if (!selectedFriendId) {
@@ -133,7 +138,6 @@ export function ListDialog({
       setShareError(null)
       await onShareWithFriend(Number(selectedFriendId))
       setSelectedFriendId("")
-      setShareDialogOpen(false)
     } catch (error) {
       setShareError(error instanceof Error ? error.message : "Unable to share the list.")
     } finally {
@@ -152,9 +156,20 @@ export function ListDialog({
       setShareError(null)
       await onShareWithGroup(Number(selectedGroupId))
       setSelectedGroupId("")
-      setShareDialogOpen(false)
     } catch (error) {
       setShareError(error instanceof Error ? error.message : "Unable to share the list.")
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  async function handleRemoveCollaborator(memberUserId: string) {
+    setIsSharing(true)
+    try {
+      setShareError(null)
+      await onRemoveCollaborator(memberUserId)
+    } catch (error) {
+      setShareError(error instanceof Error ? error.message : "Unable to remove collaborator.")
     } finally {
       setIsSharing(false)
     }
@@ -237,16 +252,29 @@ export function ListDialog({
               <p className="text-sm font-medium">People with access</p>
               <div className="mt-3 space-y-2">
                 {[list.owner, ...list.collaborators].map((member) => (
-                  <div key={member.id} className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.avatar ?? undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {member.username.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">@{member.username}</p>
+                  <div key={member.id} className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={member.avatar ?? undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {member.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">@{member.username}</p>
+                      </div>
                     </div>
+                    {isListOwner && member.id !== list.owner.id ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-destructive/40 bg-destructive/8 text-destructive hover:border-destructive/60 hover:bg-destructive/14 active:bg-destructive/20"
+                        onClick={() => void handleRemoveCollaborator(member.id)}
+                        disabled={isSharing}
+                      >
+                        Remove
+                      </Button>
+                    ) : null}
                   </div>
                 ))}
               </div>

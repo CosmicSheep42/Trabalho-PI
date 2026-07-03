@@ -115,6 +115,11 @@ export function useHomeActions({
       const updatedList = await data.lists.shareList(listsState.selectedList.id, { group_ids: [groupId] })
       listsState.setSelectedList(updatedList)
     },
+    removeListCollaborator: async (memberUserId: string) => {
+      if (!listsState.selectedList) return
+      const updatedList = await data.lists.removeListCollaborator(listsState.selectedList.id, memberUserId)
+      listsState.setSelectedList(updatedList)
+    },
   }), [data, editingList, getRecipeLinkedListIds, listsState, recipesState, shell])
 
   const recipeActions = useMemo(() => ({

@@ -279,15 +279,13 @@ export function FriendsDialog({
                   variant={isGroupComposerVisible ? "secondary" : "outline"}
                   size="sm"
                   onClick={() => {
-                    if (isGroupComposerVisible && !isEditingGroup) {
-                      resetGroupForm()
-                      return
+                    if (!isGroupComposerVisible) {
+                      startCreatingGroup()
                     }
-                    startCreatingGroup()
                   }}
-                  disabled={isSaving}
+                  disabled={isSaving || isGroupComposerVisible}
                 >
-                  {isGroupComposerVisible && !isEditingGroup ? "Close composer" : "New group"}
+                  New group
                 </Button>
               </div>
 
@@ -377,9 +375,6 @@ export function FriendsDialog({
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold">{group.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {group.members.length} {group.members.length === 1 ? "member" : "members"}
-                            </p>
                           </div>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="icon-sm" onClick={() => startEditingGroup(group)} disabled={isSaving}>
