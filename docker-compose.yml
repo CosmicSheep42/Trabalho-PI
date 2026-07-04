@@ -1,4 +1,25 @@
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: Ollama_PI
+    restart: always
+    entrypoint:
+      - /bin/sh
+      - /usr/local/bin/ollama-bootstrap.sh
+    ports:
+      - "11435:11434"
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      GENERATION_MODEL: ${GENERATION_MODEL}
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./docker/ollama-bootstrap.sh:/usr/local/bin/ollama-bootstrap.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q '${GENERATION_MODEL}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
   mysql:
     image: mysql:8.0
     container_name: MySQL_PI
@@ -26,6 +47,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
     volumes:
       - ./backend:/app
     env_file:
@@ -48,3 +71,5 @@ services:
 volumes:
   mysql_data:
     name: trabalho-pi_mysql_data
+  ollama_data:
+    name: trabalho-pi_ollama_data

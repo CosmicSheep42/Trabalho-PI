@@ -12,6 +12,8 @@ import type { RecipeSortOrder } from "@/hooks/use-main-page-state"
 export interface HomeShellState {
   activeTab: string
   setActiveTab: (value: string) => void
+  chatOpen: boolean
+  setChatOpen: Dispatch<SetStateAction<boolean>>
   profileOpen: boolean
   setProfileOpen: Dispatch<SetStateAction<boolean>>
   friendsOpen: boolean
@@ -49,6 +51,7 @@ export interface HomeListsState {
 }
 
 export interface HomeDataSources {
+  chat: ReturnType<typeof import("@/hooks/use-backend-chat").useBackendChat>
   effectiveRecipeFilters: ActiveRecipeFilters
   events: ReturnType<typeof import("@/hooks/use-backend-events").useBackendEvents>
   friends: ReturnType<typeof import("@/hooks/use-backend-friends").useBackendFriends>
@@ -57,6 +60,16 @@ export interface HomeDataSources {
   recipes: ReturnType<typeof import("@/hooks/use-backend-recipes").useBackendRecipes>
   savedRecipes: ReturnType<typeof import("@/hooks/use-backend-saved-recipes").useBackendSavedRecipes>
   user: ReturnType<typeof import("@/hooks/use-backend-user").useBackendUser>
+}
+
+export interface HomeChatModel {
+  draft: string
+  error: string | null
+  isHydrated: boolean
+  isSending: boolean
+  messages: import("@/features/chat/types").ChatMessage[]
+  sendMessage: (message: string) => Promise<void>
+  setDraft: Dispatch<SetStateAction<string>>
 }
 
 export interface HomeProfileModel {
@@ -175,6 +188,7 @@ export interface HomeRecipesModel {
 
 export interface HomeScreenModel {
   shell: HomeShellState
+  chat: HomeChatModel
   profile: HomeProfileModel
   social: HomeSocialModel
   lists: HomeListsModel

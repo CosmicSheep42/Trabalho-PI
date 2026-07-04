@@ -99,6 +99,8 @@ export function useHomeModel(): HomeScreenModel {
     shell: {
       activeTab: ui.activeTab,
       setActiveTab: ui.setActiveTab,
+      chatOpen: ui.chatOpen,
+      setChatOpen: ui.setChatOpen,
       profileOpen: ui.profileOpen,
       setProfileOpen: ui.setProfileOpen,
       friendsOpen: ui.friendsOpen,
@@ -113,6 +115,15 @@ export function useHomeModel(): HomeScreenModel {
       setListDialogOpen: ui.setListDialogOpen,
       editingList: ui.editingList,
       setEditingList: ui.setEditingList,
+    },
+    chat: {
+      draft: data.chat.draft,
+      error: data.chat.error,
+      isHydrated: data.chat.isHydrated,
+      isSending: data.chat.isSending,
+      messages: data.chat.messages,
+      sendMessage: data.chat.sendMessage,
+      setDraft: data.chat.setDraft,
     },
     profile: {
       user: data.user.user,

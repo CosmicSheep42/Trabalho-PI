@@ -29,6 +29,7 @@ export function useHomeUiState() {
   const [recipeDialogOpen, setRecipeDialogOpen] = useState(false)
   const [selectedList, setSelectedList] = useState<ShopList | null>(null)
   const [listDialogOpen, setListDialogOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [friendsOpen, setFriendsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -109,6 +110,7 @@ export function useHomeUiState() {
 
   return {
     activeTab,
+    chatOpen,
     createListOpen,
     debouncedRecipeSearchQuery,
     editingList,
@@ -126,6 +128,7 @@ export function useHomeUiState() {
     selectedRecipeContext: selectedRecipeState?.context ?? null,
     settingsOpen,
     setCreateListOpen,
+    setChatOpen,
     setEditingList,
     setFriendsOpen,
     setHasCustomizedDietaryFilters,
