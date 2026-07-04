@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import type { ActiveRecipeFilters } from "@/components/recipe-filter"
+import { useBackendChat } from "@/hooks/use-backend-chat"
 import { useBackendEvents } from "@/hooks/use-backend-events"
 import { useBackendFriends } from "@/hooks/use-backend-friends"
 import { useBackendLists } from "@/hooks/use-backend-lists"
@@ -23,6 +24,7 @@ export function useHomeData({
   recipeFilters,
   hasCustomizedDietaryFilters,
 }: UseHomeDataParams) {
+  const chat = useBackendChat()
   const lists = useBackendLists()
   const events = useBackendEvents()
   const friends = useBackendFriends()
@@ -54,6 +56,7 @@ export function useHomeData({
   })
 
   return {
+    chat,
     effectiveRecipeFilters,
     events,
     friends,

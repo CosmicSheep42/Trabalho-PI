@@ -1,5 +1,10 @@
 "use client"
 
+import { MessageCircle } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import type { PointerEvent as ReactPointerEvent } from "react"
+import { Button } from "@/components/ui/button"
+import { ChatSheet } from "@/features/chat/chat-sheet"
 import { FriendsDialog } from "@/features/friends/friends-dialog"
 import { CreateListDialog } from "@/features/lists/create-list-dialog"
 import { ListDialog } from "@/features/lists/list-dialog"
@@ -18,10 +23,159 @@ export function MainPageDialogs({
   screen,
   usernamePrompt,
 }: { screen: HomeScreenModel; usernamePrompt: UsernamePromptState }) {
-  const { lists, profile, recipes, shell, social } = screen
+  const { chat, lists, profile, recipes, shell, social } = screen
+  const chatButtonSize = 56
+  const chatButtonMargin = 24
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const dragStateRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    offsetX: 0,
+    offsetY: 0,
+    moved: false,
+  })
+  const [chatButtonPosition, setChatButtonPosition] = useState({ x: 0, y: 0 })
+  const [isPositionReady, setIsPositionReady] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    setChatButtonPosition({
+      x: window.innerWidth - chatButtonSize - chatButtonMargin,
+      y: window.innerHeight - chatButtonSize - chatButtonMargin,
+    })
+    setIsPositionReady(true)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !isPositionReady) {
+      return
+    }
+
+    const clampPosition = () => {
+      setChatButtonPosition((current) => ({
+        x: Math.min(Math.max(current.x, chatButtonMargin), window.innerWidth - chatButtonSize - chatButtonMargin),
+        y: Math.min(Math.max(current.y, chatButtonMargin), window.innerHeight - chatButtonSize - chatButtonMargin),
+      }))
+    }
+
+    window.addEventListener("resize", clampPosition)
+    return () => window.removeEventListener("resize", clampPosition)
+  }, [chatButtonMargin, chatButtonSize, isPositionReady])
+
+  const resetDragState = () => {
+    dragStateRef.current = {
+      pointerId: -1,
+      startX: 0,
+      startY: 0,
+      offsetX: 0,
+      offsetY: 0,
+      moved: false,
+    }
+  }
+
+  const handleChatButtonPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!buttonRef.current) {
+      return
+    }
+
+    const rect = buttonRef.current.getBoundingClientRect()
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      moved: false,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handleChatButtonPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const dragState = dragStateRef.current
+    if (dragState.pointerId !== event.pointerId || typeof window === "undefined") {
+      return
+    }
+
+    const nextX = event.clientX - dragState.offsetX
+    const nextY = event.clientY - dragState.offsetY
+    const clampedX = Math.min(
+      Math.max(nextX, chatButtonMargin),
+      window.innerWidth - chatButtonSize - chatButtonMargin
+    )
+    const clampedY = Math.min(
+      Math.max(nextY, chatButtonMargin),
+      window.innerHeight - chatButtonSize - chatButtonMargin
+    )
+
+    if (!dragState.moved) {
+      const deltaX = event.clientX - dragState.startX
+      const deltaY = event.clientY - dragState.startY
+      dragState.moved = Math.hypot(deltaX, deltaY) > 6
+    }
+
+    setChatButtonPosition({ x: clampedX, y: clampedY })
+  }
+
+  const handleChatButtonPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const dragState = dragStateRef.current
+    if (dragState.pointerId !== event.pointerId) {
+      return
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const shouldOpenChat = !dragState.moved
+    resetDragState()
+
+    if (shouldOpenChat) {
+      shell.setChatOpen(true)
+    }
+  }
+
+  const handleChatButtonPointerCancel = () => {
+    resetDragState()
+  }
 
   return (
     <>
+      {!shell.chatOpen && isPositionReady ? (
+        <Button
+          ref={buttonRef}
+          type="button"
+          size="icon"
+          className="fixed z-40 h-14 w-14 rounded-full bg-green-600 text-white shadow-lg shadow-green-900/25 transition-colors hover:bg-green-500 active:bg-green-500 touch-none"
+          aria-label="Open chat"
+          style={{
+            left: `${chatButtonPosition.x}px`,
+            top: `${chatButtonPosition.y}px`,
+          }}
+          onPointerDown={handleChatButtonPointerDown}
+          onPointerMove={handleChatButtonPointerMove}
+          onPointerUp={handleChatButtonPointerUp}
+          onPointerCancel={handleChatButtonPointerCancel}
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      ) : null}
+
+      <ChatSheet
+        open={shell.chatOpen}
+        draft={chat.draft}
+        error={chat.error}
+        isHydrated={chat.isHydrated}
+        isSending={chat.isSending}
+        messages={chat.messages}
+        onOpenChange={shell.setChatOpen}
+        onDraftChange={chat.setDraft}
+        onSendMessage={chat.sendMessage}
+      />
+
       <RecipeDialog
         key={`${recipes.selectedRecipe?.id ?? "recipe-dialog"}:${recipes.selectedRecipe?.servings ?? "default"}:${shell.recipeDialogOpen ? "open" : "closed"}`}
         recipe={recipes.selectedRecipe}

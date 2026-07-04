@@ -52,6 +52,7 @@ class User(Base):
     )
     friend_groups = relationship(
         "FriendGroup",
+        back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )

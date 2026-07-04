@@ -21,7 +21,7 @@ class FriendGroup(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
-    user = relationship("User")
+    user = relationship("User", back_populates="friend_groups")
     members = relationship(
         "FriendGroupMember",
         back_populates="group",

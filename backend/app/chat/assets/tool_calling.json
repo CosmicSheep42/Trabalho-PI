@@ -1,0 +1,23 @@
+{
+  "answer_prompt_template": "{master_prompt}\n\nQuestion: {question}\nAnswer clearly and naturally.",
+  "system_prompt_template": "{master_prompt}\n\nYou are answering inside the Cookwise in-app chat.\nUse the conversation first.\nOnly call tools when they are actually available and necessary.\nIf no tools are available, answer without claiming that you used one.\n\nCurrent user question:\n{user_question}\n\nCurrent retrieved context:\n{current_context}\n\nRetrieval guidance:\n{retrieval_guidance}\n",
+  "tools": [
+    {
+      "name": "placeholder_tool",
+      "description": "Placeholder definition reserved for future tool-calling integration.",
+      "executor": "placeholder",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "Placeholder input."
+          }
+        },
+        "required": [
+          "input"
+        ]
+      }
+    }
+  ]
+}
