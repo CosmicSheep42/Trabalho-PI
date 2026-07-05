@@ -61,6 +61,237 @@
           "query"
         ]
       }
+    },
+    {
+      "name": "create_list",
+      "description": "Create a new shopping list for the current user.",
+      "executor": "lists.write.create_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the new list."
+          },
+          "color": {
+            "type": "string",
+            "description": "The visual color label used by the list."
+          },
+          "date": {
+            "type": "string",
+            "description": "Optional date for the list in YYYY-MM-DD format."
+          }
+        },
+        "required": [
+          "name",
+          "color"
+        ]
+      }
+    },
+    {
+      "name": "update_list",
+      "description": "Update the basic fields of an accessible shopping list.",
+      "executor": "lists.write.update_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the list to update."
+          },
+          "name": {
+            "type": "string",
+            "description": "The new name of the list."
+          },
+          "color": {
+            "type": "string",
+            "description": "The new color of the list."
+          },
+          "date": {
+            "type": "string",
+            "description": "The new date of the list in YYYY-MM-DD format."
+          }
+        },
+        "required": [
+          "list_id"
+        ]
+      }
+    },
+    {
+      "name": "delete_list",
+      "description": "Delete an accessible shopping list.",
+      "executor": "lists.write.delete_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the list to delete."
+          }
+        },
+        "required": [
+          "list_id"
+        ]
+      }
+    },
+    {
+      "name": "add_list_item",
+      "description": "Add a manual item to a shopping list.",
+      "executor": "lists.write.add_list_item",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the target list."
+          },
+          "name": {
+            "type": "string",
+            "description": "The item name."
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Optional numeric quantity for the item."
+          },
+          "unit": {
+            "type": "string",
+            "description": "Optional unit for the quantity."
+          },
+          "checked": {
+            "type": "boolean",
+            "description": "Whether the item starts as checked."
+          }
+        },
+        "required": [
+          "list_id",
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "update_list_item",
+      "description": "Update a manual shopping-list item, including its checked state.",
+      "executor": "lists.write.update_list_item",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "description": "The id of the item to update."
+          },
+          "name": {
+            "type": "string",
+            "description": "The new item name."
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The new quantity."
+          },
+          "unit": {
+            "type": "string",
+            "description": "The new unit."
+          },
+          "checked": {
+            "type": "boolean",
+            "description": "Whether the item is checked."
+          }
+        },
+        "required": [
+          "item_id"
+        ]
+      }
+    },
+    {
+      "name": "remove_list_item",
+      "description": "Remove an item from a shopping list.",
+      "executor": "lists.write.remove_list_item",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "description": "The id of the item to remove."
+          }
+        },
+        "required": [
+          "item_id"
+        ]
+      }
+    },
+    {
+      "name": "add_recipe_to_list",
+      "description": "Attach a recipe to a shopping list and merge its ingredients into the list items.",
+      "executor": "lists.write.add_recipe_to_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the target list."
+          },
+          "recipe_id": {
+            "type": "integer",
+            "description": "The id of the recipe to attach."
+          },
+          "servings": {
+            "type": "integer",
+            "description": "Optional custom servings for the recipe in this list."
+          }
+        },
+        "required": [
+          "list_id",
+          "recipe_id"
+        ]
+      }
+    },
+    {
+      "name": "update_recipe_servings_in_list",
+      "description": "Update the servings of a recipe already linked to a shopping list and recalculate merged ingredients.",
+      "executor": "lists.write.update_recipe_servings_in_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the target list."
+          },
+          "recipe_id": {
+            "type": "integer",
+            "description": "The id of the linked recipe."
+          },
+          "servings": {
+            "type": "integer",
+            "description": "The updated servings value."
+          }
+        },
+        "required": [
+          "list_id",
+          "recipe_id",
+          "servings"
+        ]
+      }
+    },
+    {
+      "name": "remove_recipe_from_list",
+      "description": "Remove a linked recipe from a shopping list and subtract its merged ingredients when possible.",
+      "executor": "lists.write.remove_recipe_from_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the target list."
+          },
+          "recipe_id": {
+            "type": "integer",
+            "description": "The id of the linked recipe to remove."
+          }
+        },
+        "required": [
+          "list_id",
+          "recipe_id"
+        ]
+      }
     }
   ]
 }
