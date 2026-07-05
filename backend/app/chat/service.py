@@ -200,10 +200,9 @@ class ChatService:
             "tool_calls": [
                 {
                     "id": tool_call.id,
-                    "type": "function",
                     "function": {
                         "name": tool_call.name,
-                        "arguments": json.dumps(tool_call.arguments, ensure_ascii=True),
+                        "arguments": tool_call.arguments,
                     },
                 }
                 for tool_call in tool_calls
