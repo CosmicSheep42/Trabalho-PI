@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "username": "Teste",
+      "clerk_user_id": "user_3F2xvN2zKEt4PCIGlTsj2CMUYNf",
+      "reset_home_content": true
+    },
+    {
+      "username": "MarinaCosta",
+      "clerk_user_id": "seed_user_marina_costa",
+      "vegetarian": true
+    },
+    {
+      "username": "RafaelNunes",
+      "clerk_user_id": "seed_user_rafael_nunes",
+      "lactose_free": true
+    },
+    {
+      "username": "LiviaMelo",
+      "clerk_user_id": "seed_user_livia_melo",
+      "gluten_free": true
+    }
+  ]
+}

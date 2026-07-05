@@ -1,0 +1,41 @@
+{
+  "events": [
+    {
+      "name": "Reposicao da Semana",
+      "description": "Organizar as compras principais da semana e alinhar o que falta em casa.",
+      "icon": "shopping-cart",
+      "date": "2026-07-06",
+      "list_keys": [
+        "compras-semana"
+      ],
+      "members": [
+        "Teste"
+      ]
+    },
+    {
+      "name": "Jantar Aniversario",
+      "description": "Planejamento do jantar especial com sobremesa e detalhes da mesa.",
+      "icon": "cake",
+      "date": "2026-07-12",
+      "list_keys": [
+        "jantar-aniversario"
+      ],
+      "members": [
+        "MarinaCosta"
+      ]
+    },
+    {
+      "name": "Noite de Filme",
+      "description": "Comidas de conforto e compras compartilhadas para uma noite fria.",
+      "icon": "popcorn",
+      "date": "2026-07-15",
+      "list_keys": [
+        "filme-frio"
+      ],
+      "members": [
+        "RafaelNunes",
+        "LiviaMelo"
+      ]
+    }
+  ]
+}

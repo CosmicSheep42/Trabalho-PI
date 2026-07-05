@@ -1,0 +1,100 @@
+{
+  "lists": [
+    {
+      "key": "compras-semana",
+      "name": "Compras da Semana",
+      "color": "green",
+      "date": "2026-07-06",
+      "recipes": [
+        {
+          "name": "Chicken Teriyaki Rice Bowl",
+          "servings": 4
+        }
+      ],
+      "items": [
+        {
+          "name": "Banana",
+          "quantity": 6,
+          "unit": "units",
+          "checked": false
+        },
+        {
+          "name": "Cafe",
+          "quantity": 1,
+          "unit": "pack",
+          "checked": false
+        }
+      ],
+      "collaborators": [
+        "Teste"
+      ]
+    },
+    {
+      "key": "jantar-aniversario",
+      "name": "Jantar de Aniversario",
+      "color": "rose",
+      "date": "2026-07-12",
+      "recipes": [
+        {
+          "name": "Beef Chili",
+          "servings": 6
+        },
+        {
+          "name": "Apple Crumble",
+          "servings": 6
+        }
+      ],
+      "items": [
+        {
+          "name": "Vinho tinto",
+          "quantity": 1,
+          "unit": "bottle",
+          "checked": false
+        },
+        {
+          "name": "Velas",
+          "quantity": 2,
+          "unit": "units",
+          "checked": false
+        }
+      ],
+      "collaborators": [
+        "MarinaCosta"
+      ]
+    },
+    {
+      "key": "filme-frio",
+      "name": "Noite de Filme no Frio",
+      "color": "blue",
+      "date": "2026-07-15",
+      "recipes": [
+        {
+          "name": "Corn Chowder",
+          "servings": 4
+        },
+        {
+          "name": "Macaroni and Cheese",
+          "servings": 6
+        }
+      ],
+      "items": [
+        {
+          "name": "Refrigerante",
+          "quantity": 2,
+          "unit": "bottles",
+          "checked": false
+        },
+        {
+          "name": "Pipoca",
+          "quantity": 3,
+          "unit": "packs",
+          "checked": false
+        }
+      ],
+      "collaborators": [
+        "RafaelNunes",
+        "LiviaMelo"
+      ]
+    }
+  ]
+}

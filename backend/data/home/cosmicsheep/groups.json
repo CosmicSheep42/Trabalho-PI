@@ -1,0 +1,18 @@
+{
+  "groups": [
+    {
+      "name": "Casa",
+      "members": [
+        "Teste",
+        "MarinaCosta"
+      ]
+    },
+    {
+      "name": "Fim de Semana",
+      "members": [
+        "RafaelNunes",
+        "LiviaMelo"
+      ]
+    }
+  ]
+}
