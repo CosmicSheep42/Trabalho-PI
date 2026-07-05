@@ -73,12 +73,13 @@ async def chat(
             matched_category=route_result.get("matched_category"),
             matched_intent=route_result.get("matched_intent"),
             score=route_result.get("score"),
+            executed_tool_calls=[],
             tool_calling_available=False,
         )
 
     try:
         result = await asyncio.wait_for(
-            asyncio.to_thread(_chat_service.chat, session_id, cleaned_query),
+            asyncio.to_thread(_chat_service.chat, session_id, current_user.id, cleaned_query),
             timeout=settings.inference_timeout_seconds,
         )
     except asyncio.TimeoutError as exc:
@@ -94,6 +95,7 @@ async def chat(
         matched_intent=route_result.get("matched_intent"),
         score=route_result.get("score"),
         tool_calls=result.tool_calls,
+        executed_tool_calls=result.executed_tool_calls,
         tool_calling_used=result.tool_calling_used,
         tool_calling_available=result.tool_calling_available,
     )

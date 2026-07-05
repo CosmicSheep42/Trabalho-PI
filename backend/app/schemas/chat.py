@@ -13,6 +13,16 @@ class ChatToolCall(BaseModel):
     arguments: dict
 
 
+class ChatExecutedToolCall(BaseModel):
+    id: str
+    name: str
+    arguments: dict
+    success: bool
+    message: str
+    data: dict = Field(default_factory=dict)
+    error: str | None = None
+
+
 class ChatMessageResponse(BaseModel):
     result: str
     route: str
@@ -21,6 +31,7 @@ class ChatMessageResponse(BaseModel):
     matched_intent: str | None = None
     score: float | None = None
     tool_calls: list[ChatToolCall] = Field(default_factory=list)
+    executed_tool_calls: list[ChatExecutedToolCall] = Field(default_factory=list)
     tool_calling_used: bool = False
     tool_calling_available: bool = False
 

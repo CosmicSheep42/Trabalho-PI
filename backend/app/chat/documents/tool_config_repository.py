@@ -41,7 +41,7 @@ class ToolCallingConfigRepository:
             raise ValueError(f"Missing system_prompt_template in {self.config_file}")
 
         raw_tools = data.get("tools")
-        if not isinstance(raw_tools, list) or not raw_tools:
+        if not isinstance(raw_tools, list):
             raise ValueError(f"Missing tools list in {self.config_file}")
 
         tools: list[ToolDefinition] = []
