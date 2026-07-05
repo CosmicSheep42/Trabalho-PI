@@ -99,7 +99,7 @@ export function WeeklyMealPlannerSection({
                         ))}
                       </div>
                     ) : (
-                      <div className="flex min-h-16 items-center justify-center rounded-xl bg-background/60 text-sm text-muted-foreground">
+                      <div className="flex min-h-16 items-center justify-center rounded-xl text-sm text-muted-foreground">
                         Drag a recipe card here
                       </div>
                     )}

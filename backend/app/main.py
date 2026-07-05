@@ -5,6 +5,7 @@ from app.api.router import api_router
 from app.core.config import settings
 from app.db.seed import seed_recipes_from_data_directory
 from app.db.session import SessionLocal
+from app.db.user_home_seed import seed_configured_home_profiles
 
 app = FastAPI(title=settings.app_name, version=settings.app_version)
 
@@ -24,6 +25,8 @@ def seed_database() -> None:
     db = SessionLocal()
     try:
         seed_recipes_from_data_directory(db)
+        if seed_configured_home_profiles(db):
+            db.commit()
     finally:
         db.close()
 

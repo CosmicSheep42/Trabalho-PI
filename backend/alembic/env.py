@@ -7,9 +7,13 @@ from app.core.config import settings
 from app.db.base import Base
 from app.models import (  # noqa: F401
     CalendarEvent,
+    EventMember,
     EventList,
     FavoriteRecipe,
+    FriendGroup,
+    FriendGroupMember,
     Holiday,
+    ListMember,
     ListItem,
     ListRecipe,
     MealPlanEntry,
