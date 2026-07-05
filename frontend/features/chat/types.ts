@@ -6,6 +6,13 @@ export interface ChatToolCall {
   arguments: Record<string, unknown>
 }
 
+export interface ExecutedChatToolCall extends ChatToolCall {
+  success: boolean
+  message: string
+  data: Record<string, unknown>
+  error?: string | null
+}
+
 export interface BackendChatResponse {
   result: string
   route: string
@@ -14,6 +21,7 @@ export interface BackendChatResponse {
   matched_intent: string | null
   score: number | null
   tool_calls: ChatToolCall[]
+  executed_tool_calls: ExecutedChatToolCall[]
   tool_calling_used: boolean
   tool_calling_available: boolean
 }
