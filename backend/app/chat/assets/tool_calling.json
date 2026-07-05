@@ -292,6 +292,131 @@
           "recipe_id"
         ]
       }
+    },
+    {
+      "name": "list_list_members",
+      "description": "List the owner and collaborators of a shopping list the current user can access.",
+      "executor": "lists.share.list_list_members",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the target list."
+          }
+        },
+        "required": [
+          "list_id"
+        ]
+      }
+    },
+    {
+      "name": "find_friend_by_name",
+      "description": "Find one of the current user's friends by exact or partial username.",
+      "executor": "lists.share.find_friend_by_name",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The full or partial username to search among the current user's friends."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of matches to return."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "find_group_by_name",
+      "description": "Find one of the current user's friend groups by exact or partial name.",
+      "executor": "lists.share.find_group_by_name",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The full or partial group name to search for."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of matches to return."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "share_list_with_friend",
+      "description": "Share a shopping list with one friend who is already connected to the current user.",
+      "executor": "lists.share.share_list_with_friend",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the list to share."
+          },
+          "friend_user_id": {
+            "type": "integer",
+            "description": "The id of the friend who should receive access."
+          }
+        },
+        "required": [
+          "list_id",
+          "friend_user_id"
+        ]
+      }
+    },
+    {
+      "name": "share_list_with_group",
+      "description": "Share a shopping list with all members of one of the current user's friend groups.",
+      "executor": "lists.share.share_list_with_group",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the list to share."
+          },
+          "group_id": {
+            "type": "integer",
+            "description": "The id of the friend group whose members should receive access."
+          }
+        },
+        "required": [
+          "list_id",
+          "group_id"
+        ]
+      }
+    },
+    {
+      "name": "unshare_list_with_friend",
+      "description": "Remove one collaborator from a shopping list. Only the list owner can do this.",
+      "executor": "lists.share.unshare_list_with_friend",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "The id of the list."
+          },
+          "member_user_id": {
+            "type": "integer",
+            "description": "The id of the collaborator to remove."
+          }
+        },
+        "required": [
+          "list_id",
+          "member_user_id"
+        ]
+      }
     }
   ]
 }
