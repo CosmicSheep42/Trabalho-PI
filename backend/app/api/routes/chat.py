@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 from app.api.deps import get_or_create_current_user
 from app.chat.input_cleaner import TextPreprocessorPipeline
-from app.chat.routing.router_service import StaticRouter
 from app.chat.runtime_controls import RuntimeControlConfig, RuntimeControls
 from app.chat.service import ChatService
 from app.core.config import settings
@@ -27,8 +26,6 @@ _runtime_controls = RuntimeControls(
         inference_timeout_seconds=settings.inference_timeout_seconds,
     )
 )
-_router = StaticRouter(routing_dir=_assets_dir / "routing", input_pipeline=_input_pipeline)
-_router.setup()
 _chat_service = ChatService(assets_dir=_assets_dir)
 
 
@@ -63,20 +60,6 @@ async def chat(
     if not cleaned_query:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message is empty after preprocessing")
 
-    route_result = _router.route(cleaned_query, already_cleaned=True)
-    if route_result["route"] != "llm":
-        _chat_service.append_static_exchange(session_id, cleaned_query, route_result["result"])
-        return ChatMessageResponse(
-            result=route_result["result"],
-            route=route_result["route"],
-            reason=route_result["reason"],
-            matched_category=route_result.get("matched_category"),
-            matched_intent=route_result.get("matched_intent"),
-            score=route_result.get("score"),
-            executed_tool_calls=[],
-            tool_calling_available=False,
-        )
-
     try:
         result = await asyncio.wait_for(
             asyncio.to_thread(_chat_service.chat, session_id, current_user.id, cleaned_query),
@@ -89,15 +72,8 @@ async def chat(
 
     return ChatMessageResponse(
         result=result.content,
-        route=route_result["route"],
-        reason=route_result["reason"],
-        matched_category=route_result.get("matched_category"),
-        matched_intent=route_result.get("matched_intent"),
-        score=route_result.get("score"),
         tool_calls=result.tool_calls,
         executed_tool_calls=result.executed_tool_calls,
-        tool_calling_used=result.tool_calling_used,
-        tool_calling_available=result.tool_calling_available,
     )
 
 

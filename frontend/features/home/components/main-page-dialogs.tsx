@@ -38,16 +38,30 @@ export function MainPageDialogs({
   const [chatButtonPosition, setChatButtonPosition] = useState({ x: 0, y: 0 })
   const [isPositionReady, setIsPositionReady] = useState(false)
 
+  const handleChatRecipeClick = (recipeId: string) => {
+    const recipe = recipes.allRecipes.find((item) => item.id === recipeId) ?? null
+    if (!recipe) {
+      return
+    }
+
+    shell.setChatOpen(false)
+    recipes.openRecipe(recipe)
+  }
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return
     }
 
-    setChatButtonPosition({
-      x: window.innerWidth - chatButtonSize - chatButtonMargin,
-      y: window.innerHeight - chatButtonSize - chatButtonMargin,
+    const frame = window.requestAnimationFrame(() => {
+      setChatButtonPosition({
+        x: window.innerWidth - chatButtonSize - chatButtonMargin,
+        y: window.innerHeight - chatButtonSize - chatButtonMargin,
+      })
+      setIsPositionReady(true)
     })
-    setIsPositionReady(true)
+
+    return () => window.cancelAnimationFrame(frame)
   }, [])
 
   useEffect(() => {
@@ -174,6 +188,7 @@ export function MainPageDialogs({
         onOpenChange={shell.setChatOpen}
         onDraftChange={chat.setDraft}
         onSendMessage={chat.sendMessage}
+        onRecipeClick={handleChatRecipeClick}
       />
 
       <RecipeDialog

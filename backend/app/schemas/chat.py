@@ -25,15 +25,8 @@ class ChatExecutedToolCall(BaseModel):
 
 class ChatMessageResponse(BaseModel):
     result: str
-    route: str
-    reason: str
-    matched_category: str | None = None
-    matched_intent: str | None = None
-    score: float | None = None
     tool_calls: list[ChatToolCall] = Field(default_factory=list)
     executed_tool_calls: list[ChatExecutedToolCall] = Field(default_factory=list)
-    tool_calling_used: bool = False
-    tool_calling_available: bool = False
 
 
 class ChatSessionClearResponse(BaseModel):

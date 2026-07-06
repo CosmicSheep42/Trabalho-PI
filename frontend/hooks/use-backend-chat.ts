@@ -104,8 +104,8 @@ export function useBackendChat() {
       setMessages((current) => [
         ...current,
         buildMessage("assistant", response.result, {
-          route: response.route,
           toolCalls: response.tool_calls,
+          executedToolCalls: response.executed_tool_calls,
         }),
       ])
     } catch (requestError) {

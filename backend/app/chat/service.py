@@ -21,8 +21,6 @@ class ChatServiceResult:
     content: str
     tool_calls: list[dict[str, Any]]
     executed_tool_calls: list[dict[str, Any]]
-    tool_calling_used: bool
-    tool_calling_available: bool
 
 
 class ChatService:
@@ -52,9 +50,6 @@ class ChatService:
 
     def clear_session(self, session_id: str) -> None:
         self.session_cache.clear(session_id)
-
-    def append_static_exchange(self, session_id: str, user_message: str, assistant_message: str) -> None:
-        self.session_cache.append_exchange(session_id, user_message, assistant_message)
 
     def chat(self, session_id: str, user_id: int, user_message: str) -> ChatServiceResult:
         available_tools = self._get_available_tools()
@@ -88,8 +83,6 @@ class ChatService:
                         content=content,
                         tool_calls=tool_calls,
                         executed_tool_calls=executed_tool_calls,
-                        tool_calling_used=bool(tool_calls),
-                        tool_calling_available=True,
                     )
 
                 messages.append(self._build_assistant_tool_call_message(raw_result.content, raw_result.tool_calls))
@@ -115,8 +108,6 @@ class ChatService:
                 content=content,
                 tool_calls=tool_calls,
                 executed_tool_calls=executed_tool_calls,
-                tool_calling_used=bool(tool_calls),
-                tool_calling_available=True,
             )
 
         raw_result = self.client.chat(
@@ -130,8 +121,6 @@ class ChatService:
             content=content,
             tool_calls=[],
             executed_tool_calls=[],
-            tool_calling_used=False,
-            tool_calling_available=False,
         )
 
     def _build_system_prompt(self, user_message: str, available_tools: list[ResolvedTool]) -> str:

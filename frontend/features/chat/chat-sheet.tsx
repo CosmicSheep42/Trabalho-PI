@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
+import { ChatRecipeCards } from "@/features/chat/components/chat-recipe-cards"
 import { cn } from "@/lib/utils"
 import type { ChatMessage } from "@/features/chat/types"
 
@@ -18,6 +19,7 @@ interface ChatSheetProps {
   onOpenChange: (open: boolean) => void
   onDraftChange: (value: string) => void
   onSendMessage: (message: string) => Promise<void>
+  onRecipeClick: (recipeId: string) => void
 }
 
 export function ChatSheet({
@@ -30,6 +32,7 @@ export function ChatSheet({
   onOpenChange,
   onDraftChange,
   onSendMessage,
+  onRecipeClick,
 }: ChatSheetProps) {
   const endRef = useRef<HTMLDivElement | null>(null)
 
@@ -80,6 +83,9 @@ export function ChatSheet({
                       )}
                     >
                       <p className="whitespace-pre-wrap leading-6">{message.content}</p>
+                      {message.executedToolCalls && message.executedToolCalls.length > 0 ? (
+                        <ChatRecipeCards executedToolCalls={message.executedToolCalls} onRecipeClick={onRecipeClick} />
+                      ) : null}
                       {message.toolCalls && message.toolCalls.length > 0 ? (
                         <p className="mt-2 text-xs opacity-80">
                           Tool calls: {message.toolCalls.map((toolCall) => toolCall.name).join(", ")}

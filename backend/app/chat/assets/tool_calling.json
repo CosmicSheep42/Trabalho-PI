@@ -1,5 +1,52 @@
 {
   "answer_prompt_template": "{master_prompt}\n\nQuestion: {question}\nAnswer clearly and naturally.",
-  "system_prompt_template": "{master_prompt}\n\nYou are answering inside the Cookwise in-app chat.\nUse the conversation first.\nOnly call tools when they are actually available and necessary.\nIf no tools are available, answer without claiming that you used one.\n\nCurrent user question:\n{user_question}\n\nCurrent retrieved context:\n{current_context}\n\nRetrieval guidance:\n{retrieval_guidance}\n",
-  "tools": []
+  "system_prompt_template": "{master_prompt}\n\nYou are answering inside the Cookwise in-app chat.\nUse the conversation first.\nOnly call tools when they are actually available and necessary.\nIf the user asks to find, suggest, browse, or compare recipes, prefer using the recipe search tool before answering.\nIf no tools are available, answer without claiming that you used one.\n\nCurrent user question:\n{user_question}\n\nCurrent retrieved context:\n{current_context}\n\nRetrieval guidance:\n{retrieval_guidance}\n",
+  "tools": [
+    {
+      "name": "search_recipes",
+      "description": "Search Cookwise recipes by text, tags, holiday, prep-time bucket, and dietary restrictions. Use this when the user asks to find or suggest recipes.",
+      "executor": "search_recipes",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "type": "string",
+            "description": "Free-text search for recipe names or descriptions."
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional tag slugs such as soup, dessert, italian, cozy, quick-dinner."
+          },
+          "holidays": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional holiday slugs."
+          },
+          "time_filter": {
+            "type": "string",
+            "enum": ["under_15m", "under_30m", "under_60m", "above_60m"],
+            "description": "Optional prep time bucket."
+          },
+          "vegan": { "type": "boolean" },
+          "vegetarian": { "type": "boolean" },
+          "lactose_free": { "type": "boolean" },
+          "egg_free": { "type": "boolean" },
+          "gluten_free": { "type": "boolean" },
+          "nut_free": { "type": "boolean" },
+          "shellfish_free": { "type": "boolean" },
+          "soy_free": { "type": "boolean" },
+          "sesame_free": { "type": "boolean" },
+          "sulfite_free": { "type": "boolean" },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8,
+            "description": "Maximum number of recipe cards to return."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
 }
