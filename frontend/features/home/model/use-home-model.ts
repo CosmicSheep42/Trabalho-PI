@@ -36,6 +36,14 @@ export function useHomeModel(): HomeScreenModel {
     hasCustomizedDietaryFilters: ui.hasCustomizedDietaryFilters,
   })
 
+  const selectedList = useMemo(() => {
+    if (!ui.selectedList) {
+      return null
+    }
+
+    return data.lists.lists.find((list) => list.id === ui.selectedList?.id) ?? null
+  }, [data.lists.lists, ui.selectedList])
+
   const selectedRecipe = useMemo(() => {
     const selectedRecipeState = ui.selectedRecipeState
     if (!selectedRecipeState) {
@@ -64,7 +72,7 @@ export function useHomeModel(): HomeScreenModel {
     data,
     shell: ui,
     listsState: {
-      selectedList: ui.selectedList,
+      selectedList,
       setSelectedList: ui.setSelectedList,
     },
     recipesState: {
@@ -158,7 +166,7 @@ export function useHomeModel(): HomeScreenModel {
       lists: data.lists.lists,
       filteredLists: filteredListsState.filteredLists,
       listItems: data.lists.listItems,
-      selectedList: ui.selectedList,
+      selectedList,
       linkedRecipes: actions.linkedRecipes,
       savedRecipes: data.savedRecipes.savedRecipes,
       events: data.events.events,

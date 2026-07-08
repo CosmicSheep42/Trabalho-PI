@@ -182,6 +182,8 @@ export function MainPageDialogs({
         open={shell.chatOpen}
         draft={chat.draft}
         error={chat.error}
+        friends={social.friends}
+        friendGroups={social.friendGroups}
         isHydrated={chat.isHydrated}
         isSending={chat.isSending}
         messages={chat.messages}

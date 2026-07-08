@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@clerk/nextjs"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { apiRequest } from "@/lib/api"
 import type {
   BackendMealPlanEntry,
@@ -44,6 +44,20 @@ export function useBackendMealPlanner() {
   const [mealPlanEntries, setMealPlanEntries] = useState<MealPlanEntry[]>([])
   const [isLoadingMealPlanner, setIsLoadingMealPlanner] = useState(false)
 
+  const loadMealPlanEntries = useCallback(async (tokenOverride?: string) => {
+    const token = tokenOverride ?? await getToken()
+    if (!token) {
+      throw new Error("Missing Clerk session token")
+    }
+
+    const response = await apiRequest<BackendMealPlanEntry[]>("/api/meal-planner", {
+      method: "GET",
+      token,
+    })
+
+    setMealPlanEntries(sortEntries(response.map(mapBackendMealPlanEntry)))
+  }, [getToken])
+
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
       return
@@ -51,7 +65,7 @@ export function useBackendMealPlanner() {
 
     let isCancelled = false
 
-    async function loadMealPlanEntries() {
+    async function hydrateMealPlanEntries() {
       setIsLoadingMealPlanner(true)
 
       try {
@@ -60,13 +74,8 @@ export function useBackendMealPlanner() {
           throw new Error("Missing Clerk session token")
         }
 
-        const response = await apiRequest<BackendMealPlanEntry[]>("/api/meal-planner", {
-          method: "GET",
-          token,
-        })
-
         if (!isCancelled) {
-          setMealPlanEntries(sortEntries(response.map(mapBackendMealPlanEntry)))
+          await loadMealPlanEntries(token)
         }
       } catch (error) {
         if (!isCancelled) {
@@ -79,12 +88,12 @@ export function useBackendMealPlanner() {
       }
     }
 
-    void loadMealPlanEntries()
+    void hydrateMealPlanEntries()
 
     return () => {
       isCancelled = true
     }
-  }, [getToken, isAuthLoaded, isSignedIn])
+  }, [getToken, isAuthLoaded, isSignedIn, loadMealPlanEntries])
 
   async function withToken<T>(callback: (token: string) => Promise<T>) {
     const token = await getToken()
@@ -156,6 +165,7 @@ export function useBackendMealPlanner() {
   return {
     mealPlanEntries,
     isLoadingMealPlanner,
+    loadMealPlanEntries,
     createMealPlanEntry,
     updateMealPlanEntry,
     deleteMealPlanEntry,

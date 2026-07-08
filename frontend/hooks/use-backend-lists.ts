@@ -170,6 +170,24 @@ export function useBackendLists() {
     }))
   }, [loadAvatars])
 
+  const loadLists = useCallback(async (tokenOverride?: string) => {
+    const token = tokenOverride ?? await getToken()
+    if (!token) {
+      throw new Error("Missing Clerk session token")
+    }
+
+    const response = await apiRequest<BackendList[]>("/api/lists", {
+      method: "GET",
+      token,
+    })
+
+    const enrichedLists = await attachAvatarsToLists(response)
+    const nextState = buildListState(enrichedLists)
+    setLists(nextState.lists)
+    setListItems(nextState.listItems)
+    return nextState.lists
+  }, [attachAvatarsToLists, getToken])
+
   useEffect(() => {
     if (!isAuthLoaded || !isSignedIn) {
       return
@@ -177,7 +195,7 @@ export function useBackendLists() {
 
     let isCancelled = false
 
-    async function loadLists() {
+    async function hydrateLists() {
       setIsLoadingLists(true)
 
       try {
@@ -186,16 +204,8 @@ export function useBackendLists() {
           throw new Error("Missing Clerk session token")
         }
 
-        const response = await apiRequest<BackendList[]>("/api/lists", {
-          method: "GET",
-          token,
-        })
-
         if (!isCancelled) {
-          const enrichedLists = await attachAvatarsToLists(response)
-          const nextState = buildListState(enrichedLists)
-          setLists(nextState.lists)
-          setListItems(nextState.listItems)
+          await loadLists(token)
         }
       } catch (error) {
         if (!isCancelled) {
@@ -208,12 +218,12 @@ export function useBackendLists() {
       }
     }
 
-    void loadLists()
+    void hydrateLists()
 
     return () => {
       isCancelled = true
     }
-  }, [attachAvatarsToLists, getToken, isAuthLoaded, isSignedIn])
+  }, [getToken, isAuthLoaded, isSignedIn, loadLists])
 
   async function withToken<T>(callback: (token: string) => Promise<T>) {
     const token = await getToken()
@@ -435,6 +445,7 @@ export function useBackendLists() {
     lists,
     listItems,
     isLoadingLists,
+    loadLists,
     syncListResponse,
     createList,
     updateList,

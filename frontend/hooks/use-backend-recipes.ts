@@ -244,6 +244,32 @@ export function useBackendRecipes({
     )
   }
 
+  function syncSavedRecipes(savedRecipes: Recipe[]) {
+    const savedRecipesById = new Map(savedRecipes.map((recipe) => [recipe.id, recipe]))
+
+    const syncRecipe = (recipe: Recipe): Recipe => {
+      const savedRecipe = savedRecipesById.get(recipe.id)
+      if (!savedRecipe) {
+        return {
+          ...recipe,
+          is_saved: false,
+          saved_servings: null,
+          saved_notes: null,
+        }
+      }
+
+      return {
+        ...recipe,
+        is_saved: true,
+        saved_servings: savedRecipe.saved_servings,
+        saved_notes: savedRecipe.saved_notes,
+      }
+    }
+
+    setRecipes((prev) => prev.map(syncRecipe))
+    setAllRecipes((prev) => prev.map(syncRecipe))
+  }
+
   async function rateRecipe(recipeId: string, rating: number) {
     const response = await withToken((token) =>
       apiRequest<RecipeRatingSummary>(`/api/recipes/${recipeId}/rating`, {
@@ -303,5 +329,6 @@ export function useBackendRecipes({
     addRecipeToList,
     removeRecipeFromList,
     updateSavedRecipeState,
+    syncSavedRecipes,
   }
 }

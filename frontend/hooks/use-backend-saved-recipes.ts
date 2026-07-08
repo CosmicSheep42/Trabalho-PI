@@ -29,7 +29,9 @@ export function useBackendSavedRecipes() {
       token,
     })
 
-    setSavedRecipes(response.map(mapSavedRecipe))
+    const nextSavedRecipes = response.map(mapSavedRecipe)
+    setSavedRecipes(nextSavedRecipes)
+    return nextSavedRecipes
   }, [getToken])
 
   useEffect(() => {
