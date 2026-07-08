@@ -1,18 +1,25 @@
 "use client"
 
 import { Bot, SendHorizontal, Sparkles, User2 } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { ChatRecipeCards } from "@/features/chat/components/chat-recipe-cards"
+import type { FriendGroup, FriendUser } from "@/features/friends/types"
 import { cn } from "@/lib/utils"
 import type { ChatMessage } from "@/features/chat/types"
+
+type MentionSuggestion =
+  | { id: string; kind: "friend"; label: string; value: string; detail: string }
+  | { id: string; kind: "group"; label: string; value: string; detail: string }
 
 interface ChatSheetProps {
   open: boolean
   draft: string
   error: string | null
+  friendGroups: FriendGroup[]
+  friends: FriendUser[]
   isHydrated: boolean
   isSending: boolean
   messages: ChatMessage[]
@@ -26,6 +33,8 @@ export function ChatSheet({
   open,
   draft,
   error,
+  friendGroups,
+  friends,
   isHydrated,
   isSending,
   messages,
@@ -35,10 +44,110 @@ export function ChatSheet({
   onRecipeClick,
 }: ChatSheetProps) {
   const endRef = useRef<HTMLDivElement | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const [mentionState, setMentionState] = useState<{
+    active: boolean
+    query: string
+    start: number
+    end: number
+  }>({
+    active: false,
+    query: "",
+    start: -1,
+    end: -1,
+  })
+  const [activeMentionIndex, setActiveMentionIndex] = useState(0)
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
   }, [messages, isSending])
+
+  const mentionSuggestions = useMemo(() => {
+    if (!mentionState.active) {
+      return []
+    }
+
+    const normalizedQuery = mentionState.query.trim().toLowerCase()
+    const friendSuggestions: MentionSuggestion[] = friends
+      .filter((friend) => {
+        if (!normalizedQuery) {
+          return true
+        }
+        return friend.username.toLowerCase().includes(normalizedQuery)
+      })
+      .map((friend) => ({
+        id: `friend:${friend.id}`,
+        kind: "friend",
+        label: `@${friend.username}`,
+        value: `@[friend:${friend.username}]`,
+        detail: "Friend",
+      }))
+
+    const groupSuggestions: MentionSuggestion[] = friendGroups
+      .filter((group) => {
+        if (!normalizedQuery) {
+          return true
+        }
+        return group.name.toLowerCase().includes(normalizedQuery)
+      })
+      .map((group) => ({
+        id: `group:${group.id}`,
+        kind: "group",
+        label: `@${group.name}`,
+        value: `@[group:${group.name}]`,
+        detail: "Group",
+      }))
+
+    return [...friendSuggestions, ...groupSuggestions].slice(0, 8)
+  }, [friendGroups, friends, mentionState.active, mentionState.query])
+
+  useEffect(() => {
+    if (activeMentionIndex >= mentionSuggestions.length) {
+      setActiveMentionIndex(0)
+    }
+  }, [activeMentionIndex, mentionSuggestions.length])
+
+  function formatMessageContentForDisplay(content: string) {
+    return content
+      .replace(/@\[friend:([^\]]+)\]/g, "@$1")
+      .replace(/@\[group:([^\]]+)\]/g, "@$1")
+  }
+
+  function updateMentionState(nextValue: string, caretPosition: number) {
+    const textBeforeCaret = nextValue.slice(0, caretPosition)
+    const mentionMatch = textBeforeCaret.match(/(?:^|\s)@([^\s@]*)$/)
+    if (!mentionMatch) {
+      setMentionState((current) => (current.active ? { active: false, query: "", start: -1, end: -1 } : current))
+      return
+    }
+
+    const query = mentionMatch[1] ?? ""
+    const start = caretPosition - query.length - 1
+    setMentionState({
+      active: true,
+      query,
+      start,
+      end: caretPosition,
+    })
+    setActiveMentionIndex(0)
+  }
+
+  function insertMention(suggestion: MentionSuggestion) {
+    if (!textareaRef.current || !mentionState.active) {
+      return
+    }
+
+    const nextDraft = `${draft.slice(0, mentionState.start)}${suggestion.value} ${draft.slice(mentionState.end)}`
+    onDraftChange(nextDraft)
+    setMentionState({ active: false, query: "", start: -1, end: -1 })
+    setActiveMentionIndex(0)
+
+    const nextCaretPosition = mentionState.start + suggestion.value.length + 1
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.focus()
+      textareaRef.current?.setSelectionRange(nextCaretPosition, nextCaretPosition)
+    })
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -82,7 +191,7 @@ export function ChatSheet({
                           : "border bg-card text-card-foreground"
                       )}
                     >
-                      <p className="whitespace-pre-wrap leading-6">{message.content}</p>
+                      <p className="whitespace-pre-wrap leading-6">{formatMessageContentForDisplay(message.content)}</p>
                       {message.executedToolCalls && message.executedToolCalls.length > 0 ? (
                         <ChatRecipeCards executedToolCalls={message.executedToolCalls} onRecipeClick={onRecipeClick} />
                       ) : null}
@@ -118,13 +227,72 @@ export function ChatSheet({
 
           <div className="border-t bg-background/95 p-4 backdrop-blur">
             {error ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
-            <div className="rounded-3xl border border-border/70 bg-card/95 p-3 shadow-lg shadow-black/5 ring-1 ring-black/5">
+            <div className="relative rounded-3xl border border-border/70 bg-card/95 p-3 shadow-lg shadow-black/5 ring-1 ring-black/5">
+              {mentionState.active && mentionSuggestions.length > 0 ? (
+                <div className="absolute inset-x-3 bottom-[calc(100%+0.75rem)] z-20 rounded-2xl border bg-popover p-2 shadow-xl">
+                  <p className="px-2 pb-2 text-xs text-muted-foreground">Mention a friend or group</p>
+                  <div className="space-y-1">
+                    {mentionSuggestions.map((suggestion, index) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors",
+                          index === activeMentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                        )}
+                        onMouseDown={(event) => {
+                          event.preventDefault()
+                          insertMention(suggestion)
+                        }}
+                      >
+                        <span className="truncate font-medium">{suggestion.label}</span>
+                        <span className="ml-3 shrink-0 text-xs text-muted-foreground">{suggestion.detail}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <Textarea
+                ref={textareaRef}
                 value={draft}
-                onChange={(event) => onDraftChange(event.target.value)}
+                onChange={(event) => {
+                  const nextValue = event.target.value
+                  onDraftChange(nextValue)
+                  updateMentionState(nextValue, event.target.selectionStart ?? nextValue.length)
+                }}
                 placeholder="Ask the assistant something..."
-                className="min-h-24 resize-none border-0 bg-transparent px-1 py-1 text-sm leading-6 shadow-none placeholder:text-muted-foreground/80 focus-visible:ring-0"
+                className="min-h-24 resize-none border-0 bg-transparent px-1 py-1 text-sm leading-6 placeholder:text-muted-foreground/80 focus-visible:ring-0"
+                onClick={(event) => {
+                  const target = event.currentTarget
+                  updateMentionState(target.value, target.selectionStart ?? target.value.length)
+                }}
+                onKeyUp={(event) => {
+                  const target = event.currentTarget
+                  updateMentionState(target.value, target.selectionStart ?? target.value.length)
+                }}
                 onKeyDown={(event) => {
+                  if (mentionState.active && mentionSuggestions.length > 0) {
+                    if (event.key === "ArrowDown") {
+                      event.preventDefault()
+                      setActiveMentionIndex((current) => (current + 1) % mentionSuggestions.length)
+                      return
+                    }
+                    if (event.key === "ArrowUp") {
+                      event.preventDefault()
+                      setActiveMentionIndex((current) => (current - 1 + mentionSuggestions.length) % mentionSuggestions.length)
+                      return
+                    }
+                    if (event.key === "Escape") {
+                      event.preventDefault()
+                      setMentionState({ active: false, query: "", start: -1, end: -1 })
+                      return
+                    }
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault()
+                      insertMention(mentionSuggestions[activeMentionIndex] ?? mentionSuggestions[0])
+                      return
+                    }
+                  }
                   if (event.key === "Enter" && !event.shiftKey && isHydrated) {
                     event.preventDefault()
                     void onSendMessage(draft)

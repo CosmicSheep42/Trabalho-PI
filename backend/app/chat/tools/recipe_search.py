@@ -19,6 +19,49 @@ from app.models.recipe_tag import RecipeTag
 from app.models.tag import Tag
 from app.models.user import User
 
+MEAL_TYPE_TAG_ALIASES = {
+    "dessert": "dessert",
+    "desserts": "dessert",
+    "sobremesa": "dessert",
+    "sobremesas": "dessert",
+    "breakfast": "breakfast",
+    "breakfasts": "breakfast",
+    "cafe da manha": "breakfast",
+    "lunch": "lunch",
+    "dinner": "dinner",
+    "snack": "snack",
+    "snacks": "snack",
+    "appetizer": "appetizer",
+    "appetizers": "appetizer",
+}
+
+GENERIC_SEARCH_TOKENS = {
+    "a",
+    "an",
+    "any",
+    "are",
+    "as",
+    "de",
+    "dessert",
+    "desserts",
+    "for",
+    "me",
+    "mostrar",
+    "mostre",
+    "of",
+    "quero",
+    "recipe",
+    "recipes",
+    "receita",
+    "receitas",
+    "show",
+    "some",
+    "sobremesa",
+    "sobremesas",
+    "that",
+    "the",
+}
+
 
 def register_recipe_tools(registry: ToolRegistry) -> None:
     registry.register("search_recipes", search_recipes_tool)
@@ -40,6 +83,7 @@ def search_recipes_tool(context: ToolExecutionContext, arguments: dict[str, obje
         holidays = _read_string_list(arguments, "holidays")
         time_filter = _read_optional_string(arguments, "time_filter")
         limit = _read_limit(arguments.get("limit"))
+        search, tags = _infer_category_filters(search, tags)
 
         query = _build_recipe_query(db, current_user)
 
@@ -162,6 +206,31 @@ def _read_limit(value: object) -> int:
     if isinstance(value, int):
         return max(1, min(value, 8))
     return 4
+
+
+def _infer_category_filters(search: str | None, tags: list[str]) -> tuple[str | None, list[str]]:
+    if search is None:
+        return search, tags
+
+    lowered_search = search.casefold()
+    inferred_tags = list(tags)
+    for alias, slug in MEAL_TYPE_TAG_ALIASES.items():
+        if alias in lowered_search and slug not in inferred_tags:
+            inferred_tags.append(slug)
+
+    if not inferred_tags:
+        return search, tags
+
+    cleaned_terms = [
+        token
+        for token in lowered_search.replace(",", " ").split()
+        if token not in GENERIC_SEARCH_TOKENS
+    ]
+    if not cleaned_terms:
+        return None, inferred_tags
+
+    normalized_search = " ".join(cleaned_terms).strip()
+    return normalized_search or None, inferred_tags
 
 
 def _build_applied_filters(

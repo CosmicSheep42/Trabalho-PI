@@ -1,7 +1,250 @@
 {
   "answer_prompt_template": "{master_prompt}\n\nQuestion: {question}\nAnswer clearly and naturally.",
-  "system_prompt_template": "{master_prompt}\n\nYou are answering inside the Cookwise in-app chat.\nUse the conversation first.\nOnly call tools when they are actually available and necessary.\nIf the user asks to find, suggest, browse, or compare recipes, prefer using the recipe search tool before answering.\nIf the user asks to create, inspect, update, or manage shopping lists, list items, or list recipes, prefer using the shopping list tools.\nTreat natural-language names as the primary interface for tools: resolve list_name, item_name, and recipe_name yourself instead of asking the user for internal ids.\nIf the user asks to delete all lists, use the delete_list tool with delete_all=true instead of asking for each id.\nIf no tools are available, answer without claiming that you used one.\n\nCurrent user question:\n{user_question}\n\nCurrent retrieved context:\n{current_context}\n\nRetrieval guidance:\n{retrieval_guidance}\n",
+  "system_prompt_template": "{master_prompt}\n\nYou are answering inside the Cookwise in-app chat.\nUse the conversation first.\nOnly call tools when they are actually available and necessary.\nIf the user asks to find, suggest, browse, or compare recipes, prefer using the recipe search tool before answering.\nFor recipe category requests like dessert, breakfast, lunch, dinner, snack, or appetizer, prefer tags/category filters instead of literal free-text search.\nIf the user asks to create, inspect, update, or manage shopping lists, list items, or list recipes, prefer using the shopping list tools.\nIf the user asks to create, inspect, update, or manage calendar events, prefer using the calendar event tools.\nIf the user asks to save, unsave, remove from saved, or review saved recipes, prefer using the saved recipe tools.\nTreat natural-language names as the primary interface for tools: resolve event_name, list_name, item_name, and recipe_name yourself instead of asking the user for internal ids.\nWhen creating a shopping list without a color, use the default list color 'green'.\nFor compound requests like creating a list and then adding a recipe, call each required tool in sequence and do not claim success for later steps unless those tool calls actually ran successfully.\nWhen the user mentions collaborators with @ in chat, resolve them into friend_usernames, group_names, or mentions for the add_people_to_list tool.\nIf the user asks to delete all lists, use the delete_list tool with delete_all=true instead of asking for each id.\nIf the user asks to delete all events, use the delete_event tool with delete_all=true instead of asking for each id.\nIf the user asks to clear all saved recipes, use the remove_saved_recipe tool with delete_all=true instead of treating the full sentence as a recipe name.\nIf no tools are available, answer without claiming that you used one.\n\nCurrent user question:\n{user_question}\n\nCurrent retrieved context:\n{current_context}\n\nRetrieval guidance:\n{retrieval_guidance}\n",
   "tools": [
+    {
+      "name": "get_saved_recipes",
+      "description": "List the user's saved recipes. Use this when the user wants to review saved recipes or find a saved recipe by name.",
+      "executor": "get_saved_recipes",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name_query": {
+            "type": "string",
+            "description": "Optional natural-language filter for matching saved recipe names."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Optional maximum number of saved recipes to return."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "save_recipe",
+      "description": "Save a recipe using a natural-language recipe name, with optional saved servings and notes.",
+      "executor": "save_recipe",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "recipe_id": {
+            "type": "integer",
+            "description": "Optional recipe id."
+          },
+          "recipe_name": {
+            "type": "string",
+            "description": "Natural-language recipe name to save."
+          },
+          "servings": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Optional saved servings override."
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "description": "Optional saved notes. Use null to clear when updating an existing save."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "remove_saved_recipe",
+      "description": "Remove a recipe from the user's saved recipes using a natural-language recipe name, or clear all saved recipes at once.",
+      "executor": "remove_saved_recipe",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "recipe_id": {
+            "type": "integer",
+            "description": "Optional recipe id."
+          },
+          "recipe_name": {
+            "type": "string",
+            "description": "Natural-language recipe name to remove from saved recipes."
+          },
+          "delete_all": {
+            "type": "boolean",
+            "description": "Set true to remove all saved recipes."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_events",
+      "description": "List the user's accessible calendar events. Use this when you need to inspect available events or find an event by name.",
+      "executor": "get_events",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name_query": {
+            "type": "string",
+            "description": "Optional natural-language filter for matching event names."
+          },
+          "date": {
+            "type": "string",
+            "description": "Optional event date in YYYY-MM-DD format."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Optional maximum number of events to return."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create_event",
+      "description": "Create a new calendar event using natural-language list names for linked lists.",
+      "executor": "create_event",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Event name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional event description."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Event icon token."
+          },
+          "date": {
+            "type": "string",
+            "description": "Event date in YYYY-MM-DD format."
+          },
+          "list_names": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional shopping list names to link to the event."
+          }
+        },
+        "required": ["name", "icon", "date"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "update_event",
+      "description": "Update a calendar event by natural-language event name, including linked shopping lists.",
+      "executor": "update_event",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "integer",
+            "description": "Optional target event id."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Natural-language name of the target event."
+          },
+          "new_name": {
+            "type": "string",
+            "description": "Optional new event name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional new description."
+          },
+          "new_icon": {
+            "type": "string",
+            "description": "Optional new icon token."
+          },
+          "new_date": {
+            "type": "string",
+            "description": "Optional new event date in YYYY-MM-DD format."
+          },
+          "list_names": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional full replacement set of linked shopping list names."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "delete_event",
+      "description": "Delete a calendar event by natural-language name, or delete all events at once.",
+      "executor": "delete_event",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "integer",
+            "description": "Optional target event id."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Natural-language name of the event to delete."
+          },
+          "delete_all": {
+            "type": "boolean",
+            "description": "Set true to delete all of the user's accessible events."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "add_lists_to_event",
+      "description": "Attach one or more shopping lists to an existing calendar event using natural-language names.",
+      "executor": "add_lists_to_event",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "integer",
+            "description": "Optional target event id."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Natural-language name of the target event."
+          },
+          "list_names": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Shopping list names to add to the event."
+          }
+        },
+        "required": ["list_names"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "remove_lists_from_event",
+      "description": "Remove one or more shopping lists from an existing calendar event using natural-language names.",
+      "executor": "remove_lists_from_event",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "integer",
+            "description": "Optional target event id."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Natural-language name of the target event."
+          },
+          "list_names": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Shopping list names to remove from the event."
+          }
+        },
+        "required": ["list_names"],
+        "additionalProperties": false
+      }
+    },
     {
       "name": "get_lists",
       "description": "List the user's accessible shopping lists. Use this when you need to inspect available lists or find a list by name.",
@@ -25,7 +268,7 @@
     },
     {
       "name": "create_list",
-      "description": "Create a new shopping list.",
+      "description": "Create a new shopping list. If color is omitted, default to green.",
       "executor": "create_list",
       "parameters": {
         "type": "object",
@@ -36,14 +279,14 @@
           },
           "color": {
             "type": "string",
-            "description": "List color label or token."
+            "description": "Optional list color label or token. Defaults to green."
           },
           "date": {
             "type": ["string", "null"],
             "description": "Optional list date in YYYY-MM-DD format."
           }
         },
-        "required": ["name", "color"],
+        "required": ["name"],
         "additionalProperties": false
       }
     },
@@ -208,6 +451,40 @@
       }
     },
     {
+      "name": "add_people_to_list",
+      "description": "Add friends or friend groups as collaborators to a shopping list using natural-language list names and @mentions.",
+      "executor": "add_people_to_list",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "description": "Optional target list id."
+          },
+          "list_name": {
+            "type": "string",
+            "description": "Natural-language name of the target list."
+          },
+          "friend_usernames": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Friend usernames to add as collaborators."
+          },
+          "group_names": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Friend group names whose members should be added as collaborators."
+          },
+          "mentions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional raw @mentions such as @[friend:alice] or @[group:Roommates]."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "add_recipe_to_list",
       "description": "Attach a recipe to a shopping list and merge its ingredients into the list items. Prefer list_name and recipe_name over internal ids.",
       "executor": "add_recipe_to_list",
@@ -268,7 +545,7 @@
     },
     {
       "name": "search_recipes",
-      "description": "Search Cookwise recipes by text, tags, holiday, prep-time bucket, and dietary restrictions. Use this when the user asks to find or suggest recipes.",
+      "description": "Search Cookwise recipes by text, tags, holiday, prep-time bucket, and dietary restrictions. Use tags for category-style requests like dessert, breakfast, lunch, dinner, snack, or appetizer.",
       "executor": "search_recipes",
       "parameters": {
         "type": "object",
@@ -280,7 +557,7 @@
           "tags": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Optional tag slugs such as soup, dessert, italian, cozy, quick-dinner."
+            "description": "Optional tag slugs such as soup, dessert, breakfast, dinner, italian, cozy, quick-dinner."
           },
           "holidays": {
             "type": "array",

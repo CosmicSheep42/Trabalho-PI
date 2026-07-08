@@ -5,8 +5,10 @@ from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 
 from app.api.routes.lists import (
+    _are_friends,
     _get_accessible_item,
     _get_accessible_list,
     _get_accessible_list_query,
@@ -19,11 +21,17 @@ from app.api.routes.lists import (
 from app.chat.tool_registry import ToolRegistry
 from app.chat.tool_runtime import ToolExecutionContext, ToolExecutionResult
 from app.core.normalization import normalize_item_name
+from app.core.time import utc_now_naive
 from app.db.session import SessionLocal
+from app.models.friend_group import FriendGroup
 from app.models.list_item import ListItem
+from app.models.list_member import ListMember
 from app.models.list_recipe import ListRecipe
 from app.models.recipe import Recipe
 from app.models.shopping_list import ShoppingList
+from app.models.user import User
+
+DEFAULT_LIST_COLOR = "green"
 
 
 def register_list_tools(registry: ToolRegistry) -> None:
@@ -36,6 +44,7 @@ def register_list_tools(registry: ToolRegistry) -> None:
     registry.register("delete_list_item", delete_list_item_tool)
     registry.register("add_recipe_to_list", add_recipe_to_list_tool)
     registry.register("remove_recipe_from_list", remove_recipe_from_list_tool)
+    registry.register("add_people_to_list", add_people_to_list_tool)
 
 
 def get_lists_tool(context: ToolExecutionContext, arguments: dict[str, object]) -> ToolExecutionResult:
@@ -63,7 +72,7 @@ def create_list_tool(context: ToolExecutionContext, arguments: dict[str, object]
     db = SessionLocal()
     try:
         name = _read_required_string(arguments, "name")
-        color = _read_required_string(arguments, "color")
+        color = _read_optional_string(arguments, "color") or DEFAULT_LIST_COLOR
         date_value = _read_optional_date(arguments, "date")
 
         shopping_list = ShoppingList(user_id=context.user_id, name=name, color=color, date=date_value)
@@ -335,6 +344,98 @@ def remove_recipe_from_list_tool(context: ToolExecutionContext, arguments: dict[
         db.close()
 
 
+def add_people_to_list_tool(context: ToolExecutionContext, arguments: dict[str, object]) -> ToolExecutionResult:
+    db = SessionLocal()
+    try:
+        shopping_list = _resolve_list(db, context.user_id, arguments)
+        friend_usernames = _read_string_list(arguments, "friend_usernames")
+        group_names = _read_string_list(arguments, "group_names")
+        mention_tokens = _read_string_list(arguments, "mentions")
+        parsed_friend_usernames, parsed_group_names = _parse_mentions(mention_tokens)
+
+        merged_friend_usernames = _merge_unique_names(friend_usernames, parsed_friend_usernames)
+        merged_group_names = _merge_unique_names(group_names, parsed_group_names)
+
+        if not merged_friend_usernames and not merged_group_names:
+            return ToolExecutionResult(
+                success=False,
+                message="No collaborators were provided.",
+                error="Provide at least one friend_usernames, group_names, or mentions entry.",
+            )
+
+        candidate_friend_ids = set(_resolve_friend_user_ids(db, context.user_id, merged_friend_usernames))
+        candidate_friend_ids.update(_resolve_group_member_user_ids(db, context.user_id, merged_group_names))
+
+        if not candidate_friend_ids:
+            return ToolExecutionResult(
+                success=False,
+                message="No collaborators were resolved from the provided mentions.",
+                error="No matching friends or group members were found.",
+            )
+
+        existing_member_ids = {shopping_list.user_id} | {
+            membership.user_id for membership in shopping_list.shared_memberships
+        }
+        friend_users = {
+            user.id: user
+            for user in db.query(User).filter(User.id.in_(sorted(candidate_friend_ids))).all()
+        }
+
+        ids_to_add: list[int] = []
+        for friend_user_id in sorted(candidate_friend_ids):
+            if friend_user_id == context.user_id:
+                continue
+            if friend_user_id in existing_member_ids:
+                continue
+            friend_user = friend_users.get(friend_user_id)
+            if friend_user is None:
+                continue
+            if not _are_friends(db, context.user_id, friend_user.id):
+                raise ValueError(f"@{friend_user.username} is not a friend of the current user.")
+            ids_to_add.append(friend_user_id)
+
+        if not ids_to_add:
+            return ToolExecutionResult(
+                success=False,
+                message="Everyone mentioned already has access to the list.",
+                error="All resolved collaborators already have access.",
+            )
+
+        now = utc_now_naive()
+        for friend_user_id in ids_to_add:
+            db.add(
+                ListMember(
+                    list_id=shopping_list.id,
+                    user_id=friend_user_id,
+                    invited_by_user_id=context.user_id,
+                    created_at=now,
+                )
+            )
+
+        db.commit()
+        updated_list = _get_accessible_list(db, context.user_id, shopping_list.id)
+        added_usernames = [
+            user.username
+            for user_id in ids_to_add
+            if (user := friend_users.get(user_id)) is not None and user.username
+        ]
+        return ToolExecutionResult(
+            success=True,
+            message=f"Added {len(ids_to_add)} collaborators to list '{updated_list.name}'.",
+            data={
+                "type": "shopping_list",
+                "list": _serialize_list(updated_list),
+                "added_usernames": added_usernames,
+            },
+        )
+    except HTTPException as exc:
+        return _http_error_result("Could not add collaborators to the list.", exc)
+    except ValueError as exc:
+        return _validation_error_result("Could not add collaborators to the list.", exc)
+    finally:
+        db.close()
+
+
 def _serialize_list(shopping_list: ShoppingList) -> dict[str, Any]:
     return {
         "id": shopping_list.id,
@@ -371,6 +472,113 @@ def _serialize_user_summary(user: Any) -> dict[str, Any] | None:
         "username": user.username,
         "clerk_user_id": user.clerk_user_id,
     }
+
+
+def _parse_mentions(mentions: list[str]) -> tuple[list[str], list[str]]:
+    friend_usernames: list[str] = []
+    group_names: list[str] = []
+
+    for raw_mention in mentions:
+        mention = raw_mention.strip()
+        lowered = mention.casefold()
+
+        if lowered.startswith("@[friend:") and mention.endswith("]"):
+            friend_usernames.append(mention[len("@[friend:"):-1].strip())
+            continue
+        if lowered.startswith("@[group:") and mention.endswith("]"):
+            group_names.append(mention[len("@[group:"):-1].strip())
+            continue
+        if lowered.startswith("@group:"):
+            group_names.append(mention[len("@group:"):].strip())
+            continue
+        if mention.startswith("@"):
+            friend_usernames.append(mention[1:].strip())
+            continue
+
+        friend_usernames.append(mention)
+
+    return _clean_name_list(friend_usernames), _clean_name_list(group_names)
+
+
+def _merge_unique_names(primary: list[str], secondary: list[str]) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for value in [*primary, *secondary]:
+        normalized = value.casefold()
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        merged.append(value)
+    return merged
+
+
+def _resolve_friend_user_ids(db, user_id: int, usernames: list[str]) -> list[int]:
+    if not usernames:
+        return []
+
+    resolved_ids: list[int] = []
+    for username in usernames:
+        normalized_username = _normalize_friend_reference(username)
+        exact_matches = db.query(User).filter(func.lower(User.username) == normalized_username.lower()).all()
+        matches = exact_matches or db.query(User).filter(
+            func.lower(User.username).like(f"%{normalized_username.lower()}%")
+        ).all()
+        user = _resolve_single_match(matches, "friend", normalized_username)
+        if not _are_friends(db, user_id, user.id):
+            raise ValueError(f"@{user.username} is not a friend of the current user.")
+        resolved_ids.append(user.id)
+    return resolved_ids
+
+
+def _resolve_group_member_user_ids(db, user_id: int, group_names: list[str]) -> list[int]:
+    if not group_names:
+        return []
+
+    resolved_ids: list[int] = []
+    for group_name in group_names:
+        normalized_group_name = _normalize_group_reference(group_name)
+        exact_matches = (
+            db.query(FriendGroup)
+            .options(selectinload(FriendGroup.members))
+            .filter(FriendGroup.user_id == user_id, func.lower(FriendGroup.name) == normalized_group_name.lower())
+            .all()
+        )
+        matches = exact_matches or (
+            db.query(FriendGroup)
+            .options(selectinload(FriendGroup.members))
+            .filter(
+                FriendGroup.user_id == user_id,
+                func.lower(FriendGroup.name).like(f"%{normalized_group_name.lower()}%"),
+            )
+            .all()
+        )
+        group = _resolve_single_match(matches, "group", normalized_group_name)
+        resolved_ids.extend(member.friend_user_id for member in group.members)
+    return resolved_ids
+
+
+def _normalize_friend_reference(value: str) -> str:
+    normalized = value.strip()
+    lowered = normalized.casefold()
+    if lowered.startswith("@[friend:") and normalized.endswith("]"):
+        return normalized[len("@[friend:"):-1].strip()
+    if lowered.startswith("@friend:"):
+        return normalized[len("@friend:"):].strip()
+    if normalized.startswith("@"):
+        return normalized[1:].strip()
+    return normalized
+
+
+def _normalize_group_reference(value: str) -> str:
+    normalized = value.strip()
+    lowered = normalized.casefold()
+    if lowered.startswith("@[group:") and normalized.endswith("]"):
+        return normalized[len("@[group:"):-1].strip()
+    if lowered.startswith("@group:"):
+        return normalized[len("@group:"):].strip()
+    if normalized.startswith("@"):
+        return normalized[1:].strip()
+    return normalized
 
 
 def _resolve_list(db, user_id: int, arguments: dict[str, object]) -> ShoppingList:
@@ -486,6 +694,20 @@ def _read_optional_string(arguments: dict[str, object], key: str) -> str | None:
     return stripped
 
 
+def _read_string_list(arguments: dict[str, object], key: str) -> list[str]:
+    value = arguments.get(key)
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ValueError(f"'{key}' must be an array of strings.")
+    return _clean_name_list([item for item in value if isinstance(item, str)])
+
+
+def _clean_name_list(values: list[str]) -> list[str]:
+    cleaned = [value.strip() for value in values if value.strip()]
+    return cleaned
+
+
 def _read_required_int(arguments: dict[str, object], key: str) -> int:
     value = _read_optional_int(arguments, key)
     if value is None:
@@ -515,9 +737,15 @@ def _read_optional_bool(arguments: dict[str, object], key: str) -> bool | None:
     value = arguments.get(key)
     if value is None:
         return None
-    if not isinstance(value, bool):
-        raise ValueError(f"'{key}' must be a boolean.")
-    return value
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+    raise ValueError(f"'{key}' must be a boolean.")
 
 
 def _read_optional_date(arguments: dict[str, object], key: str) -> dt_date | None:
