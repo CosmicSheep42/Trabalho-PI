@@ -101,11 +101,8 @@ export function ChatSheet({
     return [...friendSuggestions, ...groupSuggestions].slice(0, 8)
   }, [friendGroups, friends, mentionState.active, mentionState.query])
 
-  useEffect(() => {
-    if (activeMentionIndex >= mentionSuggestions.length) {
-      setActiveMentionIndex(0)
-    }
-  }, [activeMentionIndex, mentionSuggestions.length])
+  const safeActiveMentionIndex =
+    mentionSuggestions.length > 0 && activeMentionIndex < mentionSuggestions.length ? activeMentionIndex : 0
 
   function formatMessageContentForDisplay(content: string) {
     return content
@@ -195,11 +192,6 @@ export function ChatSheet({
                       {message.executedToolCalls && message.executedToolCalls.length > 0 ? (
                         <ChatRecipeCards executedToolCalls={message.executedToolCalls} onRecipeClick={onRecipeClick} />
                       ) : null}
-                      {message.toolCalls && message.toolCalls.length > 0 ? (
-                        <p className="mt-2 text-xs opacity-80">
-                          Tool calls: {message.toolCalls.map((toolCall) => toolCall.name).join(", ")}
-                        </p>
-                      ) : null}
                     </div>
 
                     {message.role === "user" ? (
@@ -238,7 +230,7 @@ export function ChatSheet({
                         type="button"
                         className={cn(
                           "flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors",
-                          index === activeMentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                          index === safeActiveMentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
                         )}
                         onMouseDown={(event) => {
                           event.preventDefault()
@@ -289,7 +281,7 @@ export function ChatSheet({
                     }
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault()
-                      insertMention(mentionSuggestions[activeMentionIndex] ?? mentionSuggestions[0])
+                    insertMention(mentionSuggestions[safeActiveMentionIndex] ?? mentionSuggestions[0])
                       return
                     }
                   }

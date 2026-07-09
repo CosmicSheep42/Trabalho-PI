@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date as dt_date
+import json
 from typing import Any
 
 from fastapi import HTTPException
@@ -71,7 +72,7 @@ def get_lists_tool(context: ToolExecutionContext, arguments: dict[str, object]) 
 def create_list_tool(context: ToolExecutionContext, arguments: dict[str, object]) -> ToolExecutionResult:
     db = SessionLocal()
     try:
-        name = _read_required_string(arguments, "name")
+        name = _read_required_string(arguments, "name", "list_name")
         color = _read_optional_string(arguments, "color") or DEFAULT_LIST_COLOR
         date_value = _read_optional_date(arguments, "date")
 
@@ -586,7 +587,7 @@ def _resolve_list(db, user_id: int, arguments: dict[str, object]) -> ShoppingLis
     if list_id is not None:
         return _get_accessible_list(db, user_id, list_id)
 
-    list_name = _read_optional_string(arguments, "list_name")
+    list_name = _read_optional_string(arguments, "list_name", "name")
     if list_name is None:
         raise ValueError("Provide 'list_name' for natural-language list operations.")
 
@@ -675,29 +676,49 @@ def _display_name(entity: Any) -> str:
     return str(getattr(entity, "id", entity))
 
 
-def _read_required_string(arguments: dict[str, object], key: str) -> str:
-    value = _read_optional_string(arguments, key)
+def _read_required_string(arguments: dict[str, object], key: str, *aliases: str) -> str:
+    value = _read_optional_string(arguments, key, *aliases)
     if value is None:
         raise ValueError(f"'{key}' must be a non-empty string.")
     return value
 
 
-def _read_optional_string(arguments: dict[str, object], key: str) -> str | None:
-    value = arguments.get(key)
-    if value is None:
-        return None
-    if not isinstance(value, str):
-        raise ValueError(f"'{key}' must be a string.")
-    stripped = value.strip()
-    if not stripped:
-        return None
-    return stripped
+def _read_optional_string(arguments: dict[str, object], key: str, *aliases: str) -> str | None:
+    for candidate_key in (key, *aliases):
+        if candidate_key not in arguments:
+            continue
+        value = arguments.get(candidate_key)
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError(f"'{candidate_key}' must be a string.")
+        stripped = value.strip()
+        if not stripped:
+            return None
+        return stripped
+    return None
 
 
 def _read_string_list(arguments: dict[str, object], key: str) -> list[str]:
     value = arguments.get(key)
     if value is None:
         return []
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return []
+        try:
+            parsed = json.loads(stripped)
+        except json.JSONDecodeError:
+            parsed = None
+        if isinstance(parsed, list):
+            value = parsed
+        else:
+            fragments = [
+                fragment.strip().strip('"').strip("'").strip("[]")
+                for fragment in stripped.split(",")
+            ]
+            return _clean_name_list([fragment for fragment in fragments if fragment])
     if not isinstance(value, list):
         raise ValueError(f"'{key}' must be an array of strings.")
     return _clean_name_list([item for item in value if isinstance(item, str)])

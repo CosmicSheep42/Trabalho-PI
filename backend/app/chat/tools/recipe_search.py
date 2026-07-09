@@ -78,7 +78,7 @@ def search_recipes_tool(context: ToolExecutionContext, arguments: dict[str, obje
                 error="User not found.",
             )
 
-        search = _read_optional_string(arguments, "search")
+        search = _read_optional_string(arguments, "search", "query")
         tags = _read_string_list(arguments, "tags")
         holidays = _read_string_list(arguments, "holidays")
         time_filter = _read_optional_string(arguments, "time_filter")
@@ -185,12 +185,15 @@ def _to_recipe_card_payload(recipe: dict[str, object]) -> dict[str, object]:
     }
 
 
-def _read_optional_string(arguments: dict[str, object], key: str) -> str | None:
-    value = arguments.get(key)
-    if not isinstance(value, str):
-        return None
-    stripped = value.strip()
-    return stripped or None
+def _read_optional_string(arguments: dict[str, object], key: str, *aliases: str) -> str | None:
+    for candidate_key in (key, *aliases):
+        value = arguments.get(candidate_key)
+        if not isinstance(value, str):
+            continue
+        stripped = value.strip()
+        if stripped:
+            return stripped
+    return None
 
 
 def _read_string_list(arguments: dict[str, object], key: str) -> list[str]:

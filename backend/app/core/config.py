@@ -39,9 +39,11 @@ class Settings:
     ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     generation_model = os.getenv("GENERATION_MODEL", "llama3.2:3b")
     generation_temperature = float(os.getenv("GENERATION_TEMPERATURE", "0.55"))
+    generation_num_predict = int(os.getenv("GENERATION_NUM_PREDICT", "1024"))
     tool_calling_enabled = os.getenv("TOOL_CALLING_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
     tool_calling_model = os.getenv("TOOL_CALLING_MODEL", generation_model)
-    tool_calling_max_rounds = int(os.getenv("TOOL_CALLING_MAX_ROUNDS", "2"))
+    tool_calling_num_predict = int(os.getenv("TOOL_CALLING_NUM_PREDICT", "384"))
+    tool_calling_max_rounds = int(os.getenv("TOOL_CALLING_MAX_ROUNDS", "8"))
     cleaner_remove_emojis = os.getenv("CLEANER_REMOVE_EMOJIS", "true").strip().lower() in {"1", "true", "yes", "on"}
     cleaner_expand_abbreviations = os.getenv("CLEANER_EXPAND_ABBREVIATIONS", "true").strip().lower() in {"1", "true", "yes", "on"}
     cleaner_normalize_unicode = os.getenv("CLEANER_NORMALIZE_UNICODE", "true").strip().lower() in {"1", "true", "yes", "on"}

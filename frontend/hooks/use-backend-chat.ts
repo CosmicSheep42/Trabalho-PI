@@ -109,7 +109,11 @@ export function useBackendChat() {
         }),
       ])
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : "Unable to send message."
+      const rawMessage = requestError instanceof Error ? requestError.message : "Unable to send message."
+      const message =
+        rawMessage === "Inference timed out."
+          ? "O assistente demorou demais para responder. Tente uma pergunta mais curta ou tente novamente em alguns segundos."
+          : rawMessage
       setError(message)
       setMessages((current) => current.filter((messageItem) => messageItem.id !== nextUserMessage.id))
     } finally {

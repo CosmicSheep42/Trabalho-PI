@@ -46,6 +46,7 @@ class OllamaToolCallingClient:
         tools: list[ToolSpec] | None = None,
         *,
         model: str | None = None,
+        num_predict: int | None = None,
     ) -> ChatResult:
         payload: dict[str, Any] = {
             "model": model or self.default_model,
@@ -53,7 +54,7 @@ class OllamaToolCallingClient:
             "stream": False,
             "options": {
                 "temperature": self.temperature,
-                "num_predict": self.num_predict,
+                "num_predict": num_predict if num_predict is not None else self.num_predict,
             },
         }
         if tools:
